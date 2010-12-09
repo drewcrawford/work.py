@@ -36,7 +36,8 @@ class GitConnect:
     #
     def checkForUnsavedChanges(self):
         output = self.checkForRepository()
-        if "Changed but not updated" in output:
+        #if "git status" returns an error..."
+        if commands.getstatusoutput("git status --porcelain")[1]:
             print "WARNING: changes have been made to source code!"
             print "         use git stash or git commit to save changes"
             quit()
