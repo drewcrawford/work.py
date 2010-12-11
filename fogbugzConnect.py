@@ -85,6 +85,40 @@ class FogBugzConnect:
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.username,hrsCurrEst=timespan,sEvent="work.py automatically created this test case")
         print "Created case %s" % response.case['ixbug']
         
+    #
+    # returns true iff CASE_NO is a work.py test case
+    #
+    def isTestCase(self,CASE_NO):
+        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events")
+        for case in response.cases:
+            if case.stitle.contents[0]=="Review":
+                for event in case.events:
+                    if event.s.contents[0]=="work.py automatically created this test case":
+                        return True
+        return False
+        #print response
+        
+    #
+    # return (actual_case, test_case) given either one
+    #
+    def getCaseTuple(self,SOME_CASE):
+        if self.isTestCase(SOME_CASE):
+            response = self.fbConnection.search(q=SOME_CASE,cols="ixBugParent")
+            return (int(response.case.ixbugparent.contents[0]),SOME_CASE)
+            
+        else: #parent case
+            response = self.fbConnection.search(q=SOME_CASE,cols="ixBugChildren")
+            for child in "".join(response.case.ixbugchildren).split(","):
+                if self.isTestCase(child):
+                    return (SOME_CASE,int(child))
+        raise Exception("Cannot find a test case for %d",SOME_CASE)
+        
+    #
+    # start testing a given case
+    #
+    def startTest(self,SOME_CASE):
+        print self.getCaseTuple(SOME_CASE)
+        
         
     #
     # Start work on a case

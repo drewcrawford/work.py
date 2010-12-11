@@ -28,6 +28,8 @@ def printUsageString(command = 0):
         print "  ship : Closes case and pushes branch to origin"
     if (not command or command == "testmake"):
         print "  testmake CASE_NO : Makes a test subcase for CASE_NO"
+    if (not command or command == "test"):
+        print "  test CASE_NO : you are performing are reviewing/testing CASE_NO"
     print ""
     sys.exit()
 
@@ -112,6 +114,10 @@ def projectTestMake(PARENT_CASE):
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
     fbConnection.createTestCase(PARENT_CASE)
+    
+def projectStartTest(CASE_NO):
+    fbConnection = FogBugzConnect()
+    fbConnection.startTest(CASE_NO)
 
 ################################################################################
 ########################### Begin Script Here ##################################
@@ -152,6 +158,8 @@ elif(task == "ship"):
     projectShip()
 elif (task == "testmake"):
     projectTestMake(CASE_NO)
+elif (task == "test"):
+    projectStartTest(CASE_NO)
 else:
     printUsageString()
 
