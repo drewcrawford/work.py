@@ -62,7 +62,15 @@ class GitConnect:
             quit()
         else:
             return
-            
+        
+    #
+    # Checks out existing branch for CASE_NO
+    #
+    def checkoutExistingBranch(self,CASE_NO):
+        (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout work-{0}".format(CASE_NO))
+        if(checkoutNewBranchStatus):
+            print "ERROR: could not checkout newly created branch"
+            quit()
     #
     # gets list of branches. if CASE_NO branch exists, check it out. Otherwise
     # create a new branch, check into it, and return.

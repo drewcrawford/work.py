@@ -124,7 +124,7 @@ def projectStartTest(CASE_NO):
     gitConnection = GitConnect()
     gitConnection.checkForUnsavedChanges()
     gitConnection.fetch()
-    gitConnection.checkoutBranch("work-%d" % parent)
+    gitConnection.checkoutExistingBranch(parent)
     gitConnection.pull()
     
     fbConnection.startCase(test)
