@@ -180,6 +180,26 @@ def projectPassTest():
     
     #fbConnection.closeCase(parent)
     
+#
+#
+#
+def projectIntegrate(CASE_NO):
+    gitConnection = GitConnect()
+    gitConnection.checkForUnsavedChanges()
+    
+    fbConnection = FogBugzConnect()
+    integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
+    
+    gitConnection.checkoutExistingBranchRaw(integrate_to)
+    gitConnection.pull()
+    
+    gitConnection.mergeIn("work-%d" % CASE_NO)
+    
+    fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
+    fbConnection.closeCase(CASE_NO)
+    
+    
+    
 
 ################################################################################
 ########################### Begin Script Here ##################################
@@ -226,6 +246,8 @@ elif (task == "fail"):
     projectFailTest()
 elif (task == "pass"):
     projectPassTest()
+elif (task == "integrate"):
+    projectIntegrate(CASE_NO)
 else:
     printUsageString()
 

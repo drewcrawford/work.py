@@ -198,7 +198,12 @@ class FogBugzConnect:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!"
         return
     
-    
+    #
+    #
+    #
+    def getIntegrationBranch(self,CASE_NO):
+        resp = self.fbConnection.search(q=CASE_NO,cols="sFixFor")
+        return (resp.case.sfixfor.contents[0].encode('utf-8'))
     
     #
     # resolve case with CASE_NO

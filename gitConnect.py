@@ -40,7 +40,16 @@ class GitConnect:
         if status:
             print "ERROR:  Cannot fetch! %s" % output
             quit()
-    
+    #
+    #
+    #
+    def mergeIn(self,BRANCH_NAME):
+        print "Merging in %s..." % BRANCH_NAME
+        (status,output) = commands.getstatusoutput("git merge %s" % BRANCH_NAME)
+        print output
+        if status:
+            print "ERROR: merge was unsuccessful."
+        print "Use 'git push' to ship."
     #
     # Performs a git pull
     #
@@ -52,7 +61,10 @@ class GitConnect:
         str = file.read()
         file.close()
         if self.getBranch() not in str:
-            print "WARNING: This branch does not track any remote branch..."
+            print "WARNING: This is not a tracking branch."
+            (status,output) = commands.getstatusoutput("git pull origin %s" % self.getBranch())
+            if status:
+                print "ERROR:  Cannot pull! %s" % output
         else:
             (status,output) = commands.getstatusoutput("git pull")
             if status:
@@ -87,8 +99,17 @@ class GitConnect:
     def checkoutExistingBranch(self,CASE_NO):
         (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout work-{0}".format(CASE_NO))
         if(checkoutNewBranchStatus):
-            print "ERROR: could not checkout newly created branch: %s" % output
+            print "ERROR: could not checkout existing branch: %s" % output
             quit()
+    #
+    # Checks out branch given branch name
+    #
+    def checkoutExistingBranchRaw(self,BRANCH_NAME):
+        (status,output) = commands.getstatusoutput("git checkout %s" % BRANCH_NAME)
+        if (status):
+            print "ERROR: could not checkout existing branch: %s" % output
+            quit()
+        
     #
     # gets list of branches. if CASE_NO branch exists, check it out. Otherwise
     # create a new branch, check into it, and return.
