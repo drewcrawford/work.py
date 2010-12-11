@@ -117,7 +117,20 @@ def projectTestMake(PARENT_CASE):
     
 def projectStartTest(CASE_NO):
     fbConnection = FogBugzConnect()
-    fbConnection.startTest(CASE_NO)
+    
+    #get the appropriate cases out of FogBugz
+    (parent,test) = fbConnection.getCaseTuple(CASE_NO)
+    
+    gitConnection = GitConnect()
+    gitConnection.checkForUnsavedChanges()
+    gitConnection.fetch()
+    gitConnection.checkoutBranch("work-%d" % parent)
+    gitConnection.pull()
+    
+    fbConnection.startCase(test)
+    
+    
+    
 
 ################################################################################
 ########################### Begin Script Here ##################################

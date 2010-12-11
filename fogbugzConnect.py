@@ -117,7 +117,8 @@ class FogBugzConnect:
     # start testing a given case
     #
     def startTest(self,SOME_CASE):
-        print self.getCaseTuple(SOME_CASE)
+        (parent,test) = self.getCaseTuple(SOME_CASE)
+        
         
         
     #

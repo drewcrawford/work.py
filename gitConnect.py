@@ -21,6 +21,25 @@ class GitConnect:
         output = self.checkForRepository()
         output = output.split("\n")[0].split(" ")[3]
         return output
+    #
+    # Performs a git fetch
+    #
+    def fetch(self):
+        self.checkForRepository()
+        (status,output) = commands.getstatusoutput("git fetch")
+        if status:
+            print "ERROR:  Cannot fetch! %s" % output
+            quit()
+    
+    #
+    # Performs a git pull
+    #
+    def pull(self):
+        self.checkForRepository()
+        (status,output) = commands.getstatusoutput("git pull")
+        if status:
+            print "ERROR:  Cannot pull! %s" % output
+            quit()
     
     #
     # GitConnect Constructor
