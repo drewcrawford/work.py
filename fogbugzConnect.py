@@ -11,6 +11,7 @@ except Exception as e:
     print "Could not import FogBugz API because: ", e
     
     quit()
+from xml.dom.minidom import parseString
 
 class FogBugzConnect:
     
@@ -69,6 +70,21 @@ class FogBugzConnect:
             return resp.findAll('case')
         else:
             return None
+    #
+    # extract txt from xml node
+    #
+    def getText(node):
+        return ''.join(node.data)
+    
+    #
+    # create a test case
+    #
+    def createTestCase(self,PARENT_CASE):
+        print "How long does it take to test? ",
+        timespan = raw_input()
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.username,hrsCurrEst=timespan,sEvent="work.py automatically created this test case")
+        print "Created case %s" % response.case['ixbug']
+        
         
     #
     # Start work on a case

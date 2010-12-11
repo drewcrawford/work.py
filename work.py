@@ -26,6 +26,8 @@ def printUsageString(command = 0):
         print "  stop CASE_NO : Checks out of FogBugz case and checks into git Master branch"
     if (not command or command == "ship"):
         print "  ship : Closes case and pushes branch to origin"
+    if (not command or command == "testmake"):
+        print "  testmake: Makes a test subcase"
     print ""
     sys.exit()
 
@@ -103,6 +105,13 @@ def projectShip():
         print "ERROR: Not in correct working branch to ship!"
         quit()
 
+#
+#
+#
+def projectTestMake(PARENT_CASE):
+    #create new FogBugzConnect object to talk to FBAPI
+    fbConnection = FogBugzConnect()
+    fbConnection.createTestCase(PARENT_CASE)
 
 ################################################################################
 ########################### Begin Script Here ##################################
@@ -141,6 +150,8 @@ elif(task == "stop"):
     projectStop(CASE_NO)
 elif(task == "ship"):
     projectShip()
+elif (task == "testmake"):
+    projectTestMake(CASE_NO)
 else:
     printUsageString()
 
