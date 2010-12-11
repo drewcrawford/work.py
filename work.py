@@ -32,6 +32,10 @@ def printUsageString(command = 0):
         print "  test CASE_NO : you are performing are reviewing/testing CASE_NO"
     if (not command or command == "fail"):
         print "  fail : the case has failed to pass a test"
+    if (not command or command == "pass"):
+        print "  pass: the case has passed a test"
+    if (not command or command == "integrate"):
+        print "  integrate: integrate the case to somewhere"
     print ""
     sys.exit()
 
@@ -100,7 +104,7 @@ def projectShip():
     gitConnection.checkForUnsavedChanges();
     
     # check if branch is the right branch
-    caseno = gitConnect.extractCaseFromBranch()
+    caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
     fbConnection.resolveCase(caseno)
@@ -118,7 +122,7 @@ def projectStartTest(CASE_NO):
     
     #get the appropriate cases out of FogBugz
     (parent,test) = fbConnection.getCaseTuple(CASE_NO)
-    
+    fbConnection.ensureReadyForTest(parent)
     gitConnection = GitConnect()
     gitConnection.checkForUnsavedChanges()
     gitConnection.fetch()
@@ -151,7 +155,30 @@ def projectFailTest():
     fbConnection.reactivate(parent,fbConnection.findImplementer(caseno),"Terribly sorry, but your case FAILED a test: %s" % reason)
     fbConnection.stopWork(test)
     
+#
+#
+#
+def projectPassTest():
+    gitConnection = GitConnect()
+    gitConnection.checkForUnsavedChanges()
+    caseno = gitConnection.extractCaseFromBranch()
+    gitConnection.pushChangesToOriginBranch(gitConnection.getBranch())
+    gitConnection.checkoutMaster()
     
+    fbConnection = FogBugzConnect()
+    (parent,test) = fbConnection.getCaseTuple(caseno)
+    statuses = fbConnection.getStatuses(test)
+    for i in range(0,len(statuses.keys())):
+        print i,":  ",statuses[sorted(statuses.keys())[i]]
+        
+    print "Choose your adventure: ",
+    choice = input()
+    ix = sorted(statuses.keys())[choice]
+    
+    fbConnection.resolveCase(test,ixstatus=ix)
+    fbConnection.closeCase(test)
+    
+    #fbConnection.closeCase(parent)
     
 
 ################################################################################
@@ -197,6 +224,8 @@ elif (task == "test"):
     projectStartTest(CASE_NO)
 elif (task == "fail"):
     projectFailTest()
+elif (task == "pass"):
+    projectPassTest()
 else:
     printUsageString()
 

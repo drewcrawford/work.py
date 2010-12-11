@@ -105,21 +105,36 @@ class FogBugzConnect:
     def createTestCase(self,PARENT_CASE):
         print "How long does it take to test? ",
         timespan = raw_input()
-        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.username,hrsCurrEst=timespan,sEvent="work.py automatically created this test case")
+        #extract parent info
+        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor")
+        print resp.case
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.username,hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
+                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=resp.case.ixfixfor.contents[0])
         print "Created case %s" % response.case['ixbug']
         
     #
     # returns true iff CASE_NO is a work.py test case
     #
     def isTestCase(self,CASE_NO):
-        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events")
+        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events,fOpen")
         for case in response.cases:
+            #print case.sstatus
+            if case.fopen.contents[0]=="false":return False
             if case.stitle.contents[0]=="Review":
                 for event in case.events:
                     if event.s.contents[0]=="work.py automatically created this test case":
                         return True
         return False
         #print response
+    #
+    # 
+    #
+    def ensureReadyForTest(self,CASE_NO):
+        response = self.fbConnection.search(q=CASE_NO,cols="sStatus")
+        if "Implemented" not in response.case.sstatus.contents[0] and "Fixed" not in response.case.sstatus.contents[0]:
+            print "Case %d is not ready for test!  (resolved or implemented)" % CASE_NO
+            quit()
+        
         
     #
     # return (actual_case, test_case) given either one
@@ -159,6 +174,19 @@ class FogBugzConnect:
         return
     
     #
+    # Lists statuses for a given case
+    #
+    def getStatuses(self,CASE_NO):
+        resp = self.fbConnection.search(q=CASE_NO,cols="ixCategory")
+        category = resp.case.ixcategory.contents[0]
+        resp = self.fbConnection.listStatuses(ixCategory=category)
+        result = {}
+        for status in resp.statuses:
+            if status.fresolved.contents[0]=="false": continue
+            result[status.ixstatus.contents[0]] = status.sstatus.contents[0]
+        return result
+    
+    #
     # Stop work
     #
     def stopWork(self, CASE_NO):
@@ -170,17 +198,27 @@ class FogBugzConnect:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!"
         return
     
+    
+    
     #
     # resolve case with CASE_NO
     #
-    def resolveCase(self, CASE_NO):
+    def resolveCase(self, CASE_NO,ixstatus=None):
         query = 'assignedto:"{0}" {1}'.format(self.username, CASE_NO)
         resp=self.fbConnection.search(q=query)
         if(resp):
-            self.fbConnection.resolve(ixBug=CASE_NO)
+            self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
         else:
             print "ERROR: FogBugz case does not exists or isn't assigned to you!"
         return
+
+    #
+    # close case with CASE_NO
+    #
+    
+    def closeCase(self,CASE_NO):
+        self.fbConnection.close(ixBug=CASE_NO)
+
 
     #
     # FogBugzConnect constructor!
