@@ -27,7 +27,7 @@ def printUsageString(command = 0):
     if (not command or command == "ship"):
         print "  ship : Closes case and pushes branch to origin"
     if (not command or command == "testmake"):
-        print "  testmake: Makes a test subcase"
+        print "  testmake CASE_NO : Makes a test subcase for CASE_NO"
     print ""
     sys.exit()
 
