@@ -21,6 +21,16 @@ class GitConnect:
         output = self.checkForRepository()
         output = output.split("\n")[0].split(" ")[3]
         return output
+    
+    #
+    #
+    #
+    def extractCaseFromBranch(self):
+        branch = self.getBranch()
+        if("work-" in branch):
+            return int(branch.split("-")[1])
+        else:
+            raise Exception("Branch %s is not a work branch!" % branch)
     #
     # Performs a git fetch
     #
@@ -36,10 +46,18 @@ class GitConnect:
     #
     def pull(self):
         self.checkForRepository()
-        (status,output) = commands.getstatusoutput("git pull")
-        if status:
-            print "ERROR:  Cannot pull! %s" % output
-            quit()
+        import ConfigParser
+        c = ConfigParser.ConfigParser()
+        file = open(".git/config")
+        str = file.read()
+        file.close()
+        if self.getBranch() not in str:
+            print "WARNING: This branch does not track any remote branch..."
+        else:
+            (status,output) = commands.getstatusoutput("git pull")
+            if status:
+                print "ERROR:  Cannot pull! %s" % output
+                quit()
     
     #
     # GitConnect Constructor

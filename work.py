@@ -30,6 +30,8 @@ def printUsageString(command = 0):
         print "  testmake CASE_NO : Makes a test subcase for CASE_NO"
     if (not command or command == "test"):
         print "  test CASE_NO : you are performing are reviewing/testing CASE_NO"
+    if (not command or command == "fail"):
+        print "  fail : the case has failed to pass a test"
     print ""
     sys.exit()
 
@@ -98,14 +100,10 @@ def projectShip():
     gitConnection.checkForUnsavedChanges();
     
     # check if branch is the right branch
-    if("work-" in branch):
-        caseNo = branch.split("-")[1]
-        gitConnection.pushChangesToOriginBranch(branch)
-        gitConnection.checkoutMaster()
-        fbConnection.resolveCase(caseNo)
-    else:
-        print "ERROR: Not in correct working branch to ship!"
-        quit()
+    caseno = gitConnect.extractCaseFromBranch()
+    gitConnection.pushChangesToOriginBranch(branch)
+    gitConnection.checkoutMaster()
+    fbConnection.resolveCase(caseno)
 
 #
 #
@@ -128,6 +126,30 @@ def projectStartTest(CASE_NO):
     gitConnection.pull()
     
     fbConnection.startCase(test)
+    
+#
+#
+#
+def projectFailTest():
+    reasons = {"0":"Failed a unit test.","1":"Failed a UI test"}
+    for reason in reasons.keys():
+        print reason," ",reasons[reason]
+    print "Or just type why it failed."
+    reason = raw_input()
+    if reason in reasons.keys():
+        reason = reasons[reason]
+    
+    
+    gitConnection = GitConnect()
+    gitConnection.checkForUnsavedChanges()
+    caseno = gitConnection.extractCaseFromBranch()
+    gitConnection.pushChangesToOriginBranch(gitConnection.getBranch())
+    gitConnection.checkoutMaster()
+    
+    fbConnection = FogBugzConnect()
+    (parent,test) = fbConnection.getCaseTuple(caseno)
+    fbConnection.reactivate(parent,fbConnection.findImplementer(caseno),"Terribly sorry, but your case FAILED a test: %s" % reason)
+    fbConnection.stopWork(test)
     
     
     
@@ -173,6 +195,8 @@ elif (task == "testmake"):
     projectTestMake(CASE_NO)
 elif (task == "test"):
     projectStartTest(CASE_NO)
+elif (task == "fail"):
+    projectFailTest()
 else:
     printUsageString()
 

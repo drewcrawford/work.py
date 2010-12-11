@@ -71,10 +71,33 @@ class FogBugzConnect:
         else:
             return None
     #
-    # extract txt from xml node
+    # Attach a comment to a case
     #
-    def getText(node):
-        return ''.join(node.data)
+    def commentOn(self,CASE_NO,msg):
+        response = self.fbConnection.edit(ixBug=CASE_NO,sEvent=msg)
+        
+    #
+    # Find implementor for a case
+    #
+    def findImplementer(self,CASE_NO):
+        query = str(CASE_NO)
+        resp = self.fbConnection.search(q=query,cols="events")
+        case = resp.case
+        for event in case.events:
+            import re
+            if len(event.s.contents)==0: continue
+            #print "looking at %s" % event.s.contents[0]
+            match = re.match("work.py: .* is implementing",event.s.contents[0])
+            if match:
+                return match.group(0)
+        raise Exception("No match")
+                
+        
+    #
+    # Reactivate case
+    #
+    def reactivate(self,CASE_NO,assignTo,msg):
+        response = self.fbConnection.reactivate(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
     
     #
     # create a test case
@@ -128,6 +151,7 @@ class FogBugzConnect:
         query = 'assignedto:"{0}" {1}'.format(self.username, CASE_NO)
         resp=self.fbConnection.search(q=query)
         if (resp):
+            self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
             self.fbConnection.startWork(ixBug=CASE_NO)
         else:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!!"
