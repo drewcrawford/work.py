@@ -12,6 +12,7 @@ except Exception as e:
     
     quit()
 from xml.dom.minidom import parseString
+FB_URL = 'http://drewcrawfordapps.fogbugz.com/'
 
 class FogBugzConnect:
     
@@ -42,6 +43,12 @@ class FogBugzConnect:
             return json.load(handle)
         finally:
             handle.close()
+    #
+    # Shows you CASE_NO
+    #
+    def view(self,CASE_NO):
+        from os import system
+        system("open " + FB_URL + "default.asp?%d" % CASE_NO)
     
     #
     # log into fogbugz
@@ -232,7 +239,7 @@ class FogBugzConnect:
         self.SETTINGS = os.path.expanduser("~/.workScript")
         self.email = ""
         self.username = ""
-        self.fbConnection = FogBugz('http://drewcrawfordapps.fogbugz.com/')
+        self.fbConnection = FogBugz(FB_URL)
         while True:
             try:
                 self.login()

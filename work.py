@@ -20,6 +20,8 @@ from fogbugzConnect import FogBugzConnect
 def printUsageString(command = 0):
     print "usage: work /command/ [args]"
     print ""
+    if (not command or command == "view"):
+        print "  view CASE_NO : Shows you CASE_NO"
     if (not command or command == "start"):
         print "  start CASE_NO [--from=FROMSPEC] : Checks into FogBugz and git branch"
     if (not command or command == "stop"):
@@ -75,6 +77,8 @@ def projectStart(CASE_NO, fromSpec):
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO, fromSpec)
     
+    fbConnection.view(CASE_NO)
+    
     print "Use work ship to commit your changes"
 
 #
@@ -84,19 +88,28 @@ def projectStop():
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
     
+    #check for unsaved changes to source code
+    gitConnection.checkForUnsavedChanges()
+    
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
     
     caseno = gitConnection.extractCaseFromBranch()
     
-    #check for unsaved changes to source code
-    gitConnection.checkForUnsavedChanges()
+
     
     #stop working on case and checkout master
     gitConnection.checkoutMaster()
     
     #clock out of project
     fbConnection.stopWork(caseno)
+    
+#
+#
+#
+def projectView(CASE_NO):
+    fbConnection = FogBugzConnect()
+    fbConnection.view(CASE_NO)
     
 
 #
@@ -105,13 +118,14 @@ def projectStop():
 def projectShip():
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
+    gitConnection.checkForUnsavedChanges();
     
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
 
-    #check if we're in a git repo and changes are commited
+    #check if we're in a git repo
     branch = gitConnection.getBranch();
-    gitConnection.checkForUnsavedChanges();
+
     
     # check if branch is the right branch
     caseno = gitConnection.extractCaseFromBranch()
@@ -128,13 +142,15 @@ def projectTestMake(PARENT_CASE):
     fbConnection.createTestCase(PARENT_CASE)
     
 def projectStartTest(CASE_NO):
+    gitConnection = GitConnect()
+    gitConnection.checkForUnsavedChanges()
+    
     fbConnection = FogBugzConnect()
     
     #get the appropriate cases out of FogBugz
     (parent,test) = fbConnection.getCaseTuple(CASE_NO)
     fbConnection.ensureReadyForTest(parent)
-    gitConnection = GitConnect()
-    gitConnection.checkForUnsavedChanges()
+
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
     gitConnection.pull()
@@ -147,6 +163,9 @@ def projectStartTest(CASE_NO):
 #
 #
 def projectFailTest():
+    gitConnection = GitConnect()
+    gitConnection.checkForUnsavedChanges()
+    
     reasons = {"0":"Failed a unit test.","1":"Failed a UI test"}
     for reason in reasons.keys():
         print reason," ",reasons[reason]
@@ -156,8 +175,7 @@ def projectFailTest():
         reason = reasons[reason]
     
     
-    gitConnection = GitConnect()
-    gitConnection.checkForUnsavedChanges()
+
     caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(gitConnection.getBranch())
     gitConnection.checkoutMaster()
@@ -272,6 +290,8 @@ elif (task == "pass"):
     projectPassTest()
 elif (task == "integrate"):
     projectIntegrate(CASE_NO)
+elif (task == "view"):
+    projectView(CASE_NO)
 else:
     printUsageString()
 
