@@ -240,7 +240,7 @@ class FogBugzConnect:
         self.email = ""
         self.username = ""
         self.fbConnection = FogBugz(FB_URL)
-        for i in range(0,4):
+        for i in range(0,1):
             if i == 3:
                 print "Too many failed attempts! Sorry!"
                 quit()
