@@ -23,7 +23,7 @@ def printUsageString(command = 0):
     if (not command or command == "start"):
         print "  start CASE_NO [--from=FROMSPEC] : Checks into FogBugz and git branch"
     if (not command or command == "stop"):
-        print "  stop CASE_NO : Checks out of FogBugz case and checks into git Master branch"
+        print "  stop : Checks out of FogBugz case and checks into git Master branch"
     if (not command or command == "ship"):
         print "  ship : Closes case and pushes branch to origin"
     if (not command or command == "testmake"):
@@ -80,12 +80,14 @@ def projectStart(CASE_NO, fromSpec):
 #
 #
 #
-def projectStop(CASE_NO):
+def projectStop():
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
     
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
+    
+    caseno = gitConnection.extractCaseFromBranch()
     
     #check for unsaved changes to source code
     gitConnection.checkForUnsavedChanges()
@@ -94,7 +96,7 @@ def projectStop(CASE_NO):
     gitConnection.checkoutMaster()
     
     #clock out of project
-    fbConnection.stopWork(CASE_NO)
+    fbConnection.stopWork(caseno)
     
 
 #
@@ -243,7 +245,7 @@ else:   # quit if no task
 if(task == "start"):
     projectStart(CASE_NO, fromSpec)
 elif(task == "stop"):
-    projectStop(CASE_NO)
+    projectStop()
 elif(task == "ship"):
     projectShip()
 elif (task == "testmake"):
