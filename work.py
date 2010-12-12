@@ -221,6 +221,18 @@ task = ""
 CASE_NO = 0
 fromSpec = ""
 
+#check for updates
+from urllib2 import urlopen
+version_no = urlopen("https://github.com/drewcrawford/DrewCrawfordApps/raw/master/work/work.py").read()
+#########################
+WORK_PY_VERSION_NUMBER=0
+#########################
+import re
+if re.search("WORK_PY_VERSION_NUMBER=\d+",version_no).groups(0) != WORK_PY_VERSION_NUMBER:
+    print '\033[93m\033[43m','WARNING: WORK.PY IS OUT OF DATE...'
+    
+
+
 if len(sys.argv) > 1:       #if there's at least one argument...
     task = sys.argv[1];
     
