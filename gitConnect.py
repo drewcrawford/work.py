@@ -51,7 +51,7 @@ class GitConnect:
     #
     def mergeIn(self,BRANCH_NAME):
         print "Merging in %s..." % BRANCH_NAME
-        (status,output) = commands.getstatusoutput("git merge %s" % BRANCH_NAME)
+        (status,output) = commands.getstatusoutput("git merge --no-ff %s" % BRANCH_NAME)
         print output
         if status:
             print "ERROR: merge was unsuccessful."
