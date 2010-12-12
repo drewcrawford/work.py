@@ -1,7 +1,13 @@
 from subprocess import Popen, PIPE
 import os
 import commands
-
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m\033[43m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
 class GitConnect:
     #
     # Checks to see if we're in a Git Repo
@@ -101,6 +107,7 @@ class GitConnect:
         if(checkoutNewBranchStatus):
             print "ERROR: could not checkout existing branch: %s" % output
             quit()
+        print bcolors.WARNING + output + bcolors.ENDC
     #
     # Checks out branch given branch name
     #
@@ -112,7 +119,7 @@ class GitConnect:
         
     #
     # gets list of branches. if CASE_NO branch exists, check it out. Otherwise
-    # create a new branch, check into it, and return.
+    # create a new branch, check into it, push something up to master, make it track, and return.
     #
     def checkoutBranch(self, CASE_NO, fromSpec):           
         #make sure there is a valid CASE_NO specified
@@ -132,12 +139,7 @@ class GitConnect:
             # check if a branch for CASE_NO exists
             # if it does, check it out
             if("work-{0}".format(CASE_NO) in branchOutput):
-                (checkoutStatus, output) = commands.getstatusoutput("git checkout work-{0}".format(CASE_NO))
-                if(checkoutStatus):
-                    print "ERROR: Git could not checkout working branch!"
-                    quit()
-                else:
-                    return "work-{0}".format(CASE_NO)
+                self.checkoutExistingBranch(CASE_NO)
             # if a branch does not exist, create one and check it out
             else:
                 #check fromspec
@@ -158,6 +160,13 @@ class GitConnect:
                         print "ERROR: could not checkout newly created branch"
                         quit()
                     else:
+                        (status,output) = commands.getstatusoutput("git push origin work-%d" % CASE_NO)
+                        if status:
+                            print "ERROR: Can't push to master..."
+                            quit()
+                        (status,output) = commands.getstatusoutput("git branch --set-upstream work-%d remotes/origin/work-%d" % (CASE_NO,CASE_NO))
+                        if status:
+                            print "ERROR: Can't make this a tracking branch..."
                         return "work-{0}".format(CASE_NO)
                 
     #

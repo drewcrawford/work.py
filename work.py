@@ -55,15 +55,23 @@ def projectStart(CASE_NO, fromSpec):
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
     
+    #check for unsaved changes to source code
+    gitConnection.checkForUnsavedChanges()
+    
+    gitConnection.fetch()
+    
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
     
     #check for FogBugz case and clock in
     fbConnection.startCase(CASE_NO)
     
-    #check for unsaved changes to source code
-    gitConnection.checkForUnsavedChanges()
+
     
+    if not fromSpec:
+        #try to fill automatically from FB
+        fromSpec = fbConnection.getIntegrationBranch(CASE_NO)
+        
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO, fromSpec)
     
