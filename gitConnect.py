@@ -19,7 +19,26 @@ class GitConnect:
             quit()
         else:
             return output
-
+        
+        
+    #
+    # Return (user,repo) for current working copy
+    #
+    def getUserRepo(self):
+        (status,output) = commands.getstatusoutput("git remote show origin")
+        import re
+        userRepo = re.search("(?<=Fetch URL: git@github.com:).*",output).group(0).split("/")
+        userRepo[1] = userRepo[1].replace(".git","")
+        return userRepo
+        
+    #
+    # Launch gitHub compare view
+    #   
+    def githubCompareView(self,origin,dest):
+        (user,repo) = self.getUserRepo()
+        cmd =  "http://github.com/%s/%s/compare/%s...%s" % (user,repo,origin,dest)
+        from os import system
+        system("open %s" % cmd)
     #
     # Returns the branch, else quits
     #
