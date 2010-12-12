@@ -223,13 +223,13 @@ fromSpec = ""
 
 #check for updates
 from urllib2 import urlopen
-version_no = urlopen("https://github.com/drewcrawford/DrewCrawfordApps/raw/master/work/work.py").read()
+version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
 #########################
 WORK_PY_VERSION_NUMBER=0
 #########################
 import re
-if re.search("WORK_PY_VERSION_NUMBER=\d+",version_no).groups(0) != WORK_PY_VERSION_NUMBER:
-    print '\033[93m\033[43m','WARNING: WORK.PY IS OUT OF DATE...'
+if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
+    print '\033[93m\033[43m','WARNING: WORK.PY IS OUT OF DATE...','\033[0m'
     
 
 
