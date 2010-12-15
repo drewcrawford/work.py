@@ -167,6 +167,8 @@ class GitConnect:
                     if(fromSpecStatus):
                         print "Could not checkout FROMSPEC"
                         quit()
+                #regardless, we need our integration branch to be up to date
+                self.pull()
                 
                 # create branch for new CASE_NO
                 (createBranchStatus, output) = commands.getstatusoutput("git branch work-{0}".format(CASE_NO))
