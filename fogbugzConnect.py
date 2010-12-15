@@ -176,7 +176,7 @@ class FogBugzConnect:
     # Start work on a case
     #
     def startCase(self, CASE_NO):
-        query = 'assignedto:"{0}" {1}'.format(self.username, CASE_NO)
+        query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query)
         if (resp):
             self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
