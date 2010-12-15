@@ -21,10 +21,10 @@ class FogBugzConnect:
     #
     def setCredentials(self):
         email = raw_input("email: ")
-        username = raw_input("username: ")
+        #username = raw_input("username: ")
         handle = open(self.SETTINGS, "w")
         try:
-            settings = {"email": email, "username": username}
+            settings = {"email": email}
             json.dump(settings, handle, indent=2)
         except:
             handle.close()
@@ -34,8 +34,8 @@ class FogBugzConnect:
     # Get settings from home directory
     #
     def getCredentials(self, email = None, username = None):
-        if email is not None and username is not None:
-            return {"email": email, "username": username}
+        if email is not None:
+            return {"email": email}
         if not os.path.exists(self.SETTINGS):
             self.setCredentials()
         handle = open(self.SETTINGS)
@@ -55,7 +55,7 @@ class FogBugzConnect:
     #
     def login(self):
         self.email = self.getCredentials()['email']
-        self.username = self.getCredentials()['username']
+        #self.username = self.getCredentials()['username']
         password = ""
         while True:
             if not password:
@@ -66,6 +66,12 @@ class FogBugzConnect:
                 
         #connect to fogbugz with fbapi and login
         self.fbConnection.logon(self.email, password)
+        
+        #fix username
+        for person in self.fbConnection.listPeople().people:
+            if person.semail.contents[0]==self.email:
+                self.username = person.sfullname.contents[0]
+                #print self.username
         
     #
     # search for a FB case with CASE_NO
