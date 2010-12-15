@@ -203,7 +203,7 @@ class FogBugzConnect:
     # Stop work
     #
     def stopWork(self, CASE_NO):
-        query = 'assignedto:"{0}" {1}'.format(self.username, CASE_NO)
+        query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query)
         if (resp):
             self.fbConnection.stopWork()
@@ -222,7 +222,7 @@ class FogBugzConnect:
     # resolve case with CASE_NO
     #
     def resolveCase(self, CASE_NO,ixstatus=None):
-        query = 'assignedto:"{0}" {1}'.format(self.username, CASE_NO)
+        query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query)
         if(resp):
             self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
