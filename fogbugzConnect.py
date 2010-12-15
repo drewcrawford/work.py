@@ -100,9 +100,15 @@ class FogBugzConnect:
             import re
             if len(event.s.contents)==0: continue
             #print "looking at %s" % event.s.contents[0]
-            match = re.match("work.py: .* is implementing",event.s.contents[0])
+            match = re.search("(?<=work.py: ).*(?= is implementing)",event.s.contents[0])
             if match:
-                return match.group(0)
+                username = match.group(0)
+                for person in self.fbConnection.listPeople().people:
+                    #print "matching %s against %s" % (person,username)
+                    #print '"%s" is not "%s"' % (person.sfullname.contents[0]), username)
+                    if person.sfullname.contents[0]==username:
+                        print "reassigning to ixperson %s" % person.ixperson.contents[0]
+                        return person.ixperson.contents[0]
         raise Exception("No match")
                 
         
