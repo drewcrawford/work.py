@@ -70,7 +70,7 @@ class FogBugzConnect:
         #fix username
         for person in self.fbConnection.listPeople().people:
             if person.semail.contents[0]==self.email:
-                self.username = person.sfullname.contents[0]
+                self.username = person.sfullname.contents[0].encode('utf-8')
                 #print self.username
         
     #
