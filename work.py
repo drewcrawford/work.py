@@ -220,6 +220,13 @@ def projectIntegrate(CASE_NO):
     fbConnection = FogBugzConnect()
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     
+    #check for test case
+    try:
+        fbConnection.getCaseTuple(CASE_NO)
+    except:
+        print "WARNING: no test case! Press enter to continue"
+        raw_input()
+    
     gitConnection.checkoutExistingBranchRaw(integrate_to)
     gitConnection.pull()
     
