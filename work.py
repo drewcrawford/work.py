@@ -218,6 +218,10 @@ def projectIntegrate(CASE_NO):
     gitConnection.checkForUnsavedChanges()
     
     fbConnection = FogBugzConnect()
+    
+    # make sure integration is even worth it...
+    fbConnection.ensureReadyForTest(CASE_NO)
+    
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     
     gitConnection.checkoutExistingBranchRaw(integrate_to)
