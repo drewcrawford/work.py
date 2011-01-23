@@ -156,7 +156,7 @@ def projectStartTest(CASE_NO):
     gitConnection.pull()
     
     fbConnection.startCase(test)
-    gitConnection.githubCompareView(fbConnection.getIntegrationBranch(CASE_NO),"work-%d" % CASE_NO)
+    gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
     
     
 #
