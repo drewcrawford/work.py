@@ -115,9 +115,9 @@ class FogBugzConnect:
     #
     # Get ixPerson for a given username or current username
     #
-    def usernameToIXPerson(self, userName = self.username):
-        for person in fb.fbConnection.listPeople().people:
-            if person.sfullname.contents[0] == fb.username:
+    def usernameToIXPerson(self):
+        for person in self.fbConnection.listPeople().people:
+            if person.sfullname.contents[0] == self.username:
                 return person.ixperson.contents[0]
     
     #
