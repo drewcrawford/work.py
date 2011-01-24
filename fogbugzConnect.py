@@ -7,6 +7,7 @@ except:
     
 try:
     from fogbugz import FogBugz
+    from fogbugz import FogBugzAPIError
 except Exception as e:
     print "Could not import FogBugz API because: ", e
     
@@ -122,7 +123,8 @@ class FogBugzConnect:
     # create a test case
     #
     def createTestCase(self,PARENT_CASE):
-        print "How long does it take to test? ",
+        #get estimate
+        print "Please provide an estimate for the test: "
         timespan = raw_input()
         #extract parent info
         resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor")
@@ -185,8 +187,11 @@ class FogBugzConnect:
         query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query)
         if (resp):
-            self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
-            self.fbConnection.startWork(ixBug=CASE_NO)
+            try:
+                self.fbConnection.startWork(ixBug=CASE_NO)
+                self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
+            except FogBugzAPIError as e:
+                self.setEstimate(CASE_NO)
         else:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!!"
             quit()
@@ -242,6 +247,16 @@ class FogBugzConnect:
     
     def closeCase(self,CASE_NO):
         self.fbConnection.close(ixBug=CASE_NO)
+
+    #
+    # Set Estimate for specified bug, returns the estimate
+    #
+    def setEstimate(self, CASE_NO):
+        print "Please provide an estimate for this case: "
+        timespan = raw_input()
+        
+        self.fbConnection.edit(ixBug=CASE_NO, hrsCurrentEstimate=timespan)
+        return timespan;
 
 
     #
