@@ -122,11 +122,22 @@ class GitConnect:
     # Checks out existing branch for CASE_NO
     #
     def checkoutExistingBranch(self,CASE_NO):
-        (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout work-{0}".format(CASE_NO))
-        if(checkoutNewBranchStatus):
+        if not self.__checkoutExistingBranch(CASE_NO):
             print "ERROR: could not checkout existing branch: %s" % output
             quit()
         print bcolors.WARNING + output + bcolors.ENDC
+        self.pull()
+
+    
+    #
+    # Private method: Checks out and existing branch for CASE_NO
+    #
+    def __checkoutExistingBranch(self, CASE_NO):
+        (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout work-{0}".format(CASE_NO))
+        if(status):
+            return False
+        else:
+            return output
     #
     # Checks out branch given branch name
     #
@@ -135,17 +146,56 @@ class GitConnect:
         if (status):
             print "ERROR: could not checkout existing branch: %s" % output
             quit()
+    
+    #
+    # check for remote branch and check it out
+    #
+    def canCheckoutRemoteBranch(self, CASE_NO):
+        (status, output) = commands.getstatusoutput("git branch -r")
+        if "work-{0}".format(CASE_NO) in output:
+            if(commands.getstatus("git checkout -t work-{0}".format(CASE_NO))):
+               return True
+            else:
+                return False
+            
+    #
+    # Checkout fromSpec and set up tracking
+    #
+    def checkoutFromSpec(self, CASE_NO):
+        #check fromspec
+        if(fromSpec):
+            (fromSpecStatus, output) = commands.getstatusoutput("git checkout {0}".format(fromSpec))
+            if(fromSpecStatus):
+                print "Could not checkout FROMSPEC"
+                quit()
+        #regardless, we need our integration branch to be up to date
+        self.pull()
         
+        # create branch for new CASE_NO
+        (createBranchStatus, output) = commands.getstatusoutput("git branch work-{0}".format(CASE_NO))
+        if(createBranchStatus):
+            print "ERROR: could not create new branch from case no: " + str(CASE_NO)
+            quit()
+        else:
+            (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout work-{0}".format(CASE_NO))
+            if(checkoutNewBranchStatus):
+                print "ERROR: could not checkout newly created branch"
+                quit()
+            else:
+                (status,output) = commands.getstatusoutput("git push origin work-%d" % CASE_NO)
+                if status:
+                    print "ERROR: Can't push to master..."
+                    quit()
+                (status,output) = commands.getstatusoutput("git branch --set-upstream work-%d remotes/origin/work-%d" % (CASE_NO,CASE_NO))
+                if status:
+                    print "ERROR: Can't make this a tracking branch..."
+                return "work-{0}".format(CASE_NO)
+    
     #
     # gets list of branches. if CASE_NO branch exists, check it out. Otherwise
     # create a new branch, check into it, push something up to master, make it track, and return.
     #
-    def checkoutBranch(self, CASE_NO, fromSpec):           
-        #make sure there is a valid CASE_NO specified
-        if(not CASE_NO):
-            print "ERROR: CASE_NO not specified. Please specify a working case!"
-            quit()
-        
+    def checkoutBranch(self, CASE_NO, fromSpec):                 
         # get output from git branch command
         (branchStatus, branchOutput) = commands.getstatusoutput("git branch")
         
@@ -155,40 +205,23 @@ class GitConnect:
             quit()
             
         else:
+            #fetch the newest code
+            self.fetch()
+            
             # check if a branch for CASE_NO exists
             # if it does, check it out
             if("work-{0}".format(CASE_NO) in branchOutput):
                 self.checkoutExistingBranch(CASE_NO)
+                self.pull()
+                return
+                
             # if a branch does not exist, create one and check it out
             else:
-                #check fromspec
-                if(fromSpec):
-                    (fromSpecStatus, output) = commands.getstatusoutput("git checkout {0}".format(fromSpec))
-                    if(fromSpecStatus):
-                        print "Could not checkout FROMSPEC"
-                        quit()
-                #regardless, we need our integration branch to be up to date
-                self.pull()
-                
-                # create branch for new CASE_NO
-                (createBranchStatus, output) = commands.getstatusoutput("git branch work-{0}".format(CASE_NO))
-                if(createBranchStatus):
-                    print "ERROR: could not create new branch from case no: " + str(CASE_NO)
-                    quit()
+                if(self.canCheckoutRemoteBranch(CASE_NO)):
+                    return
                 else:
-                    (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout work-{0}".format(CASE_NO))
-                    if(checkoutNewBranchStatus):
-                        print "ERROR: could not checkout newly created branch"
-                        quit()
-                    else:
-                        (status,output) = commands.getstatusoutput("git push origin work-%d" % CASE_NO)
-                        if status:
-                            print "ERROR: Can't push to master..."
-                            quit()
-                        (status,output) = commands.getstatusoutput("git branch --set-upstream work-%d remotes/origin/work-%d" % (CASE_NO,CASE_NO))
-                        if status:
-                            print "ERROR: Can't make this a tracking branch..."
-                        return "work-{0}".format(CASE_NO)
+                    self.checkoutFromSpec(CASE_NO)
+                    return
                 
     #
     # checkout master
