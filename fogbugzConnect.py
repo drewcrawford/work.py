@@ -192,6 +192,7 @@ class FogBugzConnect:
                 self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
             except FogBugzAPIError as e:
                 self.setEstimate(CASE_NO)
+                self.startCase(CASE_NO)
         else:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!!"
             quit()
