@@ -85,6 +85,7 @@ class GitConnect:
         file = open(".git/config")
         str = file.read()
         file.close()
+        print "Pulling...",
         if self.getBranch() not in str:
             print "WARNING: This is not a tracking branch."
             (status,output) = commands.getstatusoutput("git pull origin %s" % self.getBranch())
@@ -95,6 +96,7 @@ class GitConnect:
             if status:
                 print "ERROR:  Cannot pull! %s" % output
                 quit()
+        print "Success!"
     
     #
     # GitConnect Constructor
