@@ -111,7 +111,15 @@ class FogBugzConnect:
                         return person.ixperson.contents[0]
         raise Exception("No match")
                 
-        
+    
+    #
+    # Get ixPerson for a given username or current username
+    #
+    def usernameToIXPerson(self):
+        for person in self.fbConnection.listPeople().people:
+            if person.sfullname.contents[0] == self.username:
+                return person.ixperson.contents[0]
+    
     #
     # Reactivate case
     #
@@ -127,7 +135,7 @@ class FogBugzConnect:
         #extract parent info
         resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor")
         #print resp.case
-        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.username,hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=resp.case.ixfixfor.contents[0])
         print "Created case %s" % response.case['ixbug']
         
