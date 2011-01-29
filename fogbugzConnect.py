@@ -124,7 +124,7 @@ class FogBugzConnect:
     #
     def createTestCase(self,PARENT_CASE):
         #get estimate
-        print "Please provide an estimate for the test: "
+        print "Please provide an estimate for the test: ",
         timespan = raw_input()
         #extract parent info
         resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor")
@@ -252,7 +252,7 @@ class FogBugzConnect:
     # Set Estimate for specified bug, returns the estimate
     #
     def setEstimate(self, CASE_NO):
-        print "Please provide an estimate for this case: "
+        print "Please provide an estimate for this case: ",
         timespan = raw_input()
         
         self.fbConnection.edit(ixBug=CASE_NO, hrsCurrentEstimate=timespan)
