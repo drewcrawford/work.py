@@ -221,9 +221,8 @@ def projectIntegrate(CASE_NO):
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     
     #check for test case
-    try:
-        fbConnection.getCaseTuple(CASE_NO)
-    except:
+    (parent, test) = fbConnection.getCaseTuple(CASE_NO)
+    if not test:
         print "WARNING: no test case! Press enter to continue"
         raw_input()
     
