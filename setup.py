@@ -12,6 +12,7 @@ except:
 		os.system("tar -xzvf keyring-0.3.tar.gz")
 		os.system("cd keyring-0.3")
 		os.system("python setup.py install")
+		os.system("cd ..")
 		os.system("rm -rf keyring-0.3*")
 
 from distutils.core import setup
