@@ -63,8 +63,8 @@ class FogBugzConnect:
         print "Hello World"
         self.email = self.getCredentials()['email']
         #self.username = self.getCredentials()['username']
-        password = keyring.get_pass('fogbugz', self.username)
-        print password
+        #password = keyring.get_pass('fogbugz', self.username)
+        #print password
         if not password:
             while True:
                 if not password:
