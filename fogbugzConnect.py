@@ -60,6 +60,7 @@ class FogBugzConnect:
     # log into fogbugz
     #
     def login(self):
+        print "Hello World"
         self.email = self.getCredentials()['email']
         #self.username = self.getCredentials()['username']
         password = keyring.get_pass('fogbugz', self.username)
