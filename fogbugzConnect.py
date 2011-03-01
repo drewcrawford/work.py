@@ -6,6 +6,12 @@ except:
     import json
     
 try:
+    import keyring
+except:
+    print "Could not import keyring API"
+    quit()
+    
+try:
     from fogbugz import FogBugz
 except Exception as e:
     print "Could not import FogBugz API because: ", e
@@ -56,13 +62,15 @@ class FogBugzConnect:
     def login(self):
         self.email = self.getCredentials()['email']
         #self.username = self.getCredentials()['username']
-        password = ""
-        while True:
-            if not password:
-                import getpass
-                password = getpass.getpass("FogBugz password: ")
-            else:
-                break
+        password = keyring.get_password('fogbugz', self.username)
+        if not password:
+            while True:
+                if not password:
+                    import getpass
+                    password = getpass.getpass("FogBugz password: ")
+                else:
+                    keyring.set_password('fogbugz', self.username, password)
+                    break
                 
         #connect to fogbugz with fbapi and login
         self.fbConnection.logon(self.email, password)
