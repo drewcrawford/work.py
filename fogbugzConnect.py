@@ -256,7 +256,7 @@ class FogBugzConnect:
         print "Please provide an estimate for this case: ",
         timespan = raw_input()
         
-        self.fbConnection.edit(ixBug=CASE_NO, hrsCurrentEstimate=timespan)
+        self.fbConnection.edit(ixBug=CASE_NO, hrsCurrEst=timespan)
         return timespan;
 
 
