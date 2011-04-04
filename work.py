@@ -65,6 +65,11 @@ def projectStart(CASE_NO, fromSpec):
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
     
+    #check for test case - should not run for test case
+    if fbConnection.isTestCase(CASE_NO):
+        print "ERROR: cannot start on test case!"
+        quit()
+    
     #check for FogBugz case and clock in
     fbConnection.startCase(CASE_NO)
     
