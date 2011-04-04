@@ -67,7 +67,7 @@ def projectStart(CASE_NO, fromSpec):
     
     #check for test case - should not run for test case
     if fbConnection.isTestCase(CASE_NO):
-        print "ERROR: cannot start on test case!"
+        print "ERROR: cannot start on test case! (did you mean \"work test\"?)"
         quit()
     
     #check for FogBugz case and clock in
