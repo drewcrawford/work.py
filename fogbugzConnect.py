@@ -243,15 +243,16 @@ class FogBugzConnect:
     #
     # resolve case with CASE_NO
     #
-    def resolveCase(self, CASE_NO,ixstatus=None, isTestCase_CASENO=False):
+    def resolveCase(self, CASE_NO,ixstatus=None, isTestCase_CASENO=None):
         query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query)
         if(resp):
             if (ixstatus):
                 self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
-            elif(isTestCase):
-                tester = resolveTestCaseOwner(CASE_NO)
-                self.fbConnection.resolve(ixBug=isTestCase,ixPerson=tester)
+            elif(isTestCase_CASENO):
+                tester = self.findTestCaseOwner(isTestCase_CASENO)
+                print "reassigning to ixperson",tester
+                self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=tester)
             else:
                 raise Exception("WTF?")
 
@@ -264,12 +265,10 @@ class FogBugzConnect:
     #
     #
     def findTestCaseOwner(self, CASE_NO):
-        (parent, child) = self.getCaseTuple(CASE_NO)
-        query = '{0}'.format(child)
+        query = '{0}'.format(CASE_NO)
         resp=self.fbConnection.search(q=query,cols="ixPersonAssignedTo")
         if(resp):
-            print "resp: ", resp, "\ncase: ", resp.case, "\nixPersonAssignedTo: ", resp.case.ixpersonassignedto
-            tester = resp.case.ixPersonAssignedTo
+            tester = resp.case.ixpersonassignedto.contents[0]
             return tester
             
     #
