@@ -59,9 +59,7 @@ def projectStart(CASE_NO, fromSpec):
     
     #check for unsaved changes to source code
     gitConnection.checkForUnsavedChanges()
-    
-    gitConnection.fetch()
-    
+        
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
     
@@ -158,7 +156,6 @@ def projectStartTest(CASE_NO):
 
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
-    gitConnection.pull()
     
     fbConnection.startCase(test)
     gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
