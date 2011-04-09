@@ -252,6 +252,8 @@ class FogBugzConnect:
             elif(isTestCase):
                 tester = resolveTestCaseOwner(CASE_NO)
                 self.fbConnection.resolve(ixBug=isTestCase,ixPerson=tester)
+            else:
+                raise Exception("WTF?")
 
     
         else:
