@@ -6,6 +6,12 @@ except:
     import json
     
 try:
+    import keyring
+except:
+    print "Could not import keyring API"
+    quit()
+    
+try:
     from fogbugz import FogBugz
     from fogbugz import FogBugzAPIError
 except Exception as e:
@@ -57,13 +63,15 @@ class FogBugzConnect:
     def login(self):
         self.email = self.getCredentials()['email']
         #self.username = self.getCredentials()['username']
-        password = ""
-        while True:
-            if not password:
-                import getpass
-                password = getpass.getpass("FogBugz password: ")
-            else:
-                break
+        password = keyring.get_password('fogbugz', self.username)
+        if not password:
+            while True:
+                if not password:
+                    import getpass
+                    password = getpass.getpass("FogBugz password: ")
+                else:
+                    keyring.set_password('fogbugz', self.username, password)
+                    break
                 
         #connect to fogbugz with fbapi and login
         self.fbConnection.logon(self.email, password)
@@ -112,7 +120,15 @@ class FogBugzConnect:
                         return person.ixperson.contents[0]
         raise Exception("No match")
                 
-        
+    
+    #
+    # Get ixPerson for a given username or current username
+    #
+    def usernameToIXPerson(self):
+        for person in self.fbConnection.listPeople().people:
+            if person.sfullname.contents[0] == self.username:
+                return person.ixperson.contents[0]
+    
     #
     # Reactivate case
     #
@@ -129,7 +145,7 @@ class FogBugzConnect:
         #extract parent info
         resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor")
         #print resp.case
-        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.username,hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=resp.case.ixfixfor.contents[0])
         print "Created case %s" % response.case['ixbug']
         
@@ -233,15 +249,34 @@ class FogBugzConnect:
     #
     # resolve case with CASE_NO
     #
-    def resolveCase(self, CASE_NO,ixstatus=None):
+    def resolveCase(self, CASE_NO,ixstatus=None, isTestCase_CASENO=None):
         query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query)
         if(resp):
-            self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
+            if (ixstatus):
+                self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
+            elif(isTestCase_CASENO):
+                tester = self.findTestCaseOwner(isTestCase_CASENO)
+                print "reassigning to ixperson",tester
+                self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=tester)
+            else:
+                raise Exception("WTF?")
+
+    
         else:
             print "ERROR: FogBugz case does not exists or isn't assigned to you!"
         return
 
+    #
+    #
+    #
+    def findTestCaseOwner(self, CASE_NO):
+        query = '{0}'.format(CASE_NO)
+        resp=self.fbConnection.search(q=query,cols="ixPersonAssignedTo")
+        if(resp):
+            tester = resp.case.ixpersonassignedto.contents[0]
+            return tester
+            
     #
     # close case with CASE_NO
     #

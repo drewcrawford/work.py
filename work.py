@@ -59,11 +59,14 @@ def projectStart(CASE_NO, fromSpec):
     
     #check for unsaved changes to source code
     gitConnection.checkForUnsavedChanges()
-    
-    gitConnection.fetch()
-    
+        
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
+    
+    #check for test case - should not run for test case
+    if fbConnection.isTestCase(CASE_NO):
+        print "ERROR: cannot start on test case! (did you mean \"work test\"?)"
+        quit()
     
     #check for FogBugz case and clock in
     fbConnection.startCase(CASE_NO)
@@ -131,7 +134,10 @@ def projectShip():
     caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
-    fbConnection.resolveCase(caseno)
+    
+    #is there a test case?
+    (parent,child) = fbConnection.getCaseTuple(caseno)
+    fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
 
 #
 #
@@ -153,10 +159,9 @@ def projectStartTest(CASE_NO):
 
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
-    gitConnection.pull()
     
     fbConnection.startCase(test)
-    gitConnection.githubCompareView(fbConnection.getIntegrationBranch(CASE_NO),"work-%d" % CASE_NO)
+    gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
     
     
 #
@@ -218,6 +223,10 @@ def projectIntegrate(CASE_NO):
     gitConnection.checkForUnsavedChanges()
     
     fbConnection = FogBugzConnect()
+    
+    # make sure integration is even worth it...
+    fbConnection.ensureReadyForTest(CASE_NO)
+    
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     
     gitConnection.checkoutExistingBranchRaw(integrate_to)
@@ -245,7 +254,7 @@ fromSpec = ""
 from urllib2 import urlopen
 version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
 #########################
-WORK_PY_VERSION_NUMBER=5
+WORK_PY_VERSION_NUMBER=8
 #########################
 import re
 if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
