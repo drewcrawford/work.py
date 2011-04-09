@@ -187,8 +187,7 @@ class GitConnect:
         
         # check if a branch for CASE_NO exists
         # if it does, check it out
-        if("work-{0}".format(CASE_NO) in branchOutput):
-            self.checkoutExistingBranch(CASE_NO)
+        if self.__checkoutExistingBranch(CASE_NO):
             self.pull()
             return
             
