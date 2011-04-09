@@ -127,6 +127,7 @@ class GitConnect:
         output = self.__checkoutExistingBranch(CASE_NO)
         if not output:
             print "ERROR: could not checkout existing branch: %s" % output
+            raise Exception("stacktraceplease")
             quit()
         print bcolors.WARNING + output + bcolors.ENDC
         self.pull()

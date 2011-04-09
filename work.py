@@ -227,6 +227,8 @@ def projectIntegrate(CASE_NO):
     # make sure integration is even worth it...
     fbConnection.ensureReadyForTest(CASE_NO)
     
+    gitConnection.checkoutExistingBranch(CASE_NO)
+    
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     
     gitConnection.checkoutExistingBranchRaw(integrate_to)
@@ -254,7 +256,7 @@ fromSpec = ""
 from urllib2 import urlopen
 version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
 #########################
-WORK_PY_VERSION_NUMBER=9
+WORK_PY_VERSION_NUMBER=10
 #########################
 import re
 if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
