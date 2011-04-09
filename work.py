@@ -134,7 +134,10 @@ def projectShip():
     caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
-    fbConnection.resolveCase(caseno)
+    
+    #is there a test case?
+    (parent,child) = fbConnection.getCaseTuple(caseno)
+    fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
 
 #
 #

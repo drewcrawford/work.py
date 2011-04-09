@@ -243,15 +243,34 @@ class FogBugzConnect:
     #
     # resolve case with CASE_NO
     #
-    def resolveCase(self, CASE_NO,ixstatus=None):
+    def resolveCase(self, CASE_NO,ixstatus=None, isTestCase_CASENO=None):
         query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query)
         if(resp):
-            self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
+            if (ixstatus):
+                self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
+            elif(isTestCase_CASENO):
+                tester = self.findTestCaseOwner(isTestCase_CASENO)
+                print "reassigning to ixperson",tester
+                self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=tester)
+            else:
+                raise Exception("WTF?")
+
+    
         else:
             print "ERROR: FogBugz case does not exists or isn't assigned to you!"
         return
 
+    #
+    #
+    #
+    def findTestCaseOwner(self, CASE_NO):
+        query = '{0}'.format(CASE_NO)
+        resp=self.fbConnection.search(q=query,cols="ixPersonAssignedTo")
+        if(resp):
+            tester = resp.case.ixpersonassignedto.contents[0]
+            return tester
+            
     #
     # close case with CASE_NO
     #
