@@ -38,6 +38,8 @@ def printUsageString(command = 0):
         print "  pass: the case has passed a test"
     if (not command or command == "integrate"):
         print "  integrate: integrate the case to somewhere"
+    if (not command or command == "complain"):
+        print "  complain:  finds and complains about late cases"
     print ""
     sys.exit()
 
@@ -238,6 +240,28 @@ def projectIntegrate(CASE_NO):
     
     fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
     fbConnection.closeCase(CASE_NO)
+
+
+def complain():
+    fbConnection = FogBugzConnect()
+    fbConnection.fbConnection.setCurrentFilter(sFilter=10) #Active Cases
+    response = fbConnection.fbConnection.search(cols="hrsCurrEst")
+    for case in response.cases:
+        #print case
+        if case.hrscurrest.contents[0]=="0":
+            print "case %s has no estimate"%case["ixbug"]
+            fbConnection.commentOn(case["ixbug"],"work.py complain:  This case needs an estimate.")
+    response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed")
+    for case in response.cases:
+        #print case
+        
+        est = float(case.hrscurrest.contents[0])
+        act = float(case.hrselapsed.contents[0])
+        if est - act < 0:
+            print "case %s requires updated estimate"%case["ixbug"]
+            fbConnection.commentOn(case["ixbug"],"work.py complain:  This case is 'out of time' and needs an updated estimate.")
+
+    
     
     
     
@@ -303,6 +327,8 @@ elif (task == "integrate"):
     projectIntegrate(CASE_NO)
 elif (task == "view"):
     projectView(CASE_NO)
+elif (task == "complain"):
+    complain()
 else:
     printUsageString()
 
