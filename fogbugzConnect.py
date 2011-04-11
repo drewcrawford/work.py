@@ -260,7 +260,7 @@ class FogBugzConnect:
                 print "reassigning to ixperson",tester
                 self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=tester)
             else:
-                raise Exception("WTF?")
+                self.fbConnection.resolve(ixBug=CASE_NO)
 
     
         else:
