@@ -90,11 +90,8 @@ class GitConnect:
             print "WARNING: %s is not a tracking branch." % self.getBranch()
             print "Attempting to fix...",
             try:
-<<<<<<< HEAD
                 self.setUpstream(self.getBranch,"remotes/origin/{0}".format(self.getBranch()))
-=======
                 self.setUpstream(self.getBranch(),"remotes/origin/{0}".format(self.getBranch()))
->>>>>>> work-1140
                 print "Success!"
             except:
                 print "ERROR: DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG."
