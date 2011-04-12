@@ -91,7 +91,6 @@ class GitConnect:
             print "Attempting to fix...",
             try:
                 self.setUpstream(self.getBranch,"remotes/origin/{0}".format(self.getBranch()))
-                self.setUpstream(self.getBranch(),"remotes/origin/{0}".format(self.getBranch()))
                 print "Success!"
             except:
                 print "ERROR: DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG."
