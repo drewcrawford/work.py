@@ -88,6 +88,12 @@ class GitConnect:
         print "Pulling...",
         if self.getBranch() not in str:
             print "WARNING: %s is not a tracking branch." % self.getBranch()
+            print "Attempting to fix...",
+            try:
+                self.setUpstream(self.getBranch,"remotes/origin/{0}".format(self.getBranch()))
+                print "Success!"
+            except:
+                print "ERROR: DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG."
             (status,output) = commands.getstatusoutput("git pull origin %s" % self.getBranch())
             if status:
                 print "ERROR:  Cannot pull! %s" % output
