@@ -104,6 +104,8 @@ def projectStop():
 
     
     #stop working on case and checkout master
+    branch = gitConnection.getBranch()
+    gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
     
     #clock out of project
