@@ -343,7 +343,7 @@ elif (task == "fail"):
 elif (task == "pass"):
     projectPassTest()
 elif (task == "integrate"):
-    projectIntegrate(CASE_NO,fromSpec)
+    projectIntegrate(CASE_NO)
 elif (task == "view"):
     projectView(CASE_NO)
 elif (task == "complain"):
