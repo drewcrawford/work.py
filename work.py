@@ -40,6 +40,8 @@ def printUsageString(command = 0):
         print "  integrate: integrate the case to somewhere"
     if (not command or command == "complain"):
         print "  complain:  finds and complains about late cases"
+    if (not command or command == "integratemake"):
+        print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch for the milestone (off of FROMSPEC)"
     print ""
     sys.exit()
 
@@ -245,8 +247,18 @@ def projectIntegrate(CASE_NO):
     
     fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
     fbConnection.closeCase(CASE_NO)
+    
+    
+#
+#
+#
+def projectIntegrateMake(CASE_NO,fromSpec):
+     gitConnection = GitConnect()
+     gitConnection.createNewRawBranch(CASE_NO,fromSpec)
 
-
+#
+#
+#
 def complain():
     fbConnection = FogBugzConnect()
     fbConnection.fbConnection.setCurrentFilter(sFilter=10) #Active Cases
@@ -300,7 +312,7 @@ if len(sys.argv) > 1:       #if there's at least one argument...
         try:
             CASE_NO = int(sys.argv[2])
         except:
-            printUsageString()
+            target = sys.argv[2]
     if len(sys.argv) > 3:   # if there's a third argument...
         try:
             fromSpec = str(sys.argv[3]).split("=")[1]
@@ -322,6 +334,8 @@ elif(task == "ship"):
     projectShip()
 elif (task == "testmake"):
     projectTestMake(CASE_NO)
+elif (task == "integratemake"):
+    projectIntegrateMake(target,fromSpec)
 elif (task == "test"):
     projectStartTest(CASE_NO)
 elif (task == "fail"):
@@ -329,7 +343,7 @@ elif (task == "fail"):
 elif (task == "pass"):
     projectPassTest()
 elif (task == "integrate"):
-    projectIntegrate(CASE_NO)
+    projectIntegrate(CASE_NO,fromSpec)
 elif (task == "view"):
     projectView(CASE_NO)
 elif (task == "complain"):
