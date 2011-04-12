@@ -239,6 +239,7 @@ class GitConnect:
         (status,output) = commands.getstatusoutput("git branch --set-upstream {0} {1}".format(branch, upstreamPath))
         if status:
             print "ERROR: Can't make this a tracking branch..."
+            print output
             quit()
     
     
