@@ -150,19 +150,19 @@ class FogBugzConnect:
         ixTestMilestone = 0
         foundTestMilestone = False
         for aMilestone in milestones.fixfors:
-            print aMilestone.sfixfor.contents[0], resp.case.sfixfor.contents[0] + "-test"
+            #print aMilestone.sfixfor.contents[0], resp.case.sfixfor.contents[0] + "-test"
             if(aMilestone.sfixfor.contents[0].find(resp.case.sfixfor.contents[0] + "-test") != -1):
                 foundTestMilestone = True
                 ixTestMilestone = aMilestone.ixfixfor.contents[0]
         
         testMilestone = resp.case.sfixfor.contents[0] + "-test"
-        print "testMilestone: ", testMilestone
-        print "\nfoundTestMilestone: ", foundTestMilestone
+        #print "testMilestone: ", testMilestone
+        #print "\nfoundTestMilestone: ", foundTestMilestone
 
         if not foundTestMilestone:
             ixTestMilestone = self.fbConnection.newFixFor(ixProject=resp.case.ixproject.contents[0], sFixFor=testMilestone, fAssignable="1")
             self.fbConnection.addFixForDependency(ixFixFor=ixTestMilestone, ixFixForDependsOn=resp.case.ixproject.contents[0])
-            print "creating new milestone and setting dependencies! New Milestone: ", ixTestMilestone.ixfixfor.contents[0]
+            #print "creating new milestone and setting dependencies! New Milestone: ", ixTestMilestone.ixfixfor.contents[0]
             ixTestMilestone = ixTestMilestone.ixfixfor.contents[0]
 
         #print resp.case
