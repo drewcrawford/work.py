@@ -143,10 +143,31 @@ class FogBugzConnect:
         print "Please provide an estimate for the test: ",
         timespan = raw_input()
         #extract parent info
-        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor")
+        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor,sFixFor")
+        
+        #look for a test milestone
+        milestones = self.fbConnection.listFixFors(ixProject=resp.case.ixproject.contents[0])
+        ixTestMilestone = 0
+        foundTestMilestone = False
+        for aMilestone in milestones.fixfors:
+            print aMilestone.sfixfor.contents[0], resp.case.sfixfor.contents[0] + "-test"
+            if(aMilestone.sfixfor.contents[0].find(resp.case.sfixfor.contents[0] + "-test") != -1):
+                foundTestMilestone = True
+                ixTestMilestone = aMilestone.ixfixfor.contents[0]
+        
+        testMilestone = resp.case.sfixfor.contents[0] + "-test"
+        print "testMilestone: ", testMilestone
+        print "\nfoundTestMilestone: ", foundTestMilestone
+
+        if not foundTestMilestone:
+            ixTestMilestone = self.fbConnection.newFixFor(ixProject=resp.case.ixproject.contents[0], sFixFor=testMilestone, fAssignable="1")
+            self.fbConnection.addFixForDependency(ixFixFor=ixTestMilestone, ixFixForDependsOn=resp.case.ixproject.contents[0])
+            print "creating new milestone and setting dependencies! New Milestone: ", ixTestMilestone.ixfixfor.contents[0]
+            ixTestMilestone = ixTestMilestone.ixfixfor.contents[0]
+
         #print resp.case
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
-                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=resp.case.ixfixfor.contents[0])
+                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
         
     #
