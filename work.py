@@ -262,20 +262,20 @@ def projectIntegrateMake(CASE_NO,fromSpec):
 def complain():
     fbConnection = FogBugzConnect()
     fbConnection.fbConnection.setCurrentFilter(sFilter=10) #Active Cases
-    response = fbConnection.fbConnection.search(cols="hrsCurrEst")
+    response = fbConnection.fbConnection.search(cols="hrsCurrEst,sPersonAssignedTo")
     for case in response.cases:
         #print case
         if case.hrscurrest.contents[0]=="0":
-            print "case %s has no estimate"%case["ixbug"]
+            print "%s's case %s has no estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"work.py complain:  This case needs an estimate.")
-    response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed")
+    response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo")
     for case in response.cases:
         #print case
         
         est = float(case.hrscurrest.contents[0])
         act = float(case.hrselapsed.contents[0])
         if est - act < 0:
-            print "case %s requires updated estimate"%case["ixbug"]
+            print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"work.py complain:  This case is 'out of time' and needs an updated estimate.")
 
     
