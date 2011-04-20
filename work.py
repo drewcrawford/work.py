@@ -297,7 +297,7 @@ fromSpec = ""
 from urllib2 import urlopen
 version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
 #########################
-WORK_PY_VERSION_NUMBER=12
+WORK_PY_VERSION_NUMBER=14
 #########################
 import re
 if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
