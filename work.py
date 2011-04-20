@@ -11,6 +11,7 @@
 #############################################
 
 import sys
+from commands import getstatus
 from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
 
@@ -198,6 +199,9 @@ def projectFailTest():
     (parent,test) = fbConnection.getCaseTuple(caseno)
     fbConnection.reactivate(parent,fbConnection.findImplementer(caseno),"Terribly sorry, but your case FAILED a test: %s" % reason)
     fbConnection.stopWork(test)
+
+    # play sounds!
+    getoutput("afplay media/dundundun.aiff")
     
 #
 #
@@ -221,6 +225,9 @@ def projectPassTest():
     
     fbConnection.resolveCase(test,ixstatus=ix)
     fbConnection.closeCase(test)
+
+    # play sounds!
+    getoutput("afplay media/longcheer.aiff")
     
     #fbConnection.closeCase(parent)
     
