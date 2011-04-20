@@ -75,10 +75,10 @@ class GitConnect:
         if status:
             print "ERROR: merge was unsuccessful."
             # play sounds!
-            getoutput("afplay media/ohno.aiff")
+            commands.getoutput("afplay media/ohno.aiff")
         print "Use 'git push' to ship."
     # play sounds!
-    getoutput("afplay media/hooray.aiff")
+    commands.getoutput("afplay media/hooray.aiff")
     
     #
     # Performs a git pull
