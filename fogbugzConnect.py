@@ -201,8 +201,11 @@ class FogBugzConnect:
     #
     def startCase(self, CASE_NO):
         query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
-        resp=self.fbConnection.search(q=query)
+        resp=self.fbConnection.search(q=query, cols="fOpen")
         if (resp):
+            if resp.case.fopen.contents[0] != "true":
+                print "FATAL ERROR: FogBugz case is closed"
+                quit()
             try:
                 self.fbConnection.startWork(ixBug=CASE_NO)
                 self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
