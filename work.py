@@ -60,32 +60,34 @@ def projectStart(CASE_NO, fromSpec):
     """
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
-    
+
     #check for unsaved changes to source code
     gitConnection.checkForUnsavedChanges()
-        
+
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
-    
+
     #check for test case - should not run for test case
     if fbConnection.isTestCase(CASE_NO):
         print "ERROR: cannot start on test case! (did you mean \"work test\"?)"
         quit()
-    
+
     #check for FogBugz case and clock in
     fbConnection.startCase(CASE_NO)
-    
 
-    
+
+
     if not fromSpec:
         #try to fill automatically from FB
         fromSpec = fbConnection.getIntegrationBranch(CASE_NO)
         print "using integration branch %s" % fromSpec
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO, fromSpec)
-    
-    fbConnection.view(CASE_NO)
-    
+
+    settings = fbConnection.getCredentials()
+    if not "viewOnStart" in settings or settings["viewOnStart"]:
+        fbConnection.view(CASE_NO)
+
     print "Use work ship to commit your changes"
 
 #
@@ -94,32 +96,32 @@ def projectStart(CASE_NO, fromSpec):
 def projectStop():
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
-    
+
     #check for unsaved changes to source code
     gitConnection.checkForUnsavedChanges()
-    
+
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
-    
-    caseno = gitConnection.extractCaseFromBranch()
-    
 
-    
+    caseno = gitConnection.extractCaseFromBranch()
+
+
+
     #stop working on case and checkout master
     branch = gitConnection.getBranch()
     gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
-    
+
     #clock out of project
     fbConnection.stopWork(caseno)
-    
+
 #
 #
 #
 def projectView(CASE_NO):
     fbConnection = FogBugzConnect()
     fbConnection.view(CASE_NO)
-    
+
 
 #
 #
@@ -128,24 +130,24 @@ def projectShip():
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
     gitConnection.checkForUnsavedChanges();
-    
+
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
 
     #check if we're in a git repo
     branch = gitConnection.getBranch();
 
-    
+
     # check if branch is the right branch
     caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
-    
+
     #is there a test case?
     try:
         (parent,child) = fbConnection.getCaseTuple(caseno)
         fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
-    except:    
+    except:
         fbConnection.resolveCase(caseno)
 
 #
@@ -155,31 +157,31 @@ def projectTestMake(PARENT_CASE):
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
     fbConnection.createTestCase(PARENT_CASE)
-    
+
 def projectStartTest(CASE_NO):
     gitConnection = GitConnect()
     gitConnection.checkForUnsavedChanges()
-    
+
     fbConnection = FogBugzConnect()
-    
+
     #get the appropriate cases out of FogBugz
     (parent,test) = fbConnection.getCaseTuple(CASE_NO)
     fbConnection.ensureReadyForTest(parent)
 
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
-    
+
     fbConnection.startCase(test)
     gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
-    
-    
+
+
 #
 #
 #
 def projectFailTest():
     gitConnection = GitConnect()
     gitConnection.checkForUnsavedChanges()
-    
+
     reasons = {"0":"Failed a unit test.","1":"Failed a UI test"}
     for reason in reasons.keys():
         print reason," ",reasons[reason]
@@ -187,18 +189,18 @@ def projectFailTest():
     reason = raw_input()
     if reason in reasons.keys():
         reason = reasons[reason]
-    
-    
+
+
 
     caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(gitConnection.getBranch())
     gitConnection.checkoutMaster()
-    
+
     fbConnection = FogBugzConnect()
     (parent,test) = fbConnection.getCaseTuple(caseno)
     fbConnection.reactivate(parent,fbConnection.findImplementer(caseno),"Terribly sorry, but your case FAILED a test: %s" % reason)
     fbConnection.stopWork(test)
-    
+
 #
 #
 #
@@ -208,47 +210,47 @@ def projectPassTest():
     caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(gitConnection.getBranch())
     gitConnection.checkoutMaster()
-    
+
     fbConnection = FogBugzConnect()
     (parent,test) = fbConnection.getCaseTuple(caseno)
     statuses = fbConnection.getStatuses(test)
     for i in range(0,len(statuses.keys())):
         print i,":  ",statuses[sorted(statuses.keys())[i]]
-        
+
     print "Choose your adventure: ",
     choice = input()
     ix = sorted(statuses.keys())[choice]
-    
+
     fbConnection.resolveCase(test,ixstatus=ix)
     fbConnection.closeCase(test)
-    
+
     #fbConnection.closeCase(parent)
-    
+
 #
 #
 #
 def projectIntegrate(CASE_NO):
     gitConnection = GitConnect()
     gitConnection.checkForUnsavedChanges()
-    
+
     fbConnection = FogBugzConnect()
-    
+
     # make sure integration is even worth it...
     fbConnection.ensureReadyForTest(CASE_NO)
-    
+
     gitConnection.checkoutExistingBranch(CASE_NO)
-    
+
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
-    
+
     gitConnection.checkoutExistingBranchRaw(integrate_to)
     gitConnection.pull()
-    
+
     gitConnection.mergeIn("work-%d" % CASE_NO)
-    
+
     fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
     fbConnection.closeCase(CASE_NO)
-    
-    
+
+
 #
 #
 #
@@ -271,17 +273,17 @@ def complain():
     response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo")
     for case in response.cases:
         #print case
-        
+
         est = float(case.hrscurrest.contents[0])
         act = float(case.hrselapsed.contents[0])
         if est - act < 0:
             print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"work.py complain:  This case is 'out of time' and needs an updated estimate.")
 
-    
-    
-    
-    
+
+
+
+
 
 ################################################################################
 ########################### Begin Script Here ##################################
@@ -302,12 +304,12 @@ WORK_PY_VERSION_NUMBER=14
 import re
 if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
     print '\033[93m\033[43m','WARNING: WORK.PY IS OUT OF DATE...','\033[0m'
-    
+
 
 
 if len(sys.argv) > 1:       #if there's at least one argument...
     task = sys.argv[1];
-    
+
     if len(sys.argv) > 2:   # if there's a second argument...
         try:
             CASE_NO = int(sys.argv[2])
@@ -350,6 +352,3 @@ elif (task == "complain"):
     complain()
 else:
     printUsageString()
-
-
-
