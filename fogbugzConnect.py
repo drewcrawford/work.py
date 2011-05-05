@@ -38,6 +38,18 @@ class FogBugzConnect:
         return
     
     #
+    # set other settings
+    #
+    def setSetting(self, setting, value):
+        handle = open(self.SETTINGS, "w")
+        try:
+            settings = {setting : value}
+            json.dump(settings, handle, indent=2)
+        except:
+            handle.close()
+        return
+    
+    #
     # Get settings from home directory
     #
     def getCredentials(self, email = None, username = None):

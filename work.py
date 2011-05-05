@@ -20,6 +20,8 @@ from fogbugzConnect import FogBugzConnect
 def printUsageString(command = 0):
     print "usage: work /command/ [args]"
     print ""
+    if(not command or command == "config"):
+        print "  config [setting]=[value] : adds setting to work.py config file"
     if (not command or command == "view"):
         print "  view CASE_NO : Shows you CASE_NO"
     if (not command or command == "start"):
@@ -278,8 +280,29 @@ def complain():
             print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"work.py complain:  This case is 'out of time' and needs an updated estimate.")
 
+#
+# Work.py config. Allows user to create/set a setting and insert it into
+# the settings file. Displays a warning if not in a list of non-standard
+# settings.
+#
+def workConfig(settingString):
+    ALLOWED_SETTINGS = ["viewOnStart"]
+    if len(settingString.split("=")) < 2:
+        printUsageString()
+        quit()
     
-    
+    setting = settingString.split("=")[0]
+    value = settingString.split("=")[1]
+    if setting and value:
+        fbConnection = FogBugzConnect()
+        settings = fbConnection.getCredentials()
+        if(not setting in ALLOWED_SETTINGS):
+            print "WARNING: setting not known. Will be added anyway."
+        fbConnection.setSetting(setting, value)
+    else:
+        printUsageString()
+        quit()
+        
     
     
 
@@ -348,6 +371,8 @@ elif (task == "view"):
     projectView(CASE_NO)
 elif (task == "complain"):
     complain()
+elif (task == "config"):
+    workConfig(target)
 else:
     printUsageString()
 
