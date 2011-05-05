@@ -85,8 +85,7 @@ def projectStart(CASE_NO, fromSpec):
     gitConnection.checkoutBranch(CASE_NO, fromSpec)
 
     settings = fbConnection.getCredentials()
-    print settings
-    if "viewOnStart" in settings or settings["viewOnStart"]:
+    if("viewOnStart" in settings and settings["viewOnStart"]):
         fbConnection.view(CASE_NO)
 
     print "Use work ship to commit your changes"
