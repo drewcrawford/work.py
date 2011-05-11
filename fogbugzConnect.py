@@ -41,8 +41,10 @@ class FogBugzConnect:
     # set other settings
     #
     def setSetting(self, setting, value):
-        handle = open(self.SETTINGS, "w")
+        handle = open(self.SETTINGS)
         currentSettings = json.load(handle)
+        handle.close()
+        handle = open(self.SETTINGS, "w")
         try:
             currentSettings[setting] = value
             json.dump(currentSettings, handle, indent=2)
