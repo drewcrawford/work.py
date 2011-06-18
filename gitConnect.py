@@ -82,7 +82,15 @@ class GitConnect:
         self.checkForRepository()
         import ConfigParser
         c = ConfigParser.ConfigParser()
-        file = open(".git/config")
+        path = ".git/config"
+        import os
+        for i in range(0,30):
+            if os.path.exists(path): break
+            path = "../" + path
+            if i==30:
+                raise Exception("Not a git repository?")
+            
+        file = open(path)
         str = file.read()
         file.close()
         print "Pulling...",
