@@ -89,10 +89,11 @@ class GitConnect:
             path = "../" + path
             if i==30:
                 raise Exception("Not a git repository?")
-            
+        
         file = open(path)
         str = file.read()
         file.close()
+
         print "Pulling...",
         if self.getBranch() not in str:
             print "WARNING: %s is not a tracking branch." % self.getBranch()
@@ -102,6 +103,7 @@ class GitConnect:
                 print "Success!"
             except:
                 print "ERROR: DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG."
+
             (status,output) = commands.getstatusoutput("git pull origin %s" % self.getBranch())
             if status:
                 print "ERROR:  Cannot pull! %s" % output
@@ -138,13 +140,17 @@ class GitConnect:
     # Checks out existing branch for CASE_NO
     #
     def checkoutExistingBranch(self,CASE_NO):
+
         output = self.__checkoutExistingBranch(CASE_NO)
         if not output:
             print "ERROR: could not checkout existing branch: %s" % output
             raise Exception("stacktraceplease")
             quit()
+
         print bcolors.WARNING + output + bcolors.ENDC
+
         self.pull()
+
 
     
     #
@@ -248,7 +254,7 @@ class GitConnect:
         if status:
             print "ERROR: Can't make this a tracking branch..."
             print output
-            quit()
+            raise Exception("Can't set upstream")
     
     
     

@@ -206,6 +206,8 @@ class FogBugzConnect:
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugChildren")
             for child in "".join(response.case.ixbugchildren).split(","):
                 if self.isTestCase(child):
+                    if child=="":
+                        return (SOME_CASE,None)
                     return (SOME_CASE,int(child))
         raise Exception("Cannot find a test case for %d",SOME_CASE)
         
