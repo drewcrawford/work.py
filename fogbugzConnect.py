@@ -6,7 +6,14 @@ except:
     import json
     
 try:
+    import keyring
+except:
+    print "Could not import keyring API"
+    quit()
+    
+try:
     from fogbugz import FogBugz
+    from fogbugz import FogBugzAPIError
 except Exception as e:
     print "Could not import FogBugz API because: ", e
     
@@ -56,13 +63,15 @@ class FogBugzConnect:
     def login(self):
         self.email = self.getCredentials()['email']
         #self.username = self.getCredentials()['username']
-        password = ""
-        while True:
-            if not password:
-                import getpass
-                password = getpass.getpass("FogBugz password: ")
-            else:
-                break
+        password = keyring.get_password('fogbugz', self.username)
+        if not password:
+            while True:
+                if not password:
+                    import getpass
+                    password = getpass.getpass("FogBugz password: ")
+                else:
+                    keyring.set_password('fogbugz', self.username, password)
+                    break
                 
         #connect to fogbugz with fbapi and login
         self.fbConnection.logon(self.email, password)
@@ -111,7 +120,15 @@ class FogBugzConnect:
                         return person.ixperson.contents[0]
         raise Exception("No match")
                 
-        
+    
+    #
+    # Get ixPerson for a given username or current username
+    #
+    def usernameToIXPerson(self):
+        for person in self.fbConnection.listPeople().people:
+            if person.sfullname.contents[0] == self.username:
+                return person.ixperson.contents[0]
+    
     #
     # Reactivate case
     #
@@ -122,13 +139,35 @@ class FogBugzConnect:
     # create a test case
     #
     def createTestCase(self,PARENT_CASE):
-        print "How long does it take to test? ",
+        #get estimate
+        print "Please provide an estimate for the test: ",
         timespan = raw_input()
         #extract parent info
-        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor")
+        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor,sFixFor")
+        
+        #look for a test milestone
+        milestones = self.fbConnection.listFixFors(ixProject=resp.case.ixproject.contents[0])
+        ixTestMilestone = 0
+        foundTestMilestone = False
+        for aMilestone in milestones.fixfors:
+            #print aMilestone.sfixfor.contents[0], resp.case.sfixfor.contents[0] + "-test"
+            if(aMilestone.sfixfor.contents[0].find(resp.case.sfixfor.contents[0] + "-test") != -1):
+                foundTestMilestone = True
+                ixTestMilestone = aMilestone.ixfixfor.contents[0]
+        
+        testMilestone = resp.case.sfixfor.contents[0] + "-test"
+        #print "testMilestone: ", testMilestone
+        #print "\nfoundTestMilestone: ", foundTestMilestone
+
+        if not foundTestMilestone:
+            ixTestMilestone = self.fbConnection.newFixFor(ixProject=resp.case.ixproject.contents[0], sFixFor=testMilestone, fAssignable="1")
+            self.fbConnection.addFixForDependency(ixFixFor=ixTestMilestone, ixFixForDependsOn=resp.case.ixproject.contents[0])
+            #print "creating new milestone and setting dependencies! New Milestone: ", ixTestMilestone.ixfixfor.contents[0]
+            ixTestMilestone = ixTestMilestone.ixfixfor.contents[0]
+
         #print resp.case
-        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.username,hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
-                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=resp.case.ixfixfor.contents[0])
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
+                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
         
     #
@@ -182,11 +221,19 @@ class FogBugzConnect:
     # Start work on a case
     #
     def startCase(self, CASE_NO):
-        query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
-        resp=self.fbConnection.search(q=query)
+        query = 'assignedto:"{0}" case:"{1}"'.format(self.username.lower(), CASE_NO)
+        resp=self.fbConnection.search(q=query, cols="fOpen,hrsCurrEst")
         if (resp):
-            self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
-            self.fbConnection.startWork(ixBug=CASE_NO)
+            #print resp
+            if resp.case.fopen.contents[0] != "true":
+                print "FATAL ERROR: FogBugz case is closed"
+                quit()
+            if resp.case.hrscurrest.contents[0] != "0":
+                self.fbConnection.startWork(ixBug=CASE_NO)
+                self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
+            else:
+                self.setEstimate(CASE_NO)
+                self.startCase(CASE_NO)
         else:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!!"
             quit()
@@ -227,21 +274,50 @@ class FogBugzConnect:
     #
     # resolve case with CASE_NO
     #
-    def resolveCase(self, CASE_NO,ixstatus=None):
+    def resolveCase(self, CASE_NO,ixstatus=None, isTestCase_CASENO=None):
         query = 'assignedto:"{0}" {1}'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query)
         if(resp):
-            self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
+            if (ixstatus):
+                self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
+            elif(isTestCase_CASENO):
+                tester = self.findTestCaseOwner(isTestCase_CASENO)
+                print "reassigning to ixperson",tester
+                self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=tester)
+            else:
+                self.fbConnection.resolve(ixBug=CASE_NO)
+
+    
         else:
             print "ERROR: FogBugz case does not exists or isn't assigned to you!"
         return
 
+    #
+    #
+    #
+    def findTestCaseOwner(self, CASE_NO):
+        query = '{0}'.format(CASE_NO)
+        resp=self.fbConnection.search(q=query,cols="ixPersonAssignedTo")
+        if(resp):
+            tester = resp.case.ixpersonassignedto.contents[0]
+            return tester
+            
     #
     # close case with CASE_NO
     #
     
     def closeCase(self,CASE_NO):
         self.fbConnection.close(ixBug=CASE_NO)
+
+    #
+    # Set Estimate for specified bug, returns the estimate
+    #
+    def setEstimate(self, CASE_NO):
+        print "Please provide an estimate for this case: ",
+        timespan = raw_input()
+        
+        self.fbConnection.edit(ixBug=CASE_NO, hrsCurrEst=timespan)
+        return timespan;
 
 
     #
