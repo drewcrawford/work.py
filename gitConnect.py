@@ -1,5 +1,7 @@
 from subprocess import Popen, PIPE
 import os
+import sys
+from commands import getstatusoutput
 import commands
 class bcolors:
     HEADER = '\033[95m'
@@ -75,10 +77,10 @@ class GitConnect:
         if status:
             print "ERROR: merge was unsuccessful."
             # play sounds!
-            commands.getoutput("afplay media/ohno.aiff")
+            getstatusoutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
         else:
             # play sounds!
-            commands.getoutput("afplay media/hooray.aiff")
+            getstatusoutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
         print "Use 'git push' to ship."
     
     #

@@ -11,7 +11,7 @@
 #############################################
 
 import sys
-from commands import getstatus
+from commands import getstatusoutput
 from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
 
@@ -201,7 +201,7 @@ def projectFailTest():
     fbConnection.stopWork(test)
 
     # play sounds!
-    getoutput("afplay media/dundundun.aiff")
+    getstatusoutput ("afplay -v 7 %s/media/dundundun.aiff" % sys.prefix)
     
 #
 #
@@ -227,7 +227,7 @@ def projectPassTest():
     fbConnection.closeCase(test)
 
     # play sounds!
-    getoutput("afplay media/longcheer.aiff")
+    getstatusoutput("afplay -v 7 %s/media/longcheer.aiff" % sys.prefix)
     
     #fbConnection.closeCase(parent)
     
