@@ -294,6 +294,7 @@ def ls():
     (user,repo) = gitConnection.getUserRepo()
     fbConnection = FogBugzConnect()
     if repo=="DrewCrawfordApps": repo = "Hackity-Hack"
+    elif repo=="Briefcase-wars": repo = "Briefcase Wars"
     fbConnection.listCases(repo)
     
     
