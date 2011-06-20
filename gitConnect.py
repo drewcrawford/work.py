@@ -33,6 +33,7 @@ class GitConnect:
         userRepo[1] = userRepo[1].replace(".git","")
         return userRepo
         
+
     #
     # Launch gitHub compare view
     #   

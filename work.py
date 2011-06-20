@@ -33,6 +33,7 @@ def printUsageString():
     print "  complain:  finds and complains about late cases"
     print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch\n\tfor the milestone (off of FROMSPEC)"
     print "  network : it's a series of tubes"
+    print "  ls: list cases (EXPERIMENTAL)"
     print ""
     sys.exit()
 
@@ -285,6 +286,16 @@ def network():
     gitConnection = GitConnect()
     gitConnection.githubNetwork()
     
+#
+#
+#
+def ls():
+    gitConnection = GitConnect()
+    (user,repo) = gitConnection.getUserRepo()
+    fbConnection = FogBugzConnect()
+    if repo=="DrewCrawfordApps": repo = "Hackity-Hack"
+    fbConnection.listCases(repo)
+    
     
 
 ################################################################################
@@ -358,6 +369,8 @@ elif (task == "complain"):
     complain()
 elif (task == "network"):
     network()
+elif (task == "ls"):
+    ls()
 else:
     printUsageString()
 

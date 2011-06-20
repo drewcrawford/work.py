@@ -37,6 +37,44 @@ class FogBugzConnect:
             handle.close()
         return
     
+    def listCases(self,projectName):
+        query = 'project:"%s" assignedTo:"%s"' % (projectName,self.username.lower())
+        cols = "sTitle,ixPriority" #careful with adding things here.  It seems to be the case
+        # that adding a field here requires the case to have that field.  Hence
+        # the convoluted logic below to also grab cases with no estimate.
+        cases = self.fbConnection.search(q= query,cols=cols + ",hrsCurrEst,hrsElapsed")
+        cases = list(cases.cases)        
+
+        addlcases = self.fbConnection.search(q=query,cols=cols)
+        for addlcase in addlcases.cases:
+            def searchforixbug(ixbugno):
+                for case in cases:
+                    if case["ixbug"]==ixbugno: return True
+                return False
+            #print addlcase
+            if not searchforixbug(addlcase["ixbug"]):
+                cases.append(addlcase)
+            
+        def mcmp(x,y):
+            x_1 = int(x.ixpriority.contents[0])
+            x_2 = int(y.ixpriority.contents[0])
+            if x_1 < x_2: return -1
+            if x_1 > x_2: return 1
+            return 0
+        cases.sort(cmp=mcmp)
+
+        #print cases
+        print "case".rjust(5),"title".ljust(55),"priority".rjust(6),"timeleft".rjust(8)
+    
+        for case in cases:
+            print case["ixbug"].rjust(5),
+            print case.stitle.contents[0].ljust(55),
+            print case.ixpriority.contents[0].rjust(6),
+            if case.hrscurrest.contents[0]=="0":
+                print "?".rjust(8)
+            else:
+                print ("%.2f" % (float(case.hrscurrest.contents[0])-float(case.hrselapsed.contents[0]))).rjust(8)
+            
     #
     # Get settings from home directory
     #
@@ -319,10 +357,10 @@ class FogBugzConnect:
             tester = resp.case.ixpersonassignedto.contents[0]
             return tester
             
+    
     #
     # close case with CASE_NO
     #
-    
     def closeCase(self,CASE_NO):
         self.fbConnection.close(ixBug=CASE_NO)
 
