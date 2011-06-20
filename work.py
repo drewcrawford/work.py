@@ -310,7 +310,8 @@ WORK_PY_VERSION_NUMBER=14
 #########################
 import re
 if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
-    print '\033[93m\033[43m','WARNING: WORK.PY IS OUT OF DATE...','\033[0m'
+    from gitConnect import bcolors
+    print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE...',bcolors.ENDC
     
 
 
