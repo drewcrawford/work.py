@@ -42,6 +42,15 @@ class GitConnect:
         from os import system
         system("open %s" % cmd)
     #
+    # Shows the network
+    #
+    def githubNetwork(self):
+        (user,repo) = self.getUserRepo()
+        cmd = "http://github.com/%s/%s/network" % (user,repo)
+        from os import system
+        system("open %s" % cmd)
+    
+    #
     # Returns the branch, else quits
     #
     def getBranch(self):

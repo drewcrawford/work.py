@@ -18,31 +18,21 @@ from fogbugzConnect import FogBugzConnect
 #
 # Prints the usage string for this script
 #
-def printUsageString(command = 0):
+def printUsageString():
     print "usage: work /command/ [args]"
     print ""
-    if (not command or command == "view"):
-        print "  view CASE_NO : Shows you CASE_NO"
-    if (not command or command == "start"):
-        print "  start CASE_NO [--from=FROMSPEC] : Checks into FogBugz and git branch"
-    if (not command or command == "stop"):
-        print "  stop : Checks out of FogBugz case and checks into git Master branch"
-    if (not command or command == "ship"):
-        print "  ship : Closes case and pushes branch to origin"
-    if (not command or command == "testmake"):
-        print "  testmake CASE_NO : Makes a test subcase for CASE_NO"
-    if (not command or command == "test"):
-        print "  test CASE_NO : you are performing are reviewing/testing CASE_NO"
-    if (not command or command == "fail"):
-        print "  fail : the case has failed to pass a test"
-    if (not command or command == "pass"):
-        print "  pass: the case has passed a test"
-    if (not command or command == "integrate"):
-        print "  integrate: integrate the case to somewhere"
-    if (not command or command == "complain"):
-        print "  complain:  finds and complains about late cases"
-    if (not command or command == "integratemake"):
-        print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch for the milestone (off of FROMSPEC)"
+    print "  view CASE_NO : Shows you CASE_NO"
+    print "  start CASE_NO [--from=FROMSPEC] : Checks into FogBugz and git branch"
+    print "  stop : Checks out of FogBugz case and checks into git Master branch"
+    print "  ship : Closes case and pushes branch to origin"
+    print "  testmake CASE_NO : Makes a test subcase for CASE_NO"
+    print "  test CASE_NO : you are performing are reviewing/testing CASE_NO"
+    print "  fail : the case has failed to pass a test"
+    print "  pass: the case has passed a test"
+    print "  integrate: integrate the case to somewhere"
+    print "  complain:  finds and complains about late cases"
+    print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch\n\tfor the milestone (off of FROMSPEC)"
+    print "  network : it's a series of tubes"
     print ""
     sys.exit()
 
@@ -288,7 +278,12 @@ def complain():
             fbConnection.commentOn(case["ixbug"],"work.py complain:  This case is 'out of time' and needs an updated estimate.")
 
     
-    
+#
+#
+#
+def network():
+    gitConnection = GitConnect()
+    gitConnection.githubNetwork()
     
     
 
@@ -327,7 +322,7 @@ if len(sys.argv) > 1:       #if there's at least one argument...
         try:
             fromSpec = str(sys.argv[3]).split("=")[1]
         except:
-            printUsageString("start")
+            printUsageString()
 else:   # quit if no task
     printUsageString()
 
@@ -360,6 +355,8 @@ elif (task == "view"):
     projectView(CASE_NO)
 elif (task == "complain"):
     complain()
+elif (task == "network"):
+    network()
 else:
     printUsageString()
 
