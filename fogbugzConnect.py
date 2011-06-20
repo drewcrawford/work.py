@@ -173,20 +173,25 @@ class FogBugzConnect:
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
+    def __isTestCase(self,actual_beautiful_soup_caselist):
+        """Requires a caselist with sTitle,events,fOpen as attributes"""
+        for case in actual_beautiful_soup_caselist:
+            #print "BEGIN CASE",case
+            if not case.fopen: continue
+            if case.fopen.contents[0]=="false":return False
+            if case.stitle.contents[0]=="Review":
+                for event in case.events:
+                    if event.s.contents[0]=="work.py automatically created this test case":
+                        return True
+        return False           
         
     #
     # returns true iff CASE_NO is a work.py test case
     #
     def isTestCase(self,CASE_NO):
         response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events,fOpen")
-        for case in response.cases:
-            #print case.sstatus
-            if case.fopen.contents[0]=="false":return False
-            if case.stitle.contents[0]=="Review":
-                for event in case.events:
-                    if event.s.contents[0]=="work.py automatically created this test case":
-                        return True
-        return False
+        return self.__isTestCase(response)
+
         #print response
     #
     # 
@@ -226,9 +231,15 @@ class FogBugzConnect:
     #
     # Start work on a case
     #
-    def startCase(self, CASE_NO):
+    def startCase(self, CASE_NO,enforceNoTestCases=True):
         query = 'assignedto:"{0}" case:"{1}"'.format(self.username.lower(), CASE_NO)
-        resp=self.fbConnection.search(q=query, cols="fOpen,hrsCurrEst")
+        
+        cols = "fOpen,hrsCurrEst"
+        if enforceNoTestCases:
+            cols += ",events,sTitle"
+        resp=self.fbConnection.search(q=query, cols=cols)
+        if enforceNoTestCases and self.__isTestCase(resp):
+            print "Can't 'work start' a test case (maybe you meant 'work test'?)"
         if (resp and resp.case):
             #print resp
             if resp.case.fopen.contents[0] != "true":

@@ -7,7 +7,7 @@ class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
-    WARNING = '\033[93m\033[43m'
+    WARNING = '\033[43m\033[1;34m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 class GitConnect:
@@ -41,6 +41,15 @@ class GitConnect:
         cmd =  "http://github.com/%s/%s/compare/%s...%s" % (user,repo,origin,dest)
         from os import system
         system("open %s" % cmd)
+    #
+    # Shows the network
+    #
+    def githubNetwork(self):
+        (user,repo) = self.getUserRepo()
+        cmd = "http://github.com/%s/%s/network" % (user,repo)
+        from os import system
+        system("open %s" % cmd)
+    
     #
     # Returns the branch, else quits
     #
@@ -215,7 +224,9 @@ class GitConnect:
     # gets list of branches. if CASE_NO branch exists, check it out. Otherwise
     # create a new branch, check into it, push something up to master, make it track, and return.
     #
-    def checkoutBranch(self, CASE_NO, fromSpec):                 
+    def checkoutBranch(self, CASE_NO, fromSpec,fbConnection):
+
+        
         # get output from git branch command
         (branchStatus, branchOutput) = commands.getstatusoutput("git branch")
         
@@ -230,6 +241,10 @@ class GitConnect:
             
         # if a branch does not exist, create one and check it out
         else:
+            if not fromSpec:
+                #try to fill automatically from FB
+                fromSpec = fbConnection.getIntegrationBranch(CASE_NO)
+                print "using integration branch %s" % fromSpec
             self.createNewWorkBranch(CASE_NO, fromSpec)
             return
                 
