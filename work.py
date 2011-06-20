@@ -67,23 +67,15 @@ def projectStart(CASE_NO, fromSpec):
         
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
-    
-    #check for test case - should not run for test case
-    if fbConnection.isTestCase(CASE_NO):
-        print "ERROR: cannot start on test case! (did you mean \"work test\"?)"
-        quit()
-    
+        
     #check for FogBugz case and clock in
     fbConnection.startCase(CASE_NO)
     
 
     
-    if not fromSpec:
-        #try to fill automatically from FB
-        fromSpec = fbConnection.getIntegrationBranch(CASE_NO)
-        print "using integration branch %s" % fromSpec
+
     #checkout or create branch with CASE_NO
-    gitConnection.checkoutBranch(CASE_NO, fromSpec)
+    gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
     
     fbConnection.view(CASE_NO)
     
@@ -170,7 +162,7 @@ def projectStartTest(CASE_NO):
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
     
-    fbConnection.startCase(test)
+    fbConnection.startCase(test,enforceNoTestCases=False)
     gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
     
     

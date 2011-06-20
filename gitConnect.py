@@ -214,7 +214,9 @@ class GitConnect:
     # gets list of branches. if CASE_NO branch exists, check it out. Otherwise
     # create a new branch, check into it, push something up to master, make it track, and return.
     #
-    def checkoutBranch(self, CASE_NO, fromSpec):                 
+    def checkoutBranch(self, CASE_NO, fromSpec,fbConnection):
+
+        
         # get output from git branch command
         (branchStatus, branchOutput) = commands.getstatusoutput("git branch")
         
@@ -229,6 +231,10 @@ class GitConnect:
             
         # if a branch does not exist, create one and check it out
         else:
+            if not fromSpec:
+                #try to fill automatically from FB
+                fromSpec = fbConnection.getIntegrationBranch(CASE_NO)
+                print "using integration branch %s" % fromSpec
             self.createNewWorkBranch(CASE_NO, fromSpec)
             return
                 
