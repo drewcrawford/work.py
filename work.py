@@ -323,6 +323,7 @@ if len(sys.argv) > 1:       #if there's at least one argument...
     if len(sys.argv) > 3:   # if there's a third argument...
         try:
             fromSpec = str(sys.argv[3]).split("=")[1]
+            fromSpec = fromSpec.replace(" ","-")
         except:
             printUsageString("start")
 else:   # quit if no task
@@ -342,7 +343,7 @@ elif(task == "ship"):
 elif (task == "testmake"):
     projectTestMake(CASE_NO)
 elif (task == "integratemake"):
-    projectIntegrateMake(target,fromSpec)
+    projectIntegrateMake(target.replace(" ","-"),fromSpec)
 elif (task == "test"):
     projectStartTest(CASE_NO)
 elif (task == "fail"):
