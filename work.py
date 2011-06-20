@@ -267,8 +267,11 @@ def projectIntegrate(CASE_NO):
 #
 #
 def projectIntegrateMake(CASE_NO,fromSpec):
-     gitConnection = GitConnect()
-     gitConnection.createNewRawBranch(CASE_NO,fromSpec)
+    if not fromSpec:
+        print "Sorry, you have to manually specify a fromspec.  Ask somebody."
+        quit()
+    gitConnection = GitConnect()
+    gitConnection.createNewRawBranch(CASE_NO,fromSpec)
 
 #
 #
