@@ -78,6 +78,7 @@ class GitConnect:
             print "ERROR: merge was unsuccessful."
             # play sounds!
             getstatusoutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
+            quit()
         else:
             # play sounds!
             getstatusoutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
