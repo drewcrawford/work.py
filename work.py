@@ -350,6 +350,8 @@ elif(task == "stop"):
 elif(task == "ship"):
     projectShip()
 elif (task == "testmake"):
+    if not CASE_NO:
+        printUsageString()
     projectTestMake(CASE_NO)
 elif (task == "integratemake"):
     projectIntegrateMake(target,fromSpec)
