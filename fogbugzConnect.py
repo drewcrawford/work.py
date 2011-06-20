@@ -38,7 +38,7 @@ class FogBugzConnect:
         return
     
     def listCases(self,projectName):
-        query = 'project:"%s" assignedTo:"%s"' % (projectName,self.username.lower())
+        query = 'project:"%s" assignedTo:"%s" status:active' % (projectName,self.username.lower())
         cols = "sTitle,ixPriority" #careful with adding things here.  It seems to be the case
         # that adding a field here requires the case to have that field.  Hence
         # the convoluted logic below to also grab cases with no estimate.
