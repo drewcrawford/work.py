@@ -225,8 +225,7 @@ class FogBugzConnect:
     def startCase(self, CASE_NO):
         query = 'assignedto:"{0}" case:"{1}"'.format(self.username.lower(), CASE_NO)
         resp=self.fbConnection.search(q=query, cols="fOpen,hrsCurrEst")
-        if (resp):
-            #print resp
+        if (resp and resp.case):
             if resp.case.fopen.contents[0] != "true":
                 print "FATAL ERROR: FogBugz case is closed"
                 quit()
