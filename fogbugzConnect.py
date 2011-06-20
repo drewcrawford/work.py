@@ -133,8 +133,12 @@ class FogBugzConnect:
     # Reactivate case
     #
     def reactivate(self,CASE_NO,assignTo,msg):
-        response = self.fbConnection.reactivate(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
-    
+        try:
+            response = self.fbConnection.reactivate(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
+        except FogBugzAPIError as e:
+            print "Unexpected condition [%s] Is case closed? Attempting to recover..." % e
+            response = self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
+            print "Recovery was successful."
     #
     # create a test case
     #
