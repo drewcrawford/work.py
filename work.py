@@ -11,6 +11,7 @@
 #############################################
 
 import sys
+from commands import getstatusoutput
 from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
 
@@ -40,6 +41,8 @@ def printUsageString(command = 0):
         print "  integrate: integrate the case to somewhere"
     if (not command or command == "complain"):
         print "  complain:  finds and complains about late cases"
+    if (not command or command == "integratemake"):
+        print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch for the milestone (off of FROMSPEC)"
     print ""
     sys.exit()
 
@@ -104,6 +107,8 @@ def projectStop():
 
     
     #stop working on case and checkout master
+    branch = gitConnection.getBranch()
+    gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
     
     #clock out of project
@@ -138,8 +143,11 @@ def projectShip():
     gitConnection.checkoutMaster()
     
     #is there a test case?
-    (parent,child) = fbConnection.getCaseTuple(caseno)
-    fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
+    try:
+        (parent,child) = fbConnection.getCaseTuple(caseno)
+        fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
+    except:    
+        fbConnection.resolveCase(caseno)
 
 #
 #
@@ -191,6 +199,9 @@ def projectFailTest():
     (parent,test) = fbConnection.getCaseTuple(caseno)
     fbConnection.reactivate(parent,fbConnection.findImplementer(caseno),"Terribly sorry, but your case FAILED a test: %s" % reason)
     fbConnection.stopWork(test)
+
+    # play sounds!
+    getstatusoutput ("afplay -v 7 %s/media/dundundun.aiff" % sys.prefix)
     
 #
 #
@@ -214,6 +225,9 @@ def projectPassTest():
     
     fbConnection.resolveCase(test,ixstatus=ix)
     fbConnection.closeCase(test)
+
+    # play sounds!
+    getstatusoutput("afplay -v 7 %s/media/longcheer.aiff" % sys.prefix)
     
     #fbConnection.closeCase(parent)
     
@@ -225,13 +239,20 @@ def projectIntegrate(CASE_NO):
     gitConnection.checkForUnsavedChanges()
     
     fbConnection = FogBugzConnect()
-    
+#still open here 
     # make sure integration is even worth it...
     fbConnection.ensureReadyForTest(CASE_NO)
-    
+    #still open here
     gitConnection.checkoutExistingBranch(CASE_NO)
-    
+    #closed here
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
+    
+    #check for test case
+    (parent, test) = fbConnection.getCaseTuple(CASE_NO)
+    if not test:
+        print "WARNING: no test case! Press enter to continue"
+        raw_input()
+        
     
     gitConnection.checkoutExistingBranchRaw(integrate_to)
     gitConnection.pull()
@@ -240,25 +261,35 @@ def projectIntegrate(CASE_NO):
     
     fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
     fbConnection.closeCase(CASE_NO)
+    
+    
+#
+#
+#
+def projectIntegrateMake(CASE_NO,fromSpec):
+     gitConnection = GitConnect()
+     gitConnection.createNewRawBranch(CASE_NO,fromSpec)
 
-
+#
+#
+#
 def complain():
     fbConnection = FogBugzConnect()
     fbConnection.fbConnection.setCurrentFilter(sFilter=10) #Active Cases
-    response = fbConnection.fbConnection.search(cols="hrsCurrEst")
+    response = fbConnection.fbConnection.search(cols="hrsCurrEst,sPersonAssignedTo")
     for case in response.cases:
         #print case
         if case.hrscurrest.contents[0]=="0":
-            print "case %s has no estimate"%case["ixbug"]
+            print "%s's case %s has no estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"work.py complain:  This case needs an estimate.")
-    response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed")
+    response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo")
     for case in response.cases:
         #print case
         
         est = float(case.hrscurrest.contents[0])
         act = float(case.hrselapsed.contents[0])
         if est - act < 0:
-            print "case %s requires updated estimate"%case["ixbug"]
+            print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"work.py complain:  This case is 'out of time' and needs an updated estimate.")
 
     
@@ -280,7 +311,7 @@ fromSpec = ""
 from urllib2 import urlopen
 version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
 #########################
-WORK_PY_VERSION_NUMBER=10
+WORK_PY_VERSION_NUMBER=14
 #########################
 import re
 if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
@@ -295,7 +326,7 @@ if len(sys.argv) > 1:       #if there's at least one argument...
         try:
             CASE_NO = int(sys.argv[2])
         except:
-            printUsageString()
+            target = sys.argv[2]
     if len(sys.argv) > 3:   # if there's a third argument...
         try:
             fromSpec = str(sys.argv[3]).split("=")[1]
@@ -317,6 +348,8 @@ elif(task == "ship"):
     projectShip()
 elif (task == "testmake"):
     projectTestMake(CASE_NO)
+elif (task == "integratemake"):
+    projectIntegrateMake(target,fromSpec)
 elif (task == "test"):
     projectStartTest(CASE_NO)
 elif (task == "fail"):

@@ -1,5 +1,7 @@
 from subprocess import Popen, PIPE
 import os
+import sys
+from commands import getstatusoutput
 import commands
 class bcolors:
     HEADER = '\033[95m'
@@ -17,7 +19,7 @@ class GitConnect:
         if(status):
             print "ERROR: Not in git repository! Check your current directory!"
             quit()
-        else:
+        else: 
             return output
         
         
@@ -74,7 +76,13 @@ class GitConnect:
         print output
         if status:
             print "ERROR: merge was unsuccessful."
+            # play sounds!
+            getstatusoutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
+        else:
+            # play sounds!
+            getstatusoutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
         print "Use 'git push' to ship."
+    
     #
     # Performs a git pull
     #
@@ -82,12 +90,28 @@ class GitConnect:
         self.checkForRepository()
         import ConfigParser
         c = ConfigParser.ConfigParser()
-        file = open(".git/config")
+        path = ".git/config"
+        import os
+        for i in range(0,30):
+            if os.path.exists(path): break
+            path = "../" + path
+            if i==30:
+                raise Exception("Not a git repository?")
+        
+        file = open(path)
         str = file.read()
         file.close()
+
         print "Pulling...",
         if self.getBranch() not in str:
-            print "WARNING: This is not a tracking branch."
+            print "WARNING: %s is not a tracking branch." % self.getBranch()
+            print "Attempting to fix...",
+            try:
+                self.setUpstream(self.getBranch(),"remotes/origin/{0}".format(self.getBranch()))
+                print "Success!"
+            except:
+                print "ERROR: DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG."
+
             (status,output) = commands.getstatusoutput("git pull origin %s" % self.getBranch())
             if status:
                 print "ERROR:  Cannot pull! %s" % output
@@ -124,13 +148,17 @@ class GitConnect:
     # Checks out existing branch for CASE_NO
     #
     def checkoutExistingBranch(self,CASE_NO):
+
         output = self.__checkoutExistingBranch(CASE_NO)
         if not output:
             print "ERROR: could not checkout existing branch: %s" % output
             raise Exception("stacktraceplease")
             quit()
+
         print bcolors.WARNING + output + bcolors.ENDC
+
         self.pull()
+
 
     
     #
@@ -151,29 +179,36 @@ class GitConnect:
             print "ERROR: could not checkout existing branch: %s" % output
             quit()
 
-            
     #
     # Checkout fromSpec and set up tracking
     #
-    def createNewWorkBranch(self, CASE_NO, fromSpec):
+    def createNewRawBranch(self, branchName, fromSpec):
         #check fromspec
         if(fromSpec):
+            if fromSpec=="Undecided":
+                print "Undecided isn't a valid fromspec.  (Maybe set the milestone on the ticket?)"
+                quit()
             (fromSpecStatus, output) = commands.getstatusoutput("git checkout {0}".format(fromSpec))
             if(fromSpecStatus):
-                print "Could not checkout FROMSPEC"
+                print "Could not checkout FROMSPEC (maybe a 'work integratemake %s' is needed here?)" % fromSpec
                 quit()
         #regardless, we need our integration branch to be up to date
         self.pull()
         
-        # create branch for new CASE_NO and check it out
-        self.checkoutExistingBranchRaw("-b work-{0}".format(CASE_NO))
+        # create branch for and check it out
+        self.checkoutExistingBranchRaw("-b {0}".format(branchName))
                                        
         # push changes
-        self.pushChangesToOriginBranch(branch="work-{0}".format(CASE_NO))
+        self.pushChangesToOriginBranch(branch=branchName)
 
-        self.setUpstream("work-{0}".format(CASE_NO), "remotes/origin/work-{0}".format(CASE_NO))                               
-        
-        return "work-{0}".format(CASE_NO)
+        self.setUpstream(branchName, "remotes/origin/{0}".format(branchName))                               
+        return branchName
+    
+    #
+    # Checkout fromSpec and set up tracking
+    #
+    def createNewWorkBranch(self, CASE_NO, fromSpec):
+        return self.createNewRawBranch("work-{0}".format(CASE_NO),fromSpec)
     
     #
     # gets list of branches. if CASE_NO branch exists, check it out. Otherwise
@@ -226,7 +261,8 @@ class GitConnect:
         (status,output) = commands.getstatusoutput("git branch --set-upstream {0} {1}".format(branch, upstreamPath))
         if status:
             print "ERROR: Can't make this a tracking branch..."
-            quit()
+            print output
+            raise Exception("Can't set upstream")
     
     
     

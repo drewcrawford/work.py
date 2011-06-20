@@ -133,8 +133,12 @@ class FogBugzConnect:
     # Reactivate case
     #
     def reactivate(self,CASE_NO,assignTo,msg):
-        response = self.fbConnection.reactivate(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
-    
+        try:
+            response = self.fbConnection.reactivate(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
+        except FogBugzAPIError as e:
+            print "Unexpected condition [%s] Is case closed? Attempting to recover..." % e
+            response = self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
+            print "Recovery was successful."
     #
     # create a test case
     #
@@ -143,10 +147,31 @@ class FogBugzConnect:
         print "Please provide an estimate for the test: ",
         timespan = raw_input()
         #extract parent info
-        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor")
+        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor,sFixFor")
+        
+        #look for a test milestone
+        milestones = self.fbConnection.listFixFors(ixProject=resp.case.ixproject.contents[0])
+        ixTestMilestone = 0
+        foundTestMilestone = False
+        for aMilestone in milestones.fixfors:
+            #print aMilestone.sfixfor.contents[0], resp.case.sfixfor.contents[0] + "-test"
+            if(aMilestone.sfixfor.contents[0].find(resp.case.sfixfor.contents[0] + "-test") != -1):
+                foundTestMilestone = True
+                ixTestMilestone = aMilestone.ixfixfor.contents[0]
+        
+        testMilestone = resp.case.sfixfor.contents[0] + "-test"
+        #print "testMilestone: ", testMilestone
+        #print "\nfoundTestMilestone: ", foundTestMilestone
+
+        if not foundTestMilestone:
+            ixTestMilestone = self.fbConnection.newFixFor(ixProject=resp.case.ixproject.contents[0], sFixFor=testMilestone, fAssignable="1")
+            self.fbConnection.addFixForDependency(ixFixFor=ixTestMilestone, ixFixForDependsOn=resp.case.ixproject.contents[0])
+            #print "creating new milestone and setting dependencies! New Milestone: ", ixTestMilestone.ixfixfor.contents[0]
+            ixTestMilestone = ixTestMilestone.ixfixfor.contents[0]
+
         #print resp.case
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
-                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=resp.case.ixfixfor.contents[0])
+                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
         
     #
@@ -185,6 +210,8 @@ class FogBugzConnect:
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugChildren")
             for child in "".join(response.case.ixbugchildren).split(","):
                 if self.isTestCase(child):
+                    if child=="":
+                        return (SOME_CASE,None)
                     return (SOME_CASE,int(child))
         raise Exception("Cannot find a test case for %d",SOME_CASE)
         
@@ -200,13 +227,16 @@ class FogBugzConnect:
     # Start work on a case
     #
     def startCase(self, CASE_NO):
-        query = 'assignedto:"{0}" ixBug:"{1}"'.format(self.username.lower(), CASE_NO)
-        resp=self.fbConnection.search(q=query)
-        if (resp and str(resp.cases).find('count="0"') == -1):
-            try:
+        query = 'assignedto:"{0}" case:"{1}"'.format(self.username.lower(), CASE_NO)
+        resp=self.fbConnection.search(q=query, cols="fOpen,hrsCurrEst")
+        if (resp and resp.case):
+            if resp.case.fopen.contents[0] != "true":
+                print "FATAL ERROR: FogBugz case is closed"
+                quit()
+            if resp.case.hrscurrest.contents[0] != "0":
                 self.fbConnection.startWork(ixBug=CASE_NO)
                 self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
-            except FogBugzAPIError as e:
+            else:
                 self.setEstimate(CASE_NO)
                 self.startCase(CASE_NO)
         else:
@@ -260,7 +290,7 @@ class FogBugzConnect:
                 print "reassigning to ixperson",tester
                 self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=tester)
             else:
-                raise Exception("WTF?")
+                self.fbConnection.resolve(ixBug=CASE_NO)
 
     
         else:
