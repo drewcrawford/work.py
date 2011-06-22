@@ -211,12 +211,12 @@ class FogBugzConnect:
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
-    def __isTestCase(self,actual_beautiful_soup_caselist):
+    def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
         """Requires a caselist with sTitle,events,fOpen as attributes"""
         for case in actual_beautiful_soup_caselist:
             #print "BEGIN CASE",case
-            if not case.fopen: continue
-            if case.fopen.contents[0]=="false":return False
+            if not case.fopen and not oldTestCasesOK: continue
+            if case.fopen.contents[0]=="false" and not oldTestCasesOK:return False
             if case.stitle.contents[0]=="Review":
                 for event in case.events:
                     if event.s.contents[0]=="work.py automatically created this test case":
@@ -226,9 +226,9 @@ class FogBugzConnect:
     #
     # returns true iff CASE_NO is a work.py test case
     #
-    def isTestCase(self,CASE_NO):
+    def isTestCase(self,CASE_NO,oldTestCasesOK=False):
         response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events,fOpen")
-        return self.__isTestCase(response)
+        return self.__isTestCase(response,oldTestCasesOK=oldTestCasesOK)
 
         #print response
     #
@@ -244,7 +244,7 @@ class FogBugzConnect:
     #
     # return (actual_case, test_case) given either one
     #
-    def getCaseTuple(self,SOME_CASE):
+    def getCaseTuple(self,SOME_CASE,oldTestCasesOK=False):
         if self.isTestCase(SOME_CASE):
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugParent")
             return (int(response.case.ixbugparent.contents[0]),SOME_CASE)
@@ -252,7 +252,7 @@ class FogBugzConnect:
         else: #parent case
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugChildren")
             for child in "".join(response.case.ixbugchildren).split(","):
-                if self.isTestCase(child):
+                if self.isTestCase(child,oldTestCasesOK=oldTestCasesOK):
                     if child=="":
                         return (SOME_CASE,None)
                     return (SOME_CASE,int(child))
