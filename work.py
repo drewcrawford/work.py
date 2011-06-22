@@ -229,10 +229,11 @@ def projectIntegrate(CASE_NO):
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     
     #check for test case
-    (parent, test) = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True)
-    if not test:
-        print "WARNING: no test case! Press enter to continue"
-        raw_input()
+    try:
+        (parent, test) = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True)
+    except:
+            print "WARNING: no test case! Press enter to continue"
+            raw_input()
         
     
     gitConnection.checkoutExistingBranchRaw(integrate_to)
