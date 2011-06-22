@@ -215,7 +215,7 @@ class FogBugzConnect:
         """Requires a caselist with sTitle,events,fOpen as attributes"""
         for case in actual_beautiful_soup_caselist:
             #print "BEGIN CASE",case
-            if not case.fopen and not oldTestCasesOK: continue
+            if not case.fopen: continue
             if case.fopen.contents[0]=="false" and not oldTestCasesOK:return False
             if case.stitle.contents[0]=="Review":
                 for event in case.events:
