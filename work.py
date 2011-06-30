@@ -68,7 +68,7 @@ def projectStart(CASE_NO, fromSpec):
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
     
-    settings = fbConnection.SETTINGS
+    settings = fbConnection.getSettings()
     print settings
     if not settings.viewOnStart or settings.viewOnStart == 1:
         fbConnection.view(CASE_NO)

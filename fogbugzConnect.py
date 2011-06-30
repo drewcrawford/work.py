@@ -89,6 +89,15 @@ class FogBugzConnect:
         except:
             handle.close()
         return
+
+    #
+    # get other settings
+    #
+    def getSettings(self):
+        handle = open(self.SETTINGS)
+        currentSettings = json.load(handle)
+        handle.close()
+        return currentSettings
     
     #
     # Get settings from home directory
