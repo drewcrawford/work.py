@@ -68,7 +68,8 @@ def projectStart(CASE_NO, fromSpec):
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
     
-    fbConnection.view(CASE_NO)
+    if not settings.viewOnStart or settings.viewOnStart == 1:
+        fbConnection.view(CASE_NO)
     
     print "Use work ship to commit your changes"
 
