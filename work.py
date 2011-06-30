@@ -21,6 +21,7 @@ from fogbugzConnect import FogBugzConnect
 def printUsageString():
     print "usage: work /command/ [args]"
     print ""
+    print "  config [setting]=[value] : adds setting to work.py config file"
     print "  view CASE_NO : Shows you CASE_NO"
     print "  start CASE_NO [--from=FROMSPEC] : Checks into FogBugz and git branch"
     print "  stop : Checks out of FogBugz case and checks into git Master branch"
@@ -278,7 +279,29 @@ def complain():
             print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"work.py complain:  This case is 'out of time' and needs an updated estimate.")
 
+#
+# Work.py config. Allows user to create/set a setting and insert it into
+# the settings file. Displays a warning if not in a list of non-standard
+# settings.
+#
+def workConfig(settingString):
+    ALLOWED_SETTINGS = ["viewOnStart"]
+    if len(settingString.split("=")) < 2:
+        printUsageString()
+        quit()
     
+    setting = settingString.split("=")[0]
+    value = settingString.split("=")[1]
+    if setting and value:
+        fbConnection = FogBugzConnect()
+        settings = fbConnection.getCredentials()
+        if(not setting in ALLOWED_SETTINGS):
+            print "WARNING: setting not known. Will be added anyway."
+        fbConnection.setSetting(setting, value)
+    else:
+        printUsageString()
+        quit()
+        
 #
 #
 #
@@ -295,7 +318,6 @@ def ls():
     fbConnection = FogBugzConnect()
     if repo=="DrewCrawfordApps": repo = "Hackity-Hack"
     fbConnection.listCases(repo)
-    
     
 
 ################################################################################
@@ -371,6 +393,8 @@ elif (task == "network"):
     network()
 elif (task == "ls"):
     ls()
+elif (task == "config"):
+    workConfig(target)
 else:
     printUsageString()
 
