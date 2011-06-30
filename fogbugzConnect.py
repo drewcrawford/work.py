@@ -37,6 +37,68 @@ class FogBugzConnect:
             handle.close()
         return
     
+    def listCases(self,projectName):
+        query = 'project:"%s" assignedTo:"%s" status:active' % (projectName,self.username.lower())
+        cols = "sTitle,ixPriority" #careful with adding things here.  It seems to be the case
+        # that adding a field here requires the case to have that field.  Hence
+        # the convoluted logic below to also grab cases with no estimate.
+        cases = self.fbConnection.search(q= query,cols=cols + ",hrsCurrEst,hrsElapsed")
+        cases = list(cases.cases)        
+
+        addlcases = self.fbConnection.search(q=query,cols=cols)
+        for addlcase in addlcases.cases:
+            def searchforixbug(ixbugno):
+                for case in cases:
+                    if case["ixbug"]==ixbugno: return True
+                return False
+            #print addlcase
+            if not searchforixbug(addlcase["ixbug"]):
+                cases.append(addlcase)
+            
+        def mcmp(x,y):
+            x_1 = int(x.ixpriority.contents[0])
+            x_2 = int(y.ixpriority.contents[0])
+            if x_1 < x_2: return -1
+            if x_1 > x_2: return 1
+            return 0
+        cases.sort(cmp=mcmp)
+
+        #print cases
+        print "case".rjust(5),"title".ljust(55),"priority".rjust(6),"timeleft".rjust(8)
+    
+        for case in cases:
+            print case["ixbug"].rjust(5),
+            print case.stitle.contents[0].ljust(55),
+            print case.ixpriority.contents[0].rjust(6),
+            if case.hrscurrest.contents[0]=="0":
+                print "?".rjust(8)
+            else:
+                print ("%.2f" % (float(case.hrscurrest.contents[0])-float(case.hrselapsed.contents[0]))).rjust(8)
+            
+    #
+    # set other settings
+    #
+    def setSetting(self, setting, value):
+        handle = open(self.SETTINGS)
+        currentSettings = json.load(handle)
+        handle.close()
+        handle = open(self.SETTINGS, "w")
+        try:
+            currentSettings[setting] = value
+            json.dump(currentSettings, handle, indent=2)
+        except:
+            handle.close()
+        return
+
+    #
+    # get other settings
+    #
+    def getSettings(self):
+        handle = open(self.SETTINGS)
+        currentSettings = json.load(handle)
+        handle.close()
+        return currentSettings
+    
     #
     # Get settings from home directory
     #
@@ -133,8 +195,12 @@ class FogBugzConnect:
     # Reactivate case
     #
     def reactivate(self,CASE_NO,assignTo,msg):
-        response = self.fbConnection.reactivate(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
-    
+        try:
+            response = self.fbConnection.reactivate(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
+        except FogBugzAPIError as e:
+            print "Unexpected condition [%s] Is case closed? Attempting to recover..." % e
+            response = self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
+            print "Recovery was successful."
     #
     # create a test case
     #
@@ -169,20 +235,25 @@ class FogBugzConnect:
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
-        
-    #
-    # returns true iff CASE_NO is a work.py test case
-    #
-    def isTestCase(self,CASE_NO):
-        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events,fOpen")
-        for case in response.cases:
-            #print case.sstatus
-            if case.fopen.contents[0]=="false":return False
+    def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
+        """Requires a caselist with sTitle,events,fOpen as attributes"""
+        for case in actual_beautiful_soup_caselist:
+            #print "BEGIN CASE",case
+            if not case.fopen: continue
+            if case.fopen.contents[0]=="false" and not oldTestCasesOK:return False
             if case.stitle.contents[0]=="Review":
                 for event in case.events:
                     if event.s.contents[0]=="work.py automatically created this test case":
                         return True
-        return False
+        return False           
+        
+    #
+    # returns true iff CASE_NO is a work.py test case
+    #
+    def isTestCase(self,CASE_NO,oldTestCasesOK=False):
+        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events,fOpen")
+        return self.__isTestCase(response,oldTestCasesOK=oldTestCasesOK)
+
         #print response
     #
     # 
@@ -197,7 +268,7 @@ class FogBugzConnect:
     #
     # return (actual_case, test_case) given either one
     #
-    def getCaseTuple(self,SOME_CASE):
+    def getCaseTuple(self,SOME_CASE,oldTestCasesOK=False):
         if self.isTestCase(SOME_CASE):
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugParent")
             return (int(response.case.ixbugparent.contents[0]),SOME_CASE)
@@ -205,7 +276,9 @@ class FogBugzConnect:
         else: #parent case
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugChildren")
             for child in "".join(response.case.ixbugchildren).split(","):
-                if self.isTestCase(child):
+                if self.isTestCase(child,oldTestCasesOK=oldTestCasesOK):
+                    if child=="":
+                        return (SOME_CASE,None)
                     return (SOME_CASE,int(child))
         raise Exception("Cannot find a test case for %d",SOME_CASE)
         
@@ -220,10 +293,16 @@ class FogBugzConnect:
     #
     # Start work on a case
     #
-    def startCase(self, CASE_NO):
+    def startCase(self, CASE_NO,enforceNoTestCases=True):
         query = 'assignedto:"{0}" case:"{1}"'.format(self.username.lower(), CASE_NO)
-        resp=self.fbConnection.search(q=query, cols="fOpen,hrsCurrEst")
-        if (resp):
+        
+        cols = "fOpen,hrsCurrEst"
+        if enforceNoTestCases:
+            cols += ",events,sTitle"
+        resp=self.fbConnection.search(q=query, cols=cols)
+        if enforceNoTestCases and self.__isTestCase(resp):
+            print "Can't 'work start' a test case (maybe you meant 'work test'?)"
+        if (resp and resp.case):
             #print resp
             if resp.case.fopen.contents[0] != "true":
                 print "FATAL ERROR: FogBugz case is closed"
@@ -302,10 +381,10 @@ class FogBugzConnect:
             tester = resp.case.ixpersonassignedto.contents[0]
             return tester
             
+    
     #
     # close case with CASE_NO
     #
-    
     def closeCase(self,CASE_NO):
         self.fbConnection.close(ixBug=CASE_NO)
 
