@@ -69,7 +69,6 @@ def projectStart(CASE_NO, fromSpec):
     gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
     
     settings = fbConnection.getSettings()
-    print settings
     if not "viewOnStart" in settings or settings["viewOnStart"] == 1:
         fbConnection.view(CASE_NO)
     
