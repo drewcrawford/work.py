@@ -68,6 +68,7 @@ def projectStart(CASE_NO, fromSpec):
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
     
+    settings = fbConnection.settings
     if not settings.viewOnStart or settings.viewOnStart == 1:
         fbConnection.view(CASE_NO)
     
@@ -154,7 +155,6 @@ def projectStartTest(CASE_NO):
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
     
-    settings = fbConnection.settings
     fbConnection.startCase(test,enforceNoTestCases=False)
     gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
 
