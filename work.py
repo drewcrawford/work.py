@@ -154,6 +154,7 @@ def projectStartTest(CASE_NO):
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
     
+    settings = fbConnection.settings
     fbConnection.startCase(test,enforceNoTestCases=False)
     gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
 
