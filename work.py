@@ -70,7 +70,7 @@ def projectStart(CASE_NO, fromSpec):
     
     settings = fbConnection.getSettings()
     print settings
-    if not settings["viewOnStart"] or settings["viewOnStart"] == 1:
+    if not "viewOnStart" in settings or settings["viewOnStart"] == 1:
         fbConnection.view(CASE_NO)
     
     print "Use work ship to commit your changes"
