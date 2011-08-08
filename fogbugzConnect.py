@@ -142,6 +142,8 @@ class FogBugzConnect:
         for person in self.fbConnection.listPeople().people:
             if person.semail.contents[0]==self.email:
                 self.username = person.sfullname.contents[0].encode('utf-8')
+        if not self.username:
+            raise Exception("No username was found!")
                 #print self.username
         
     #
@@ -201,6 +203,30 @@ class FogBugzConnect:
             print "Unexpected condition [%s] Is case closed? Attempting to recover..." % e
             response = self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
             print "Recovery was successful."
+    
+    #
+    # isOpen : determines if the case is open
+    #
+    def isOpen(self,CASE_NO):
+        q = self.fbConnection.search(q=CASE_NO,cols="fOpen")
+        return q.fopen.contents[0]!="false"
+    
+    # reopen : reopens case (not a reactivate... this auto-resolves the case)
+    def reopen(self,CASE_NO,msg):
+        q = self.fbConnection.search(q=CASE_NO,cols="ixStatus")
+        #print q.ixstatus.contents[0]
+        
+        self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg)
+        self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=int(q.ixstatus.contents[0]),sEvent=msg)
+    
+    
+    #
+    # Sets parent if not currently set
+    #
+    def setParentIfUnset(self,CASE_NO,toParent):
+        q = self.fbConnection.search(q=CASE_NO,cols="ixBugParent")
+        if q.ixbugparent.contents[0]=="0":
+            self.fbConnection.edit(ixBug=CASE_NO,ixBugParent=toParent)
     #
     # create a test case
     #
@@ -288,8 +314,44 @@ class FogBugzConnect:
     def startTest(self,SOME_CASE):
         (parent,test) = self.getCaseTuple(SOME_CASE)
         
+    
+    #
+    # List time records for a case
+    #
+    def listTimeRecords(self,CASE_NO):
+        return list(self.fbConnection.listIntervals(ixPerson=self.usernameToIXPerson(),ixBug=CASE_NO).intervals)
+    
+    #
+    # deleting time records
+    # FB API has no support for this, so we're spoofing a web request...
+    #
+    def deleteTimeRecord(self,ixInterval,dt=None):
+        #get the date for FB
         
-        
+        import urllib2, urllib
+        import cookielib
+        cj = cookielib.CookieJar()
+        handler = urllib2.HTTPCookieProcessor(cj)
+        #opener = urllib2.build_opener(urllib2.HTTPSHandler(debuglevel=1),handler) #uncomment for better debugging
+        opener = urllib2.build_opener(handler)
+
+        urllib2.install_opener(opener)
+        BASE_URL = "https://drewcrawfordapps.fogbugz.com/" # we require HTTPS for this...
+        password = keyring.get_password('fogbugz', "")
+        if not password: raise Exception("no password")
+        data = urllib.urlencode([("pre","preLogon"),("dest",""),("sPerson",self.email),("sPassword",password)])
+        result = urllib2.urlopen(BASE_URL)
+        result = urllib2.urlopen(BASE_URL+"default.asp?",data)
+        #result = urllib2.urlopen(BASE_URL+"default.asp?fAlaCarte=1&pg=pgAlaCartePopupContent&fPgFavorites=0&fList=0&fPlatformChrome=0&sSearchString=&_=1312763516639")
+        data = urllib.urlencode([("ixInterval",ixInterval),("pre","preDeleteInterval"),("dt",dt),("btnDelete","Yes")])
+        result = urllib2.urlopen(BASE_URL+"default.asp",data)
+    
+    #
+    # Create time records for a case
+    #
+    def createTimeRecord(self,CASE_NO,dtStart,dtEnd):
+        self.fbConnection.newInterval(ixBug=CASE_NO,dtStart=dtStart,dtEnd=dtEnd)
+    
     #
     # Start work on a case
     #

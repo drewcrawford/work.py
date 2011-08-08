@@ -34,6 +34,7 @@ def printUsageString():
     print "  complain:  finds and complains about late cases"
     print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch\n\tfor the milestone (off of FROMSPEC)"
     print "  network : it's a series of tubes"
+    print "  recharge FROM_CASE TO_CASE : Moves time charged against one case to be charged against another instead"
     print "  ls: list cases (EXPERIMENTAL)"
     print ""
     sys.exit()
@@ -319,6 +320,37 @@ def ls():
     if repo=="DrewCrawfordApps": repo = "Hackity-Hack"
     elif repo=="Briefcase-wars": repo = "Briefcase Wars"
     fbConnection.listCases(repo)
+
+#
+#
+#
+def recharge(fr,to):
+    fbConnection = FogBugzConnect()
+    fbConnection.setParentIfUnset(fr,to)
+    #cannot create a time record for a closed case...
+    mustOpen = not fbConnection.isOpen(to)
+    if mustOpen:
+        fbConnection.reopen(to,"work.py recharge")
+    results = fbConnection.listTimeRecords(fr)
+    
+    for record in results:
+        print record
+        if record.fdeleted.contents[0]!="false":
+            print "Skipping deleted record %s" % record
+            continue
+        if len(record.dtend)==0:
+            print "Skipping open time record %s" % record
+            continue
+        
+        record_desc = "From %s to %s ixPerson %s ixBug %s" % (record.dtstart.contents[0],record.dtend.contents[0],record.ixperson.contents[0],record.ixbug.contents[0])
+#print to,record.dtstart.contents[0],record.dtend.contents[0]
+        fbConnection.commentOn(fr,"recharge: A record was removed from this ticket: %s, see case %d" % (record_desc,to))
+        fbConnection.commentOn(to,"recharge: A record was added to this ticket: %s, see case %d" % (record_desc, fr))
+        fbConnection.createTimeRecord(to,str(record.dtstart.contents[0]),str(record.dtend.contents[0]))
+#fbConnection.deleteTimeRecord(record.ixinterval.contents[0])
+    if mustOpen: fbConnection.closeCase(to)
+
+
     
 
 
@@ -348,10 +380,13 @@ if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_
     
 
 
+#Attention: Older methods in here used to have a fixed argument format (1 = case, 2 = from=case).
+#However, with the plethora of new work commands this assumption is somewhat broken.
+#Going forward, we should do the parsing for the command in its elif block rather than up here
+#todo: refactor existing stuff
 
 if len(sys.argv) > 1:       #if there's at least one argument...
     task = sys.argv[1];
-
     if len(sys.argv) > 2:   # if there's a second argument...
         try:
             CASE_NO = int(sys.argv[2])
@@ -362,7 +397,7 @@ if len(sys.argv) > 1:       #if there's at least one argument...
             fromSpec = str(sys.argv[3]).split("=")[1]
             fromSpec = fromSpec.replace(" ","-")
         except:
-            printUsageString()
+            pass
 else:   # quit if no task
     printUsageString()
 
@@ -397,6 +432,8 @@ elif (task == "complain"):
     complain()
 elif (task == "network"):
     network()
+elif (task == "recharge"):
+    recharge(int(sys.argv[2]),int(sys.argv[3]))
 elif (task == "ls"):
     ls()
 elif (task == "config"):
