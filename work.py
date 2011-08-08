@@ -134,6 +134,26 @@ def projectShip():
         fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
     except:
         fbConnection.resolveCase(caseno)
+    print """There's about an 80% chance that whatever you just did was work that rightfully belongs to some other (possibly closed) case.  Recharging is a way to signify to EBS that your work should be counted against a different case.
+        
+        Ex 1: You're fixing a somewhat-forseeable bug in a feature that was implemented and estimated in another case, but for some reason a new bug has been filed instead of the old feature reactivated.  Recharge to the original feature, as whoever estimated that should have accounted for a relatively bug-free implementation.
+        
+        Ex 2: You're implementing a feature that was originally estimated in some other case.  Maybe it was a parent case that was broken down into child cases, or maybe somebody carved out a feature of a larger something for you to implement.
+        
+        When there are multiple candidates for a recharge, use your judgment.  Pick the newer case where reasonable.
+        
+        DO NOT RECHARGE
+        1) Things that are legitimately and substantially new features
+        2) Test cases, inquiries, or fake tickets
+        3) Build feedback / ship tickets """
+
+    print "recharge to: (case#)",
+    TO_CASE = raw_input()
+    if TO_CASE:
+        to = int(TO_CASE)
+        recharge(caseno,to)
+
+
 
 #
 #
