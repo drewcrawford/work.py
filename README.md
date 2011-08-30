@@ -27,6 +27,7 @@ Work.py is just a simple wrapper atop the appropriate git command-line and FB AP
 </table>
 
 And then you can look at this fancy chart!
+
 ![fancy chart](https://github.com/drewcrawford/work.py/raw/master/diagram.png)
 
 ###I'm not sold
