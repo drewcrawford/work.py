@@ -19,7 +19,6 @@ except Exception as e:
     
     quit()
 from xml.dom.minidom import parseString
-FB_URL = 'http://drewcrawfordapps.fogbugz.com/'
 
 class FogBugzConnect:
     
@@ -27,11 +26,13 @@ class FogBugzConnect:
     # Store settings for email and username in home directory
     #
     def setCredentials(self):
+        fburl = raw_input("FB URL [http://drewcrawfordapps.fogbugz.com/]: ")
+        
         email = raw_input("email: ")
         #username = raw_input("username: ")
         handle = open(self.SETTINGS, "w")
         try:
-            settings = {"email": email}
+            settings = {"email": email, "fburl":fburl and fburl or "http://drewcrawfordapps.fogbugz.com/"}
             json.dump(settings, handle, indent=2)
         except:
             handle.close()
@@ -100,6 +101,16 @@ class FogBugzConnect:
         return currentSettings
     
     #
+    # get FB URL from settings
+    #
+    def getFBURL(self):
+        settings = self.getSettings()
+        if "fburl" not in settings:
+            self.setCredentials()
+            settings = self.getSettings()
+        return settings["fburl"]
+    
+    #
     # Get settings from home directory
     #
     def getCredentials(self, email = None, username = None):
@@ -117,7 +128,7 @@ class FogBugzConnect:
     #
     def view(self,CASE_NO):
         from os import system
-        system("open " + FB_URL + "default.asp?%d" % CASE_NO)
+        system("open " + self.getFBURL() + "default.asp?%d" % CASE_NO)
     
     #
     # log into fogbugz
@@ -468,7 +479,7 @@ class FogBugzConnect:
         self.SETTINGS = os.path.expanduser("~/.workScript")
         self.email = ""
         self.username = ""
-        self.fbConnection = FogBugz(FB_URL)
+        self.fbConnection = FogBugz(self.getFBURL())
         for i in range(0,1):
             if i == 3:
                 print "Too many failed attempts! Sorry!"
