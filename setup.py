@@ -21,7 +21,7 @@ except:
 
 from distutils.core import setup
 setup(name='work.py',version='1.0',
-py_modules=['fogbugz','gitConnect','fogbugzConnect'],
+py_modules=['fogbugz','gitConnect','fogbugzConnect','lint'],
 scripts=['work.py'],
 data_files = [('media',['media/dundundun.aiff','media/hooray.aiff','media/longcheer.aiff','media/ohno.aiff'])]
 )

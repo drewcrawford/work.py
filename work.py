@@ -14,6 +14,7 @@ import sys
 from commands import getstatusoutput
 from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
+from lint import Lint
 
 #
 # Prints the usage string for this script
@@ -36,6 +37,7 @@ def printUsageString():
     print "  network : it's a series of tubes"
     print "  recharge FROM_CASE TO_CASE : Moves time charged against one case to be charged against another instead"
     print "  ls: list cases (EXPERIMENTAL)"
+    print "  lint: Analyze and fix style guide compliance"
     print ""
     sys.exit()
 
@@ -60,19 +62,19 @@ def projectStart(CASE_NO, fromSpec):
 
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
-        
+
     #check for FogBugz case and clock in
     fbConnection.startCase(CASE_NO)
 
-    
+
 
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
-    
+
     settings = fbConnection.getSettings()
     if not "viewOnStart" in settings or settings["viewOnStart"] == 1:
         fbConnection.view(CASE_NO)
-    
+
     print "Use work ship to commit your changes"
 
 #
@@ -112,6 +114,16 @@ def projectView(CASE_NO):
 #
 #
 def projectShip():
+    #analyze for style guide compliance
+    if not Lint.analyze():
+        while True:
+            print "Your commit failed lint analyses. Proceed anyway? (y/n):"
+            response = raw_input()
+            if response == "y":
+                break
+            elif response == "n":
+                return
+
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
     gitConnection.checkForUnsavedChanges();
@@ -135,13 +147,13 @@ def projectShip():
     except:
         fbConnection.resolveCase(caseno)
     print """There's about an 80% chance that whatever you just did was work that rightfully belongs to some other (possibly closed) case.  Recharging is a way to signify to EBS that your work should be counted against a different case.
-        
+
         Ex 1: You're fixing a somewhat-forseeable bug in a feature that was implemented and estimated in another case, but for some reason a new bug has been filed instead of the old feature reactivated.  Recharge to the original feature, as whoever estimated that should have accounted for a relatively bug-free implementation.
-        
+
         Ex 2: You're implementing a feature that was originally estimated in some other case.  Maybe it was a parent case that was broken down into child cases, or maybe somebody carved out a feature of a larger something for you to implement.
-        
+
         When there are multiple candidates for a recharge, use your judgment.  Pick the newer case where reasonable.
-        
+
         DO NOT RECHARGE
         1) Things that are legitimately and substantially new features
         2) Test cases, inquiries, or fake tickets
@@ -175,7 +187,7 @@ def projectStartTest(CASE_NO):
 
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
-    
+
     fbConnection.startCase(test,enforceNoTestCases=False)
     gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
 
@@ -208,7 +220,7 @@ def projectFailTest():
 
     # play sounds!
     getstatusoutput ("afplay -v 7 %s/media/dundundun.aiff" % sys.prefix)
-    
+
 #
 #
 #
@@ -234,7 +246,7 @@ def projectPassTest():
 
     # play sounds!
     getstatusoutput("afplay -v 7 %s/media/longcheer.aiff" % sys.prefix)
-    
+
     #fbConnection.closeCase(parent)
 
 #
@@ -245,20 +257,20 @@ def projectIntegrate(CASE_NO):
     gitConnection.checkForUnsavedChanges()
 
     fbConnection = FogBugzConnect()
-#still open here 
+#still open here
     # make sure integration is even worth it...
     fbConnection.ensureReadyForTest(CASE_NO)
     gitConnection.checkoutExistingBranch(CASE_NO)
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
-    
+
     #check for test case
     try:
         (parent, test) = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True)
     except:
             print "WARNING: no test case! Press enter to continue"
             raw_input()
-        
-    
+
+
     gitConnection.checkoutExistingBranchRaw(integrate_to)
     gitConnection.pull()
 
@@ -310,7 +322,7 @@ def workConfig(settingString):
     if len(settingString.split("=")) < 2:
         printUsageString()
         quit()
-    
+
     setting = settingString.split("=")[0]
     value = settingString.split("=")[1]
     if setting and value:
@@ -322,14 +334,14 @@ def workConfig(settingString):
     else:
         printUsageString()
         quit()
-        
+
 #
 #
 #
 def network():
     gitConnection = GitConnect()
     gitConnection.githubNetwork()
-    
+
 #
 #
 #
@@ -352,7 +364,7 @@ def recharge(fr,to):
     if mustOpen:
         fbConnection.reopen(to,"work.py recharge")
     results = fbConnection.listTimeRecords(fr)
-    
+
     for record in results:
         print record
         if record.fdeleted.contents[0]!="false":
@@ -361,7 +373,7 @@ def recharge(fr,to):
         if len(record.dtend)==0:
             print "Skipping open time record %s" % record
             continue
-        
+
         record_desc = "From %s to %s ixPerson %s ixBug %s" % (record.dtstart.contents[0],record.dtend.contents[0],record.ixperson.contents[0],record.ixbug.contents[0])
 #print to,record.dtstart.contents[0],record.dtend.contents[0]
         fbConnection.commentOn(fr,"recharge: A record was removed from this ticket: %s, see case %d" % (record_desc,to))
@@ -371,7 +383,7 @@ def recharge(fr,to):
     if mustOpen: fbConnection.closeCase(to)
 
 
-    
+
 
 
 
@@ -397,7 +409,7 @@ import re
 if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
     from gitConnect import bcolors
     print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE...',bcolors.ENDC
-    
+
 
 
 #Attention: Older methods in here used to have a fixed argument format (1 = case, 2 = from=case).
@@ -458,5 +470,7 @@ elif (task == "ls"):
     ls()
 elif (task == "config"):
     workConfig(target)
+elif (task == "lint"):
+    Lint.run()
 else:
     printUsageString()
