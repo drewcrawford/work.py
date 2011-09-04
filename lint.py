@@ -24,6 +24,11 @@ class Lint:
         self.fromOneTrueBraceStyle_elsePatch = re.compile(r'(\s*)\}\s*else')
         self.fixBraceIndentation = re.compile(r'^(( |\t)*)(.*)\n\{', re.MULTILINE)
 
+        self.findInit = re.compile(r'-\s*\(\s*void\s*\)\s*init[^\{]*\{(.*?)\}\s*(?:$|-|\+|#|/)', re.IGNORECASE | re.DOTALL)
+        self.findDealloc = re.compile(r'-\s*\(\s*void\s*\)\s*dealloc\s*\{(.*?)\}\s*(?:$|-|\+|#|/)', re.IGNORECASE | re.DOTALL)
+        self.findViewDidLoad = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidLoad\s*\{(.*?)\}\s*(?:$|-|\+|#|/)', re.IGNORECASE | re.DOTALL)
+        self.findViewDidUnload = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidUnload\s*\{(.*?)\}\s*(?:$|-|\+|#|/)', re.IGNORECASE | re.DOTALL)
+
         self.sameLine = "-s" in flags
         self.pretend = "-p" in flags
 
@@ -57,6 +62,12 @@ class Lint:
         except getopt.GetoptError:
             Lint.usage()
 
+    def filterLineEndings(self, fileName):
+        for ext in self.validFileExtensions:
+            if fileName.endswith(ext):
+                return True
+        return False
+
     #Returns true everything analyzed cleanly
     @staticmethod
     def analyze():
@@ -83,18 +94,28 @@ class Lint:
                 out = self.convertLineEndings(file.read())
                 if self.pretend and out is False:
                     return False
+                if fileName.endswith(".h"):
+                    out = self.fixObjCPropertiesInHeader(out)
+                if self.pretend and out is False:
+                    return False
             if not self.pretend:
                 with open(fileName, 'w') as file:
                     file.write(out)
         os.chdir(self.originalDir)
         return True
 
-    def filterLineEndings(self, fileName):
-        for ext in self.validFileExtensions:
-            if fileName.endswith(ext):
-                return True
-        return False
+#fixing Objective C properties
+    def fixObjCPropertiesInHeader(self, file):
+        file = objCProperty.propertiesInFile(file, self.pretend)
+        return file
 
+    def getPropertySet(self, file, propertyName):
+        exp = re.compile(r'self.%s\s*=\s*(.*?)\s*;' % propertyName, re.IGNORECASE)
+
+    def getDealloc(self, file):
+        pass
+
+#fixing braces and whitespace
     def convertToOneTrueBraceStyle(self, input):
         ret = self.toOneTrueBraceStyle.replace(" {", input)
         #patch else blocks together
@@ -130,3 +151,92 @@ class Lint:
         if not self.sameLine:
             ret = self.fixBraceIndent(ret)
         return ret;
+
+class objCProperty:
+    findIVarExp = r'(?:(?:__block|IBOutlet)\s+)*%s\s+%s\s*;'
+    atomicity = "atomic"
+    memory = "retain"
+    block = ""
+    iboutlet = ""
+    type = None
+    name = None
+    valid = True
+
+    def __init__(self, match):
+        #read in the property modifiers
+        if match.group(1):
+            for modifier in match.group(1).lower().split(","):
+                modifier = modifier.strip()
+                if modifier.endswith("atomic"):
+                    self.atomicity = modifier
+                elif modifier in ("assign", "copy", "readonly", "retain"):
+                    self.memory = modifier
+                else:
+                    print "Unsupported property modifier %s" % modifier
+        if match.group(3): #IBOutlets
+            if self.atomicity is not "nonatomic" or self.memory is not "retain" or self.block is not "":
+                self.valid = False
+                self.atomicity = "nonatomic"
+                self.memory = "retain"
+                self.block = "";
+            self.iboutlet = match.group(2)
+        #save whether or not this is declared __block
+        if self.iboutlet is "" and match.group(2):
+            self.block = match.group(2)
+
+        self.type = match.group(4).strip()
+        self.name = match.group(5).strip()
+        if self.type.endswith("*"):
+            self.valid = False
+            self.name = "*%s" % self.name
+            self.type = self.type[:-1];
+        #make sure objects are declared copy when they could be mutable but aren't the mutable version
+        if self.type in ("NSArray", "NSSet", "NSDictionary", "NSString"):
+            if self.memory is not "copy":
+                self.valid = False
+                self.memory = "copy"
+        #make sure all pointers are declared retain, unless explictly postfixed with "Copy" or "Assign
+        elif self.memory not in ("retain", "readonly") and self.name.startswith("*") and not (self.name.endswith("Copy") or self.name.endswith("Assign")):
+            self.memory = "retain"
+            self.valid = False
+
+    @staticmethod
+    def propertiesInFile(file, pretend):
+        findProperty = re.compile(r'@property\s+(?:\(((?:[^\,)],?)+)\)\s+)?((?:__block|IBOutlet)\s+)?((?:__block|IBOutlet)\s+)?(\S+)\s+(\S+)', re.IGNORECASE)
+        matches = findProperty.finditer(file)
+        properties = list()
+        (file, valid) = objCProperty.findIVars(file)
+        for match in matches:
+            #print match.groups()
+            property = objCProperty(match)
+            valid = valid and property.valid
+            if pretend and not valid:
+                return False
+            file = file.replace(match.group(0), property.__str__())
+        return file
+
+    @staticmethod
+    def findIVars(file):
+        findIVarSection = re.compile(r'@interface.*?\{([^}]*?)\}', re.DOTALL)
+        findIVars = re.compile(r'(\s*(?:(?:__block|IBOutlet)\s+)*)([^\s;]+)\s+((?:[^\s;]+\s*,?\s*)+);', re.DOTALL)
+        section = findIVarSection.search(file)
+        matches = findIVars.finditer(section.group(1))
+        out = list()
+        valid = True
+        for match in matches:
+            names = match.group(3).split(",")
+            if len(names) > 1:
+                valid = False
+            type = match.group(2)
+            if type.endswith("*"):
+                names[0] = "*%s" % names[0].strip()
+                type = type[:-1]
+                valid = False
+            out = list()
+            for name in names:
+                out.append("%s%s %s;" % (match.group(1), type, name.strip()))
+            file = file.replace(match.group(0), "".join(out))
+        return (file, valid)
+
+    def __str__(self):
+        return "@property (%s, %s) %s%s%s %s" % (self.atomicity, self.memory, self.block, self.iboutlet, self.type, self.name)

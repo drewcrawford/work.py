@@ -1,0 +1,12 @@
+@interface bad : NSObject
+{
+    BOOL state;
+    NSArray *foo, *foo2;
+    NSError* error;
+}
+
+@property (nonatomic, readonly) __block int lineNum;
+@property (copy) NSMutableString* temp;
+@property __block NSArray *foo;
+@property (atomic, copy) IBOutlet NSString *text;
+@end
