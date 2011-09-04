@@ -1,5 +1,4 @@
-@interface bad : NSObject
-{
+@interface bad : NSViewController {
     BOOL state;
     NSArray *foo, *foo2;
     NSError* error;

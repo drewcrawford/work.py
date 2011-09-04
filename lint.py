@@ -24,11 +24,6 @@ class Lint:
         self.fromOneTrueBraceStyle_elsePatch = re.compile(r'(\s*)\}\s*else')
         self.fixBraceIndentation = re.compile(r'^(( |\t)*)(.*)\n\{', re.MULTILINE)
 
-        self.findInit = re.compile(r'-\s*\(\s*void\s*\)\s*init[^\{]*\{(.*?)\}\s*(?:$|-|\+|#|/)', re.IGNORECASE | re.DOTALL)
-        self.findDealloc = re.compile(r'-\s*\(\s*void\s*\)\s*dealloc\s*\{(.*?)\}\s*(?:$|-|\+|#|/)', re.IGNORECASE | re.DOTALL)
-        self.findViewDidLoad = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidLoad\s*\{(.*?)\}\s*(?:$|-|\+|#|/)', re.IGNORECASE | re.DOTALL)
-        self.findViewDidUnload = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidUnload\s*\{(.*?)\}\s*(?:$|-|\+|#|/)', re.IGNORECASE | re.DOTALL)
-
         self.sameLine = "-s" in flags
         self.pretend = "-p" in flags
 
@@ -94,8 +89,13 @@ class Lint:
                 out = self.convertLineEndings(file.read())
                 if self.pretend and out is False:
                     return False
-                if fileName.endswith(".h"):
+                if fileName.endswith(".h") and os.path.exists("%s.m" % fileName[:-2]):
                     out = self.fixObjCPropertiesInHeader(out)
+                    with open("%s.m" % fileName[:-2]) as implementation:
+                        mout = self.fixObjCPropertiesInImplementation(implementation.read())
+                    if not self.pretend:
+                        with open("%s.m" % fileName[:-2], 'w') as implementation:
+                            implementation.write(mout)
                 if self.pretend and out is False:
                     return False
             if not self.pretend:
@@ -106,7 +106,16 @@ class Lint:
 
 #fixing Objective C properties
     def fixObjCPropertiesInHeader(self, file):
+        objCProperty.names = list()
         file = objCProperty.propertiesInFile(file, self.pretend)
+        if self.pretend and not file:
+            return False
+        return file
+
+    def fixObjCPropertiesInImplementation(self, file):
+        file = objCProperty.propertiesInFile(file, self.pretend)
+        if self.pretend and not file:
+            return False
         return file
 
     def getPropertySet(self, file, propertyName):
@@ -153,6 +162,8 @@ class Lint:
         return ret;
 
 class objCProperty:
+    names = list()
+
     findIVarExp = r'(?:(?:__block|IBOutlet)\s+)*%s\s+%s\s*;'
     atomicity = "atomic"
     memory = "retain"
@@ -202,10 +213,10 @@ class objCProperty:
 
     @staticmethod
     def propertiesInFile(file, pretend):
-        findProperty = re.compile(r'@property\s+(?:\(((?:[^\,)],?)+)\)\s+)?((?:__block|IBOutlet)\s+)?((?:__block|IBOutlet)\s+)?(\S+)\s+(\S+)', re.IGNORECASE)
+        findProperty = re.compile(r'@property\s+(?:\(((?:[^\,)],?)+)\)\s+)?((?:__block|IBOutlet)\s+)?((?:__block|IBOutlet)\s+)?(\S+)\s+(\S+?)\s*;', re.IGNORECASE)
         matches = findProperty.finditer(file)
         properties = list()
-        (file, valid) = objCProperty.findIVars(file)
+        valid = True
         for match in matches:
             #print match.groups()
             property = objCProperty(match)
@@ -213,6 +224,10 @@ class objCProperty:
             if pretend and not valid:
                 return False
             file = file.replace(match.group(0), property.__str__())
+            objCProperty.names.append(property.name)
+        (file, valid) = objCProperty.findIVars(file)
+        if pretend and not valid:
+            return False
         return file
 
     @staticmethod
@@ -233,10 +248,18 @@ class objCProperty:
                 type = type[:-1]
                 valid = False
             out = list()
-            for name in names:
+            for name in filter(lambda x:x not in objCProperty.names, names):
                 out.append("%s%s %s;" % (match.group(1), type, name.strip()))
+                objCProperty.names.append(name)
             file = file.replace(match.group(0), "".join(out))
         return (file, valid)
+
+    @staticmethod
+    def fixMemoryInImplementation(file, pretend):
+        findInit = re.compile(r'-\s*\(\s*void\s*\)\s*init[^\{]*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
+        findDealloc = re.compile(r'-\s*\(\s*void\s*\)\s*dealloc\s*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
+        findViewDidLoad = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidLoad\s*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
+        findViewDidUnload = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidUnload\s*\{(.*?)\n\})', re.IGNORECASE | re.DOTALL)
 
     def __str__(self):
         return "@property (%s, %s) %s%s%s %s" % (self.atomicity, self.memory, self.block, self.iboutlet, self.type, self.name)

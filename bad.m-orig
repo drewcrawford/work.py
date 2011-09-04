@@ -1,0 +1,50 @@
+@interface bad () {
+    NSMutableString *temp;
+    int layer;
+}
+
+@property (nonatomic, readonly) NSMutableString *special;
+@property (copy) id specialCopy;
+
+@end
+
+@implementation bad
+@synthesize specialCopy;
+@synthesize specialAssign, lineNum;
+@synthesize temp;
+@synthesize foo, text;
+
+-(id)init {
+    self = [super init];
+    if(self) {
+        self.foo = [[NSArray alloc] init];
+        lineNum = 23;
+    }
+    return self;
+}
+
+-(void) viewDidLoad
+{
+    self.special = @"this is text";
+    if(self.foo.count == 3)
+    {
+        NSLog(@"This is a %@", foo);
+    } else {
+        self.foo = [NSArray arrayWithObject:@"bar"];
+    }
+}
+
++ (BOOL) uninterestingMethod1:(NSString*)str
+{
+    NSLog("You're not here.");
+    assert(YES);
+    return NO;
+}
+
+- (void) dealloc {
+    [text release];
+    [foo autorelease];
+    [super dealloc];
+}
+
+@end
