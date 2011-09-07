@@ -17,7 +17,7 @@
 -(id)init {
     self = [super init];
     if(self) {
-        self.foo = [[NSArray alloc] init];
+        foo = [[NSArray alloc] init];
         lineNum = 23;
     }
     return self;
@@ -37,8 +37,20 @@
 + (BOOL) uninterestingMethod1:(NSString*)str
 {
     NSLog("You're not here.");
+    text = @"testblah";
+    lineNum = 3;
     assert(YES);
     return NO;
+}
+
+- (void) setTemp:(NSMutableString*)newtemp
+{
+    if(temp != newtemp)
+    {
+        [temp release];
+        temp = [newtemp retain];
+        lineNum++;
+    }
 }
 
 - (void) dealloc {

@@ -1,18 +1,19 @@
 @interface bad ()
 {
+    int layer;
 }
 
-@property (nonatomic, readonly) NSMutableString *special
-@property (atomic, copy) id specialCopy
+@property (nonatomic, readonly) NSMutableString *special;
+@property (atomic, copy) id specialCopy;
 
 @end
 
 @implementation bad
 @synthesize specialCopy;
-@synthesize specialAssign
+@synthesize specialAssign;
 @synthesize lineNum;
 @synthesize temp;
-@synthesize foo
+@synthesize foo;
 @synthesize text;
 
 -(id)init
@@ -51,14 +52,26 @@
 + (BOOL) uninterestingMethod1:(NSString*)str
 {
     NSLog("You're not here.");
+    self.text = @"testblah";
+    lineNum = 3;
     assert(YES);
     return NO;
+}
+
+- (void) setTemp:(NSMutableString*)newtemp
+{
+    if(temp != newtemp)
+    {
+        [temp release];
+        temp = [newtemp retain];
+        lineNum++;
+    }
 }
 
 - (void) dealloc
 {
     [self viewDidUnload];
-    self.temp = nil;
+    temp =    nil;
     self.specialCopy = nil;
     [foo2 release];
     foo2 = nil;

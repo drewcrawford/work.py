@@ -106,7 +106,7 @@ class Lint:
 
 #fixing Objective C properties
     def fixObjCPropertiesInHeader(self, file):
-        objCProperty.names = list()
+        objCProperty.properties = list()
         file = objCProperty.propertiesInFile(file, self.pretend)
         if self.pretend and not file:
             return False
@@ -114,6 +114,12 @@ class Lint:
 
     def fixObjCPropertiesInImplementation(self, file):
         file = objCProperty.propertiesInFile(file, self.pretend)
+        if self.pretend and not file:
+            return False
+        file = objCProperty.fixSynthesis(file, self.pretend)
+        if self.pretend and not file:
+            return False
+        file = objCProperty.fixMemoryInImplementation(file, self.pretend)
         if self.pretend and not file:
             return False
         return file
@@ -162,7 +168,7 @@ class Lint:
         return ret;
 
 class objCProperty:
-    names = list()
+    properties = list()
 
     findIVarExp = r'(?:(?:__block|IBOutlet)\s+)*%s\s+%s\s*;'
     atomicity = "atomic"
@@ -172,8 +178,16 @@ class objCProperty:
     type = None
     name = None
     valid = True
+    property = False
 
-    def __init__(self, match):
+    def __init__(self, match, property):
+        self.property = property
+        if self.property:
+            self.makeProperty(match)
+        else:
+            self.makeIVar(match)
+
+    def makeProperty(self, match):
         #read in the property modifiers
         if match.group(1):
             for modifier in match.group(1).lower().split(","):
@@ -211,6 +225,21 @@ class objCProperty:
             self.memory = "retain"
             self.valid = False
 
+    def makeIVar(self, match):
+        self.atomicity = match[0];
+        if match[1]:
+            if match[1].strip().lower() == "__block":
+                self.block = match[1]
+            elif match[1].strip() == "IBOutlet":
+                self.iboutlet = match[1]
+        if match[2]:
+            if match[2].strip().lower() == "__block":
+                self.block = match[2]
+            elif match[2].strip() == "IBOutlet":
+                self.iboutlet = match[2]
+        self.type = match[3]
+        self.name = match[4]
+
     @staticmethod
     def propertiesInFile(file, pretend):
         findProperty = re.compile(r'@property\s+(?:\(((?:[^\,)],?)+)\)\s+)?((?:__block|IBOutlet)\s+)?((?:__block|IBOutlet)\s+)?(\S+)\s+(\S+?)\s*;', re.IGNORECASE)
@@ -219,47 +248,113 @@ class objCProperty:
         valid = True
         for match in matches:
             #print match.groups()
-            property = objCProperty(match)
+            property = objCProperty(match, True)
             valid = valid and property.valid
             if pretend and not valid:
                 return False
             file = file.replace(match.group(0), property.__str__())
-            objCProperty.names.append(property.name)
-        (file, valid) = objCProperty.findIVars(file)
+            objCProperty.properties.append(property)
+        (file, valid) = objCProperty.findIVars(file, pretend)
         if pretend and not valid:
             return False
+        #print "------------"
+        #for item in objCProperty.properties:
+        #    print item
         return file
 
     @staticmethod
-    def findIVars(file):
+    def findIVars(file, pretend):
         findIVarSection = re.compile(r'@interface.*?\{([^}]*?)\}', re.DOTALL)
-        findIVars = re.compile(r'(\s*(?:(?:__block|IBOutlet)\s+)*)([^\s;]+)\s+((?:[^\s;]+\s*,?\s*)+);', re.DOTALL)
+        findIVars = re.compile(r'(\s*)((?:__block|IBOutlet)\s+)?((?:__block|IBOutlet)\s+)?([^\s;]+)\s+((?:[^\s;]+\s*,?\s*)+);', re.DOTALL)
         section = findIVarSection.search(file)
         matches = findIVars.finditer(section.group(1))
         out = list()
         valid = True
         for match in matches:
-            names = match.group(3).split(",")
+            names = match.group(5).split(",")
             if len(names) > 1:
                 valid = False
-            type = match.group(2)
+            type = match.group(4)
             if type.endswith("*"):
                 names[0] = "*%s" % names[0].strip()
                 type = type[:-1]
                 valid = False
-            out = list()
-            for name in filter(lambda x:x not in objCProperty.names, names):
-                out.append("%s%s %s;" % (match.group(1), type, name.strip()))
-                objCProperty.names.append(name)
-            file = file.replace(match.group(0), "".join(out))
+            if pretend and not valid:
+                return False
+            ivars = list()
+            for name in filter(lambda x:x not in map(lambda x:x.name, objCProperty.properties), names):
+                ivar = objCProperty((match.group(1), match.group(2), match.group(3), type.strip(), name.strip()), False)
+                ivars.append(ivar.__str__())
+                objCProperty.properties.append(ivar)
+            file = file.replace(match.group(0), "".join(ivars))
         return (file, valid)
 
     @staticmethod
+    def fixSynthesis(file, pretend):
+        findSynthesis = re.compile(r'(\s*)@synthesize\s*((?:[^\s;]+\s*,?\s*)+);', re.DOTALL | re.IGNORECASE)
+        matches = findSynthesis.finditer(file)
+        for match in matches:
+            names = match.group(2).strip().split(",")
+            if len(names) > 1 and pretend:
+                return False
+            out = list()
+            for name in names:
+                out.append("%s@synthesize %s;" % (match.group(1), name.strip()))
+            file = file.replace(match.group(0), "".join(out))
+        return file
+
+    @staticmethod
     def fixMemoryInImplementation(file, pretend):
-        findInit = re.compile(r'-\s*\(\s*void\s*\)\s*init[^\{]*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
-        findDealloc = re.compile(r'-\s*\(\s*void\s*\)\s*dealloc\s*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
-        findViewDidLoad = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidLoad\s*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
-        findViewDidUnload = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidUnload\s*\{(.*?)\n\})', re.IGNORECASE | re.DOTALL)
+        findMethod = r'%s\s*\(\s*%s\s*\)\s*%s[^\{]*\{(.*?)\n\}'
+        #findInit = re.compile(r'-\s*\(\s*void\s*\)\s*init[^\{]*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
+        #findDealloc = re.compile(r'-\s*\(\s*void\s*\)\s*dealloc\s*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
+        #findViewDidLoad = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidLoad\s*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
+        #findViewDidUnload = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidUnload\s*\{(.*?)\n\})', re.IGNORECASE | re.DOTALL)
+        findPropertyAssignment = r'[^\.\w]%s\s*='
+        findValidPropertyAssignment = r'self\.%s\s*=\s*'
+        findCustomSetter = findMethod % (r'-', r'void', r'set%s:')
+
+        #fix property assignment without self.
+        for property in objCProperty.properties:
+            if property.property and property.memory != "readonly":
+                name = property.name
+                if property.name.startswith("*"):
+                    name = name[1:]
+                exp = re.compile(findPropertyAssignment % name)
+                matches = exp.finditer(file)
+                #if pretend, count how many we would fix and then subtract the number we revert in custom setters. If that's > 0, pretend fail
+                count = 0
+                for match in matches:
+                    count += 1
+                    if not pretend:
+                        file = file.replace(match.group(0), "%sself.%s" % (match.group(0)[0], match.group(0)[1:]))
+                ucfirstname = "%s%s" % (name[0].upper(), name[1:])
+                exp = re.compile(findCustomSetter % ucfirstname, re.DOTALL)
+                setter = exp.search(file)
+                if setter:
+                    exp = re.compile(findValidPropertyAssignment % name)
+                    matches = exp.finditer(setter.group(1))
+                    for match in matches:
+                        count -= 1
+                        if not pretend:
+                            file = file.replace(match.group(0), "%s = " % name)
+                if pretend and count != 0:
+                    return False
+            elif property.property and property.memory == "readonly":
+                name = property.name
+                if property.name.startswith("*"):
+                    name = name[1:]
+                exp = re.compile(findValidPropertyAssignment % name)
+                matches = exp.finditer(file)
+                for match in matches:
+                    if pretend:
+                        return False
+                    file = file.replace(match.group(0), "%s = " % name)
+        return file
 
     def __str__(self):
-        return "@property (%s, %s) %s%s%s %s" % (self.atomicity, self.memory, self.block, self.iboutlet, self.type, self.name)
+        if self.property:
+            return "@property (%s, %s) %s%s%s %s;" % (self.atomicity, self.memory, self.block, self.iboutlet, self.type, self.name)
+        else:
+            #atomicty is hacked for ivars to contain the leading whitespace
+            return "%s%s%s%s %s;" % (self.atomicity, self.block, self.iboutlet, self.type, self.name)
