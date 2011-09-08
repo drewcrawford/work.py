@@ -1,10 +1,10 @@
-@interface bad ()
-{
+@interface bad () {
+    NSMutableString *temp;
     int layer;
 }
 
-@property (nonatomic, readonly) NSMutableString *special;
-@property (atomic, copy) id specialCopy;
+@property (nonatomic, readonly, strong) NSMutableString *special;
+@property (copy) id specialCopy;
 
 @end
 
@@ -16,68 +16,45 @@
 @synthesize foo;
 @synthesize text;
 
--(id)init
-{
-    self = [super init];
-    if(self)
-    {
-        self.foo = [[NSArray alloc] init];
+-(id)init {
+    if(self = [super init]) {
+        foo = [[NSArray alloc] init];
         lineNum = 23;
     }
     return self;
 }
 
--(void) viewDidLoad
-{
-    special = @"this is text";
-    if(self.foo.count == 3)
-    {
+-(void)viewDidLoad {
+    self.special = @"this is text";
+    if(self.foo.count == 3) {
         NSLog(@"This is a %@", foo);
-    }
-    else
-    {
+    } else {
         self.foo = [NSArray arrayWithObject:@"bar"];
     }
 }
 
--(void)viewDidUnload
-{
-    self.foo = nil;
-    self.text = nil;
-    [special release];
-    special = nil;
-    [super viewDidUnload];
-}
-
-+ (BOOL) uninterestingMethod1:(NSString*)str
-{
++(BOOL)uninterestingMethod1:(NSString*)str {
+    for(int i = 0; i < 3; i++) {
+        __weak int foo = i;
+        int bar = i+1;
+        __strong int baz = i-1;
+        NSLog(@"%d != %d - %d", foo, bar, baz);
+    }
     NSLog("You're not here.");
-    self.text = @"testblah";
+    text = @"testblah";
     lineNum = 3;
     assert(YES);
     return NO;
 }
 
-- (void) setTemp:(NSMutableString*)newtemp
-{
-    if(temp != newtemp)
-    {
-        [temp release];
-        temp = [newtemp retain];
+-(void)setTemp:(NSMutableString*)newtemp {
+    if(temp != newtemp) {
+        temp = newtemp;
         lineNum++;
     }
 }
 
-- (void) dealloc
-{
-    [self viewDidUnload];
-    temp =    nil;
-    self.specialCopy = nil;
-    [foo2 release];
-    foo2 = nil;
-    [error release];
-    error = nil;
-    [super dealloc];
+-(void) dealloc {
 }
 
 @end

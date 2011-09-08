@@ -1,11 +1,15 @@
 @interface bad : NSViewController {
     BOOL state;
     NSArray *foo, *foo2;
-    NSError* error;
+    __weak NSError* error;
+    __weak testWeak;
+    __autoreleasing specialCopy;
 }
 
-@property (nonatomic, readonly) __block int lineNum;
+@property (nonatomic, readonly, strong) __block int lineNum;
 @property (copy) NSMutableString* temp;
-@property __block NSArray *foo;
-@property (atomic, copy) IBOutlet NSString *text;
+@property (strong) block NSArray *foo;
+@property (atomic, autoreleasing) IBOutlet NSString *text;
+@property (unsafe_unretained) UIColor *crapColor;
+@property (unsafe_unretained) UIColor *crapColor; //@ignore
 @end

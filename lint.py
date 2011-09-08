@@ -179,6 +179,7 @@ class objCProperty:
     name = None
     valid = True
     property = False
+    dealloced = False
 
     def __init__(self, match, property):
         self.property = property
@@ -198,6 +199,8 @@ class objCProperty:
                     self.memory = modifier
                 else:
                     print "Unsupported property modifier %s" % modifier
+                    self.memory = "UNDEFINED"
+                    self.atomicity = "UNDEFINED"
         if match.group(3): #IBOutlets
             if self.atomicity is not "nonatomic" or self.memory is not "retain" or self.block is not "":
                 self.valid = False
@@ -306,10 +309,7 @@ class objCProperty:
     @staticmethod
     def fixMemoryInImplementation(file, pretend):
         findMethod = r'%s\s*\(\s*%s\s*\)\s*%s[^\{]*\{(.*?)\n\}'
-        #findInit = re.compile(r'-\s*\(\s*void\s*\)\s*init[^\{]*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
-        #findDealloc = re.compile(r'-\s*\(\s*void\s*\)\s*dealloc\s*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
-        #findViewDidLoad = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidLoad\s*\{(.*?)\n\}', re.IGNORECASE | re.DOTALL)
-        #findViewDidUnload = re.compile(r'-\s*\(\s*void\s*\)\s*viewDidUnload\s*\{(.*?)\n\})', re.IGNORECASE | re.DOTALL)
+
         findPropertyAssignment = r'[^\.\w]%s\s*='
         findValidPropertyAssignment = r'self\.%s\s*=\s*'
         findCustomSetter = findMethod % (r'-', r'void', r'set%s:')
@@ -334,10 +334,13 @@ class objCProperty:
                 if setter:
                     exp = re.compile(findValidPropertyAssignment % name)
                     matches = exp.finditer(setter.group(1))
+                    setterBlock = setter.group(0)
                     for match in matches:
                         count -= 1
                         if not pretend:
-                            file = file.replace(match.group(0), "%s = " % name)
+                            setterBlock = setterBlock.replace(match.group(0), "%s = " % name)
+                    if not pretend:
+                        file = file.replace(setter.group(0), setterBlock)
                 if pretend and count != 0:
                     return False
             elif property.property and property.memory == "readonly":
@@ -350,6 +353,48 @@ class objCProperty:
                     if pretend:
                         return False
                     file = file.replace(match.group(0), "%s = " % name)
+
+        #fix init/dealloc and viewDidLoad/Unload
+        findInit = re.compile(findMethod % (r'-', r'id', r'init'), re.IGNORECASE | re.DOTALL)
+        findDealloc = re.compile(findMethod % (r'-', r'void', r'dealloc'), re.IGNORECASE | re.DOTALL)
+        findViewDidLoad = re.compile(findMethod % (r'-', r'void', r'viewDidLoad'), re.IGNORECASE | re.DOTALL)
+        findViewDidUnload = re.compile(findMethod % (r'-', r'void', r'viewDidUnload'), re.IGNORECASE | re.DOTALL)
+        findAssignment = re.compile(r'(\w+)\s*=')
+
+        matches = findInit.finditer(file)
+        assignedInInit = list()
+        for match in matches:
+            matches2 = findAssignment.finditer(match.group(1))
+            for match in matches2:
+                name = match.group(1)
+                if name != "self":
+                    assignedInInit.append(name)
+        assignedInViewDidLoad = list()
+        viewDidLoad = findViewDidLoad.search(file)
+        if viewDidLoad:
+            matches = findAssignment.finditer(viewDidLoad.group(1))
+            for match in matches:
+                name = match.group(1)
+                if name not in assignedInInit:
+                    assignedInViewDidLoad.append(name)
+            print assignedInInit
+            print assignedInViewDidLoad
+
+            if len(assignedInViewDidLoad) > 0:
+                viewDidUnload = findViewDidUnload.search(file)
+                if not viewDidUnload:
+                    if pretend:
+                        return False
+                    viewDidUnload = "-(void)viewDidUnload {\n}"
+                    file = file.replace(viewDidLoad.group(0), "%s\n\n%s" % (viewDidLoad.group(0), viewDidUnload))
+                for property in objCProperty.properties:
+                    if property.iboutlet or property.name in assignedInViewDidLoad:
+                        #convert [self set%s:nil] calls to self.%s = nil
+                        #add any missing self.%s = nil calls
+                        #convert autoreleases to releases
+                        pass
+        #in the old system we don't audit ivars, because Drew doesn't care
+
         return file
 
     def __str__(self):

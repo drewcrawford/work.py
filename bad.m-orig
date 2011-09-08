@@ -2,16 +2,16 @@
     NSMutableString *temp;
     int layer;
 }
-
-@property (nonatomic, readonly) NSMutableString *special;
+@property (nonatomic, readonly, __weak) NSMutableString *special;
 @property (copy) id specialCopy;
-
 @end
-
 @implementation bad
+
+
 @synthesize specialCopy;
 @synthesize specialAssign, lineNum;
 @synthesize temp;
+
 @synthesize foo, text;
 
 -(id)init {
@@ -22,7 +22,6 @@
     }
     return self;
 }
-
 -(void) viewDidLoad
 {
     self.special = @"this is text";
@@ -36,27 +35,32 @@
 
 + (BOOL) uninterestingMethod1:(NSString*)str
 {
+    for(int i = 0; i < 3; i++)
+    {
+        __weak int foo = i;
+        int bar = i+1;
+        __strong int baz = i-1;
+        NSLog(@"%d != %d - %d", foo, bar, baz);
+    }
     NSLog("You're not here.");
     text = @"testblah";
     lineNum = 3;
     assert(YES);
     return NO;
 }
-
-- (void) setTemp:(NSMutableString*)newtemp
+- (void)setTemp:(NSMutableString*)newtemp
 {
     if(temp != newtemp)
     {
-        [temp release];
-        temp = [newtemp retain];
+        temp = newtemp;
         lineNum++;
     }
 }
 
-- (void) dealloc {
-    [text release];
-    [foo autorelease];
-    [super dealloc];
+-(void) dealloc {
+    foo = nil;
 }
-
 @end
+
+
+
