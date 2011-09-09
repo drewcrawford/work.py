@@ -11,5 +11,5 @@
 @property (strong) block NSArray *foo;
 @property (atomic, autoreleasing) IBOutlet NSString *text;
 @property (unsafe_unretained) UIColor *crapColor;
-@property (unsafe_unretained) UIColor *crapColor; //@ignore
+@property (unsafe_unretained) UIColor *crapColorUnsafe;
 @end

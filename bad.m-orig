@@ -42,6 +42,13 @@
         __strong int baz = i-1;
         NSLog(@"%d != %d - %d", foo, bar, baz);
     }
+    //if(lineNum)
+    //{
+    //  NSLog(@"here");
+    //} else
+    //{
+    //  NSLog(@"there");
+    //}
     NSLog("You're not here.");
     text = @"testblah";
     lineNum = 3;

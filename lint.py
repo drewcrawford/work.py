@@ -4,6 +4,8 @@ import sys
 import getopt
 import commands
 import os
+from SourceFile import SourceFile
+from objCProperty import objCProperty
 
 class Lint:
     toOneTrueBraceStyle = None
@@ -14,42 +16,49 @@ class Lint:
     validFileExtensions = (".m", ".h")
     pretend = False
     sameLine = False
-    files = None
+    files = list()
     originalDir = None
 
     def __init__(self, flags):
+        if "-h" in flags:
+            self.usage()
+            exit(0)
+
         self.toOneTrueBraceStyle = re.compile(r'\s+\{', re.DOTALL)
         self.toOneTrueBraceStyle_elsePatch = re.compile(r'\}\s*else\s*\{', re.DOTALL)
         self.fromOneTrueBraceStyle = re.compile(r'\s*\{( |\t)*')
         self.fromOneTrueBraceStyle_elsePatch = re.compile(r'(\s*)\}\s*else')
         self.fixBraceIndentation = re.compile(r'^(( |\t)*)(.*)\n\{', re.MULTILINE)
 
-        self.sameLine = "-s" in flags
+        self.sameLine = "-n" not in flags
         self.pretend = "-p" in flags
 
-        self.originalDir = os.getcwd()
         if "-d" in flags:
             rootDir = flags[flags.index("-d")+1]
         else:
             match = re.search(r':\s+(.+?):\s+', commands.getoutput("$(git rev-parse --show-toplevel)"))
             rootDir = match.group(1)
-        os.chdir(rootDir)
         print "Processing files in %s" % os.getcwd()
 
         if "--all" in flags:
-            os.chdir(self.originalDir)
-            self.files = filter(self.filterLineEndings, commands.getoutput("find %s" % rootDir).strip().split("\n"))
+            for fileName in commands.getoutput("find %s" % rootDir).strip().split("\n"):
+                file = SourceFile(fileName, rootDir)
+                if file:
+                    self.files.append(file)
         else:
             status = commands.getoutput("git status")
             match = re.search(r'branch\s+(.+?)\s*$', status, re.IGNORECASE | re.MULTILINE)
             changedFiles = commands.getoutput("git diff --name-only remotes/origin/%s ." % match.group(1))
-            print changedFiles
-            self.files = filter(self.filterLineEndings, changedFiles.strip().split("\n"))
+            for fileName in changedFiles.strip().split("\n"):
+                file = SourceFile(fileName, rootDir)
+                if file:
+                    print file
+                    self.files.append(file)
 
     @staticmethod
     def run():
         try:
-            opts, args = getopt.getopt(sys.argv, "snd:", ["all"])
+            opts, args = getopt.getopt(sys.argv, "hsnd:", ["all"])
             linter = Lint(args[1:])
             ret = linter.process()
             if ret is False:
@@ -57,16 +66,10 @@ class Lint:
         except getopt.GetoptError:
             Lint.usage()
 
-    def filterLineEndings(self, fileName):
-        for ext in self.validFileExtensions:
-            if fileName.endswith(ext):
-                return True
-        return False
-
     #Returns true everything analyzed cleanly
     @staticmethod
     def analyze():
-        linter = Lint(["lint", "-n", "-u", "-p"])
+        linter = Lint(["lint", "-s", "-u", "-p"])
         ret = linter.process()
         if ret is False:
             print "Lint analyses failed!"
@@ -75,33 +78,26 @@ class Lint:
     @staticmethod
     def usage():
         print "Usage: work.py lint (-s | -n) [-au] [-d DIR]"
+        print "-h     Display this usage message"
         print "-p     Analyze for compliance, don't actually write anything"
-        print "-s     Converts to braces on the same line"
-        print "-n     Converts to braces on a new line\n\t(default)"
+        print "-s     Converts to braces on the same line\n\t(default)"
+        print "-n     Converts to braces on a new line"
         print "-d     Directory to operate on\n\t(defaults to current directory)"
         print "--all  Process all files in the directory\n\t(overrides -u)"
         print "-u     Process only files that have changed since the last git push\n\t(default)"
 
     #Returns true if everything analyzed cleanly or if everything was updated to analyze cleanly
     def process(self):
-        for fileName in self.files:
-            with open(fileName) as file:
-                out = self.convertLineEndings(file.read())
-                if self.pretend and out is False:
-                    return False
-                if fileName.endswith(".h") and os.path.exists("%s.m" % fileName[:-2]):
-                    out = self.fixObjCPropertiesInHeader(out)
-                    with open("%s.m" % fileName[:-2]) as implementation:
-                        mout = self.fixObjCPropertiesInImplementation(implementation.read())
-                    if not self.pretend:
-                        with open("%s.m" % fileName[:-2], 'w') as implementation:
-                            implementation.write(mout)
-                if self.pretend and out is False:
-                    return False
+        for file in self.files:
+            file.set(self.convertLineEndings(file.get()))
+            implementation = file.fileWithExtension(".m")
+            #if implementation:
+            #    file.set(self.fixObjCPropertiesInHeader(file.get()))
+            #    implementation.set(self.fixObjCPropertiesInImplementation(implementation.get()))
+            #    if not self.pretend:
+            #        implementation.save()
             if not self.pretend:
-                with open(fileName, 'w') as file:
-                    file.write(out)
-        os.chdir(self.originalDir)
+                file.save()
         return True
 
 #fixing Objective C properties
@@ -124,17 +120,11 @@ class Lint:
             return False
         return file
 
-    def getPropertySet(self, file, propertyName):
-        exp = re.compile(r'self.%s\s*=\s*(.*?)\s*;' % propertyName, re.IGNORECASE)
-
-    def getDealloc(self, file):
-        pass
-
 #fixing braces and whitespace
     def convertToOneTrueBraceStyle(self, input):
-        ret = self.toOneTrueBraceStyle.replace(" {", input)
+        ret = self.toOneTrueBraceStyle.sub(" {", input)
         #patch else blocks together
-        return self.toOneTrueBraceStyle_elsePatch("} else {", ret);
+        return self.toOneTrueBraceStyle_elsePatch.sub("} else {", ret);
 
     def convertFromOneTrueBraceStyle(self, input):
         ret = self.fromOneTrueBraceStyle.sub("\n{", input);
@@ -150,9 +140,9 @@ class Lint:
         else:
             function = self.convertFromOneTrueBraceStyle
 
-        findQuotedString = re.compile(r'"(?:[^"\\]*?(?:\\.[^"\\]*?)*?)"', re.DOTALL)
-        notStrings = findQuotedString.split(file)
-        strings = findQuotedString.finditer(file)
+        findQuotedStringOrLineComment = re.compile(r'(?:"(?:[^"\\]*?(?:\\.[^"\\]*?)*?)"|//.*?$)', re.DOTALL | re.MULTILINE)
+        notStrings = findQuotedStringOrLineComment.split(file)
+        strings = findQuotedStringOrLineComment.finditer(file)
 
         for i in range(0, len(notStrings)):
             temp = function(notStrings[i])
@@ -161,245 +151,9 @@ class Lint:
             notStrings[i] = temp
 
         ret = notStrings[0]
-        for i in range(0, len(notStrings)-1):
-            ret += strings.next().group(0) + notStrings[i+1]
+        for i in range(1, len(notStrings)):
+            if len(notStrings[i]) > 0:
+                ret += strings.next().group(0) + notStrings[i]
         if not self.sameLine:
             ret = self.fixBraceIndent(ret)
         return ret;
-
-class objCProperty:
-    properties = list()
-
-    findIVarExp = r'(?:(?:__block|IBOutlet)\s+)*%s\s+%s\s*;'
-    atomicity = "atomic"
-    memory = "retain"
-    block = ""
-    iboutlet = ""
-    type = None
-    name = None
-    valid = True
-    property = False
-    dealloced = False
-
-    def __init__(self, match, property):
-        self.property = property
-        if self.property:
-            self.makeProperty(match)
-        else:
-            self.makeIVar(match)
-
-    def makeProperty(self, match):
-        #read in the property modifiers
-        if match.group(1):
-            for modifier in match.group(1).lower().split(","):
-                modifier = modifier.strip()
-                if modifier.endswith("atomic"):
-                    self.atomicity = modifier
-                elif modifier in ("assign", "copy", "readonly", "retain"):
-                    self.memory = modifier
-                else:
-                    print "Unsupported property modifier %s" % modifier
-                    self.memory = "UNDEFINED"
-                    self.atomicity = "UNDEFINED"
-        if match.group(3): #IBOutlets
-            if self.atomicity is not "nonatomic" or self.memory is not "retain" or self.block is not "":
-                self.valid = False
-                self.atomicity = "nonatomic"
-                self.memory = "retain"
-                self.block = "";
-            self.iboutlet = match.group(2)
-        #save whether or not this is declared __block
-        if self.iboutlet is "" and match.group(2):
-            self.block = match.group(2)
-
-        self.type = match.group(4).strip()
-        self.name = match.group(5).strip()
-        if self.type.endswith("*"):
-            self.valid = False
-            self.name = "*%s" % self.name
-            self.type = self.type[:-1];
-        #make sure objects are declared copy when they could be mutable but aren't the mutable version
-        if self.type in ("NSArray", "NSSet", "NSDictionary", "NSString"):
-            if self.memory is not "copy":
-                self.valid = False
-                self.memory = "copy"
-        #make sure all pointers are declared retain, unless explictly postfixed with "Copy" or "Assign
-        elif self.memory not in ("retain", "readonly") and self.name.startswith("*") and not (self.name.endswith("Copy") or self.name.endswith("Assign")):
-            self.memory = "retain"
-            self.valid = False
-
-    def makeIVar(self, match):
-        self.atomicity = match[0];
-        if match[1]:
-            if match[1].strip().lower() == "__block":
-                self.block = match[1]
-            elif match[1].strip() == "IBOutlet":
-                self.iboutlet = match[1]
-        if match[2]:
-            if match[2].strip().lower() == "__block":
-                self.block = match[2]
-            elif match[2].strip() == "IBOutlet":
-                self.iboutlet = match[2]
-        self.type = match[3]
-        self.name = match[4]
-
-    @staticmethod
-    def propertiesInFile(file, pretend):
-        findProperty = re.compile(r'@property\s+(?:\(((?:[^\,)],?)+)\)\s+)?((?:__block|IBOutlet)\s+)?((?:__block|IBOutlet)\s+)?(\S+)\s+(\S+?)\s*;', re.IGNORECASE)
-        matches = findProperty.finditer(file)
-        properties = list()
-        valid = True
-        for match in matches:
-            #print match.groups()
-            property = objCProperty(match, True)
-            valid = valid and property.valid
-            if pretend and not valid:
-                return False
-            file = file.replace(match.group(0), property.__str__())
-            objCProperty.properties.append(property)
-        (file, valid) = objCProperty.findIVars(file, pretend)
-        if pretend and not valid:
-            return False
-        #print "------------"
-        #for item in objCProperty.properties:
-        #    print item
-        return file
-
-    @staticmethod
-    def findIVars(file, pretend):
-        findIVarSection = re.compile(r'@interface.*?\{([^}]*?)\}', re.DOTALL)
-        findIVars = re.compile(r'(\s*)((?:__block|IBOutlet)\s+)?((?:__block|IBOutlet)\s+)?([^\s;]+)\s+((?:[^\s;]+\s*,?\s*)+);', re.DOTALL)
-        section = findIVarSection.search(file)
-        matches = findIVars.finditer(section.group(1))
-        out = list()
-        valid = True
-        for match in matches:
-            names = match.group(5).split(",")
-            if len(names) > 1:
-                valid = False
-            type = match.group(4)
-            if type.endswith("*"):
-                names[0] = "*%s" % names[0].strip()
-                type = type[:-1]
-                valid = False
-            if pretend and not valid:
-                return False
-            ivars = list()
-            for name in filter(lambda x:x not in map(lambda x:x.name, objCProperty.properties), names):
-                ivar = objCProperty((match.group(1), match.group(2), match.group(3), type.strip(), name.strip()), False)
-                ivars.append(ivar.__str__())
-                objCProperty.properties.append(ivar)
-            file = file.replace(match.group(0), "".join(ivars))
-        return (file, valid)
-
-    @staticmethod
-    def fixSynthesis(file, pretend):
-        findSynthesis = re.compile(r'(\s*)@synthesize\s*((?:[^\s;]+\s*,?\s*)+);', re.DOTALL | re.IGNORECASE)
-        matches = findSynthesis.finditer(file)
-        for match in matches:
-            names = match.group(2).strip().split(",")
-            if len(names) > 1 and pretend:
-                return False
-            out = list()
-            for name in names:
-                out.append("%s@synthesize %s;" % (match.group(1), name.strip()))
-            file = file.replace(match.group(0), "".join(out))
-        return file
-
-    @staticmethod
-    def fixMemoryInImplementation(file, pretend):
-        findMethod = r'%s\s*\(\s*%s\s*\)\s*%s[^\{]*\{(.*?)\n\}'
-
-        findPropertyAssignment = r'[^\.\w]%s\s*='
-        findValidPropertyAssignment = r'self\.%s\s*=\s*'
-        findCustomSetter = findMethod % (r'-', r'void', r'set%s:')
-
-        #fix property assignment without self.
-        for property in objCProperty.properties:
-            if property.property and property.memory != "readonly":
-                name = property.name
-                if property.name.startswith("*"):
-                    name = name[1:]
-                exp = re.compile(findPropertyAssignment % name)
-                matches = exp.finditer(file)
-                #if pretend, count how many we would fix and then subtract the number we revert in custom setters. If that's > 0, pretend fail
-                count = 0
-                for match in matches:
-                    count += 1
-                    if not pretend:
-                        file = file.replace(match.group(0), "%sself.%s" % (match.group(0)[0], match.group(0)[1:]))
-                ucfirstname = "%s%s" % (name[0].upper(), name[1:])
-                exp = re.compile(findCustomSetter % ucfirstname, re.DOTALL)
-                setter = exp.search(file)
-                if setter:
-                    exp = re.compile(findValidPropertyAssignment % name)
-                    matches = exp.finditer(setter.group(1))
-                    setterBlock = setter.group(0)
-                    for match in matches:
-                        count -= 1
-                        if not pretend:
-                            setterBlock = setterBlock.replace(match.group(0), "%s = " % name)
-                    if not pretend:
-                        file = file.replace(setter.group(0), setterBlock)
-                if pretend and count != 0:
-                    return False
-            elif property.property and property.memory == "readonly":
-                name = property.name
-                if property.name.startswith("*"):
-                    name = name[1:]
-                exp = re.compile(findValidPropertyAssignment % name)
-                matches = exp.finditer(file)
-                for match in matches:
-                    if pretend:
-                        return False
-                    file = file.replace(match.group(0), "%s = " % name)
-
-        #fix init/dealloc and viewDidLoad/Unload
-        findInit = re.compile(findMethod % (r'-', r'id', r'init'), re.IGNORECASE | re.DOTALL)
-        findDealloc = re.compile(findMethod % (r'-', r'void', r'dealloc'), re.IGNORECASE | re.DOTALL)
-        findViewDidLoad = re.compile(findMethod % (r'-', r'void', r'viewDidLoad'), re.IGNORECASE | re.DOTALL)
-        findViewDidUnload = re.compile(findMethod % (r'-', r'void', r'viewDidUnload'), re.IGNORECASE | re.DOTALL)
-        findAssignment = re.compile(r'(\w+)\s*=')
-
-        matches = findInit.finditer(file)
-        assignedInInit = list()
-        for match in matches:
-            matches2 = findAssignment.finditer(match.group(1))
-            for match in matches2:
-                name = match.group(1)
-                if name != "self":
-                    assignedInInit.append(name)
-        assignedInViewDidLoad = list()
-        viewDidLoad = findViewDidLoad.search(file)
-        if viewDidLoad:
-            matches = findAssignment.finditer(viewDidLoad.group(1))
-            for match in matches:
-                name = match.group(1)
-                if name not in assignedInInit:
-                    assignedInViewDidLoad.append(name)
-            print assignedInInit
-            print assignedInViewDidLoad
-
-            if len(assignedInViewDidLoad) > 0:
-                viewDidUnload = findViewDidUnload.search(file)
-                if not viewDidUnload:
-                    if pretend:
-                        return False
-                    viewDidUnload = "-(void)viewDidUnload {\n}"
-                    file = file.replace(viewDidLoad.group(0), "%s\n\n%s" % (viewDidLoad.group(0), viewDidUnload))
-                for property in objCProperty.properties:
-                    if property.iboutlet or property.name in assignedInViewDidLoad:
-                        #convert [self set%s:nil] calls to self.%s = nil
-                        #add any missing self.%s = nil calls
-                        #convert autoreleases to releases
-                        pass
-        #in the old system we don't audit ivars, because Drew doesn't care
-
-        return file
-
-    def __str__(self):
-        if self.property:
-            return "@property (%s, %s) %s%s%s %s;" % (self.atomicity, self.memory, self.block, self.iboutlet, self.type, self.name)
-        else:
-            #atomicty is hacked for ivars to contain the leading whitespace
-            return "%s%s%s%s %s;" % (self.atomicity, self.block, self.iboutlet, self.type, self.name)

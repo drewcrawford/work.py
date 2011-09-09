@@ -10,5 +10,4 @@
 @property (atomic, strong) __block NSArray *foo;
 @property (nonatomic, weak) IBOutlet NSString *text;
 @property (atomic, strong) UIColor *crapColor;
-@property (unsafe_unretained) UIColor *crapColor; //@ignore
-@end
+@property (unsafe_unretained) UIColor *crapColor; 
