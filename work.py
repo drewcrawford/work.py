@@ -36,7 +36,9 @@ def printUsageString():
     print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch\n\tfor the milestone (off of FROMSPEC)"
     print "  network : it's a series of tubes"
     print "  recharge FROM_CASE TO_CASE : Moves time charged against one case to be charged against another instead"
+    print "  chargeback CASE : Prints total hours, including hours that were been recharged away somewhere else"
     print "  ls: list cases (EXPERIMENTAL)"
+    print "  selftest: runs the tests (POOR TEST COVERAGE)"
     print ""
     sys.exit()
 
@@ -400,6 +402,25 @@ def recharge(fr,to):
     if mustOpen: fbConnection.closeCase(to)
 
 
+#
+#
+#
+def chargeback(case):
+    import re
+    fbConnection = FogBugzConnect()
+    events = fbConnection.allEvents(case)
+    total_time = 0
+    for event in events:
+        match = re.match("recharge: A record was removed from this ticket: From (.*) to (.*)(?=ixPerson)",event)
+        if match:
+            (fromt,tot) = match.groups(0)
+            import dateutil.parser
+            fromd = dateutil.parser.parse(fromt)
+            tod = dateutil.parser.parse(tot)
+            total_time += (tod - fromd).seconds
+    total_time += fbConnection.getElapsed(case) * 60.0 * 60.0
+    print total_time / 60.0 / 60.0, "hours"
+    return total_time / 60.0 / 60.0
     
 
 
@@ -450,11 +471,9 @@ if len(sys.argv) > 1:       #if there's at least one argument...
 else:   # quit if no task
     printUsageString()
 
-# check for which task to handle
-# tasks are:
-#   start
-#   stop
-#   ship
+import unittest
+        
+
 if(task == "start"):
     projectStart(CASE_NO, fromSpec)
 elif(task == "stop"):
@@ -483,9 +502,21 @@ elif (task == "network"):
     network()
 elif (task == "recharge"):
     recharge(int(sys.argv[2]),int(sys.argv[3]))
+elif (task=="chargeback"):
+    chargeback(int(sys.argv[2]))
 elif (task == "ls"):
     ls()
 elif (task == "config"):
     workConfig(target)
+elif (task=="selftest"):
+    suite = unittest.defaultTestLoader.loadTestsFromNames(["work","gitHubConnect","fogbugzConnect"])
+    unittest.TextTestRunner().run(suite)
 else:
     printUsageString()
+    
+class TestSequence(unittest.TestCase):
+    def setUp(self):
+        pass
+    
+    def test_chargeback(self):
+        self.assertAlmostEqual(chargeback(1111),0.0180555555556)

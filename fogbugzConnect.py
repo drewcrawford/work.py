@@ -161,6 +161,8 @@ class FogBugzConnect:
     def commentOn(self,CASE_NO,msg):
         response = self.fbConnection.edit(ixBug=CASE_NO,sEvent=msg)
         
+        
+    
     #
     # Find implementor for a case
     #
@@ -270,7 +272,16 @@ class FogBugzConnect:
                 for event in case.events:
                     if event.s.contents[0]=="work.py automatically created this test case":
                         return True
-        return False           
+        return False
+    
+    def allEvents(self,CASE_NO):
+        resp = self.fbConnection.search(q=CASE_NO,cols="events")
+        case = resp.case
+        events = []
+        for event in case.events:
+            if len(event.s.contents)==0: continue
+            events.append(event.s.contents[0])
+        return events
         
     #
     # returns true iff CASE_NO is a work.py test case
@@ -449,6 +460,15 @@ class FogBugzConnect:
     def closeCase(self,CASE_NO):
         self.fbConnection.close(ixBug=CASE_NO)
     
+    
+    #
+    # Returns the elapsed time (hours)
+    #
+    def getElapsed(self,CASE_NO):
+        resp = self.fbConnection.search(q=str(CASE_NO),cols="hrsElapsed")
+        return float(resp.case.hrselapsed.contents[0])
+
+    
     #
     # Returns current estimate (hours)
     #
@@ -476,6 +496,17 @@ class FogBugzConnect:
         self.fbConnection = FogBugz(self.getFBURL())
         self.login()
     
+import unittest
+
+
+class TestSequence(unittest.TestCase):
+    def setUp(self):
+        self.f = FogBugzConnect()
     
+    def test_events(self):
+        self.assertTrue(self.f.allEvents(2525) >= 3)
+if __name__ == '__main__':
+    unittest.main()
+
     
     
