@@ -11,6 +11,7 @@ except:
     print "Could not import keyring API"
     quit()
     
+    
 try:
     from fogbugz import FogBugz
     from fogbugz import FogBugzAPIError
@@ -20,8 +21,26 @@ except Exception as e:
     quit()
 from xml.dom.minidom import parseString
 
+SETTINGS = os.path.expanduser("~/.workScript")
+
 class FogBugzConnect:
     
+    @staticmethod
+    def get_setting_dict():
+        handle = open(SETTINGS, "r")
+        try:
+            result = json.load(handle)
+            handle.close()
+            return result
+
+        except:
+            return {}
+    @staticmethod
+    def set_setting_dict(dict):
+        handle = open(SETTINGS, "w")
+        json.dump(dict,handle,indent=2)
+        handle.close()
+
     #
     # Store settings for email and username in home directory
     #
@@ -29,13 +48,10 @@ class FogBugzConnect:
         fburl = raw_input("FB URL [http://drewcrawfordapps.fogbugz.com/]: ")
         
         email = raw_input("email: ")
-        #username = raw_input("username: ")
-        handle = open(self.SETTINGS, "w")
-        try:
-            settings = {"email": email, "fburl":fburl and fburl or "http://drewcrawfordapps.fogbugz.com/"}
-            json.dump(settings, handle, indent=2)
-        except:
-            handle.close()
+        settings = FogBugzConnect.get_setting_dict()
+        settings["email"]=email
+        settings["fburl"] = fburl and fburl or "http://drewcrawfordapps.fogbugz.com/"
+        FogBugzConnect.set_setting_dict(settings)
         return
     
     def listCases(self,projectName):
@@ -80,49 +96,21 @@ class FogBugzConnect:
     # set other settings
     #
     def setSetting(self, setting, value):
-        handle = open(self.SETTINGS)
-        currentSettings = json.load(handle)
-        handle.close()
-        handle = open(self.SETTINGS, "w")
-        try:
-            currentSettings[setting] = value
-            json.dump(currentSettings, handle, indent=2)
-        except:
-            handle.close()
-        return
-
-    #
-    # get other settings
-    #
-    def getSettings(self):
-        handle = open(self.SETTINGS)
-        currentSettings = json.load(handle)
-        handle.close()
-        return currentSettings
+        settings = FogBugzConnect.get_setting_dict()
+        settings[setting] = value
+        set_settings_dict(settings)
     
     #
     # get FB URL from settings
     #
     def getFBURL(self):
-        settings = self.getSettings()
+        settings = FogBugzConnect.get_setting_dict()
         if "fburl" not in settings:
             self.setCredentials()
-            settings = self.getSettings()
+            settings = FogBugzConnect.get_setting_dict()
         return settings["fburl"]
-    
-    #
-    # Get settings from home directory
-    #
-    def getCredentials(self, email = None, username = None):
-        if email is not None:
-            return {"email": email}
-        if not os.path.exists(self.SETTINGS):
-            self.setCredentials()
-        handle = open(self.SETTINGS)
-        try:
-            return json.load(handle)
-        finally:
-            handle.close()
+        
+        
     #
     # Shows you CASE_NO
     #
@@ -134,7 +122,7 @@ class FogBugzConnect:
     # log into fogbugz
     #
     def login(self):
-        self.email = self.getCredentials()['email']
+        self.email = self.get_setting_dict()['email']
         #self.username = self.getCredentials()['username']
         password = keyring.get_password('fogbugz', self.username)
         if not password:
@@ -476,19 +464,10 @@ class FogBugzConnect:
     # FogBugzConnect constructor!
     #
     def __init__(self):
-        self.SETTINGS = os.path.expanduser("~/.workScript")
         self.email = ""
         self.username = ""
         self.fbConnection = FogBugz(self.getFBURL())
-        for i in range(0,1):
-            if i == 3:
-                print "Too many failed attempts! Sorry!"
-                quit()
-            try:
-                self.login()
-                break
-            except:
-                print "Wrong Password! Try again!"
+        self.login()
     
     
     

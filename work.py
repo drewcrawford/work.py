@@ -14,6 +14,7 @@ import sys
 from commands import getstatusoutput
 from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
+from gitHubConnect import GitHubConnect
 
 #
 # Prints the usage string for this script
@@ -128,12 +129,23 @@ def projectShip():
     gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
 
+    #create the pull request
+    gitHubConnect = GitHubConnect()
+    
+    if not gitHubConnect.pullRequestAlreadyExists("work-%d" % caseno):
+        body = "Ticket at %s/default.asp?%d\n%s" % (fbConnection.getFBURL(),caseno,raw_input("Type a note: "))
+        list =  gitConnection.getUserRepo()
+        pullURL = gitHubConnect.createPullRequest("work-%d" % caseno,body,fbConnection.getIntegrationBranch(caseno),"work-%d" % caseno)
+        fbConnection.commentOn(caseno,"Pull request at %s\n%s" %(pullURL,body))
+    
+    
     #is there a test case?
     try:
         (parent,child) = fbConnection.getCaseTuple(caseno)
         fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
     except:
         fbConnection.resolveCase(caseno)
+        pass
     print """There's about an 80% chance that whatever you just did was work that rightfully belongs to some other (possibly closed) case.  Recharging is a way to signify to EBS that your work should be counted against a different case.
         
         Ex 1: You're fixing a somewhat-forseeable bug in a feature that was implemented and estimated in another case, but for some reason a new bug has been filed instead of the old feature reactivated.  Recharge to the original feature, as whoever estimated that should have accounted for a relatively bug-free implementation.
@@ -177,7 +189,8 @@ def projectStartTest(CASE_NO):
     gitConnection.checkoutExistingBranch(parent)
     
     fbConnection.startCase(test,enforceNoTestCases=False)
-    gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
+    gitHubConnection = GitHubConnect()
+    gitHubConnection.openPullRequestByName("work-%d" % CASE_NO)
 
 
 #
@@ -248,9 +261,12 @@ def projectIntegrate(CASE_NO):
 #still open here 
     # make sure integration is even worth it...
     fbConnection.ensureReadyForTest(CASE_NO)
+    
+    
     gitConnection.checkoutExistingBranch(CASE_NO)
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
-    
+    gitHubConnection = GitHubConnect()
+    gitHubConnection.closePullRequestbyName("work-%d" % CASE_NO)
     #check for test case
     try:
         (parent, test) = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True)
@@ -266,6 +282,9 @@ def projectIntegrate(CASE_NO):
 
     fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
     fbConnection.closeCase(CASE_NO)
+    
+    #close pull request
+    
 
 
 #
