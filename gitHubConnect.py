@@ -80,6 +80,9 @@ class GitHubConnect:
     def closePullRequestbyName(self,name):
         #this is kind of a hack
         url = self.pullRequestAlreadyExists(name)
+        if not url:
+            print "There does not appear to be any such pull request"
+            return
         import re
         id = re.search("\d+$",url).group()
         data = json.dumps({"state":"closed"})
