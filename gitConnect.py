@@ -266,7 +266,7 @@ class GitConnect:
     def pushChangesToOriginBranch(self, branch="master"):
         # try to push changes
         (checkoutStatus, output) = commands.getstatusoutput("git push origin {0}".format(branch))
-        
+        print "output was",output
         if(checkoutStatus):
             print "ERROR: Could not push to origin!"
             quit()
