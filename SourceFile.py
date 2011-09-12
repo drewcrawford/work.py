@@ -1,10 +1,10 @@
 import os
 
-class SourceFile (object):
+class SourceFile:
     validFileExtensions = (".m", ".h")
 
-    errors = list()
-    classes = list()
+    errors = None
+    classes = None
     name = None
     ext = None
     contents = None
@@ -12,18 +12,14 @@ class SourceFile (object):
 
     def __init__(self, fileName, rootDir=None):
         self.ext = SourceFile.filterLineEndings(fileName)
-        self.name = fileName[:-len(self.ext)]
-        if not rootDir:
-            rootDir = os.getcwd()
-        self.root = rootDir
-
-    def __new__(cls, *args, **kwargs):
-        fileName = args[0]
-        ext = SourceFile.filterLineEndings(fileName)
-        if ext == False:
-            #print "Skipping unknown file type %s" % fileName
-            return None
-        return object.__new__(cls)
+        if self.ext:
+            path = fileName.split("/")
+            self.name = path[len(path)-1][:-len(self.ext)]
+            if not rootDir:
+                rootDir = os.getcwd()
+            self.root = rootDir
+            self.errors = list()
+            self.classes = list()
 
     @staticmethod
     def filterLineEndings(fileName):
@@ -32,10 +28,13 @@ class SourceFile (object):
                 return ext
         return False
 
-    def reportError(self, error, match=None):
+    def reportError(self, error, match=None, suppressText=False):
         if match:
             lineno = self.get().count("\n", 0, match.start())+1
-            badString = match.group(0)
+            if not suppressText:
+                badString = match.group(0)
+            else:
+                badString = None
         else:
             lineno = -1
             badString = None
@@ -45,8 +44,11 @@ class SourceFile (object):
         return len(self.errors)
 
     def getErrors(self):
-        for errorTuple in errors:
-            yield "Line %s: %s (%s)" % (errorTuple[1], errorTuple[0], errorTuple[2])
+        for errorTuple in self.errors:
+            if errorTuple[2]:
+                yield "Line %s: %s (%s)" % (errorTuple[1], errorTuple[0], errorTuple[2])
+            else:
+                yield "Line %s: %s" % (errorTuple[1], errorTuple[0])
 
     def getRawErrors(self):
         for errorTuple in errors:
@@ -81,7 +83,3 @@ class SourceFile (object):
 
     def __str__(self):
         return "%s%s" % (self.name, self.ext)
-
-    #note that this will be called even if __init__ failed (IE. this is the opposite of __new__, not __init__)
-    def __del__(self):
-        pass

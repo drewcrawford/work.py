@@ -403,14 +403,9 @@ fromSpec = ""
 from urllib2 import urlopen
 version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
 #########################
-WORK_PY_VERSION_NUMBER=22
+WORK_PY_VERSION_NUMBER=104
 #########################
 import re
-if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
-    from gitConnect import bcolors
-    print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE...',bcolors.ENDC
-
-
 
 #Attention: Older methods in here used to have a fixed argument format (1 = case, 2 = from=case).
 #However, with the plethora of new work commands this assumption is somewhat broken.

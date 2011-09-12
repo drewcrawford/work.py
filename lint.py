@@ -43,7 +43,7 @@ class Lint:
         if "--all" in flags:
             for fileName in commands.getoutput("find %s" % rootDir).strip().split("\n"):
                 file = SourceFile(fileName, rootDir)
-                if file:
+                if file.ext:
                     self.files.append(file)
         else:
             status = commands.getoutput("git status")
@@ -51,14 +51,14 @@ class Lint:
             changedFiles = commands.getoutput("git diff --name-only remotes/origin/%s ." % match.group(1))
             for fileName in changedFiles.strip().split("\n"):
                 file = SourceFile(fileName, rootDir)
-                if file:
+                if file.ext:
                     print file
                     self.files.append(file)
 
     @staticmethod
     def run():
         try:
-            opts, args = getopt.getopt(sys.argv, "hsnd:", ["all"])
+            opts, args = getopt.getopt(sys.argv, "hsndpu:", ["all"])
             linter = Lint(args[1:])
             ret = linter.process()
             if ret is False:
@@ -66,7 +66,7 @@ class Lint:
         except getopt.GetoptError:
             Lint.usage()
 
-    #Returns true everything analyzed cleanly
+    #Returns true if everything analyzed cleanly
     @staticmethod
     def analyze():
         linter = Lint(["lint", "-s", "-u", "-p"])
@@ -88,16 +88,24 @@ class Lint:
 
     #Returns true if everything analyzed cleanly or if everything was updated to analyze cleanly
     def process(self):
+        noErrors = True
         for file in self.files:
-            file.set(self.convertLineEndings(file.get()))
-            implementation = file.fileWithExtension(".m")
+            file.set(self.convertLineEndings(file))
+            #implementation = file.fileWithExtension(".m")
             #if implementation:
-            #    file.set(self.fixObjCPropertiesInHeader(file.get()))
-            #    implementation.set(self.fixObjCPropertiesInImplementation(implementation.get()))
+            #    file.set(self.fixObjCPropertiesInHeader(file))
+            #    implementation.set(self.fixObjCPropertiesInImplementation(implementation))
             #    if not self.pretend:
             #        implementation.save()
             if not self.pretend:
                 file.save()
+            else:
+                for error in file.getErrors():
+                    print error
+            if noErrors and (file.hasErrors() or (implementation and implementation.hasErrors())):
+                noErrors = False
+        if self.pretend:
+            return noErrors
         return True
 
 #fixing Objective C properties
@@ -141,13 +149,14 @@ class Lint:
             function = self.convertFromOneTrueBraceStyle
 
         findQuotedStringOrLineComment = re.compile(r'(?:"(?:[^"\\]*?(?:\\.[^"\\]*?)*?)"|//.*?$)', re.DOTALL | re.MULTILINE)
-        notStrings = findQuotedStringOrLineComment.split(file)
-        strings = findQuotedStringOrLineComment.finditer(file)
+        notStrings = findQuotedStringOrLineComment.split(file.get())
+        strings = findQuotedStringOrLineComment.finditer(file.get())
 
         for i in range(0, len(notStrings)):
             temp = function(notStrings[i])
             if self.pretend and notStrings[i] != temp:
-                return False
+                match = re.search(re.escape(notStrings[i]), file.get())
+                file.reportError("Invalid brace style in %s" % file, match, True)
             notStrings[i] = temp
 
         ret = notStrings[0]
