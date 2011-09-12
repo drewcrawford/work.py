@@ -66,8 +66,11 @@ class GitHubConnect:
         print "https://api.github.com/repos/%s/pulls" % projectMiniURI
         print dict
         req = self.Request("https://api.github.com/repos/%s/pulls" % projectMiniURI,json.dumps(dict))
-        response = urllib2.urlopen(req)
-        return json.loads(response.read())["html_url"]
+        try:
+            response = urllib2.urlopen(req)
+            return json.loads(response.read())["html_url"]
+        except:
+            print response
         
 
         
