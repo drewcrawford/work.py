@@ -127,7 +127,7 @@ def projectShip():
     # check if branch is the right branch
     caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(branch)
-    gitConnection.checkoutMaster()
+    #gitConnection.checkoutMaster()
 
     #create the pull request
     gitHubConnect = GitHubConnect()
