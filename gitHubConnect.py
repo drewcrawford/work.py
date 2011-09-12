@@ -49,6 +49,7 @@ class GitHubConnect:
         b64_userpass = basic_auth(self.username, self.password)
         req =  urllib2.Request(url,data)
         req.add_header('Authorization', 'Basic %s' % b64_userpass)
+        urllib2.install_opener(urllib2.build_opener(urllib2.HTTPHandler(debuglevel=9)))
         return req
 
     
