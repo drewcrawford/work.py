@@ -189,7 +189,8 @@ def projectStartTest(CASE_NO):
     gitConnection.checkoutExistingBranch(parent)
     
     fbConnection.startCase(test,enforceNoTestCases=False)
-    gitConnection.githubCompareView(fbConnection.getIntegrationBranch(parent),"work-%d" % parent)
+    gitHubConnection = GitHubConnection()
+    gitHubConnection.openPullRequestByName("work-%d" % CASE_NO)
 
 
 #
@@ -260,6 +261,8 @@ def projectIntegrate(CASE_NO):
 #still open here 
     # make sure integration is even worth it...
     fbConnection.ensureReadyForTest(CASE_NO)
+    
+    
     gitConnection.checkoutExistingBranch(CASE_NO)
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     

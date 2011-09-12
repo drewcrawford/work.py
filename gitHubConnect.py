@@ -68,8 +68,13 @@ class GitHubConnect:
         req = self.Request("https://api.github.com/repos/%s/%s/pulls?state=open" % (self.ghRepoUser,self.ghRepo),None)
         result = json.loads(urllib2.urlopen(req).read())
         for obj in result:
-            if obj["title"]==titleSearch: return True
-        return False
+            if obj["title"]==titleSearch: return obj["html_url"]
+        return None
+    
+    def openPullRequestByName(self,name):
+        url = self.pullRequestAlreadyExists(name)
+        from os import system
+        system("open %s" % url)
         
     #
     #   You probably want to call pullRequestAlreadyExists before doing this.
