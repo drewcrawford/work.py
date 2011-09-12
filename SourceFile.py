@@ -81,5 +81,11 @@ class SourceFile:
     def replace(self, find, replace):
         self.contents = self.contents.replace(find, replace)
 
+    def type(self):
+        if self.ext == ".m":
+            return "objc"
+        if self.ext == ".h":
+            return "header"
+
     def __str__(self):
         return "%s%s" % (self.name, self.ext)

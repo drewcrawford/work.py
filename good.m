@@ -5,6 +5,7 @@
 @property (nonatomic, readonly, __weak) NSMutableString *special;
 @property (copy) id specialCopy;
 @end
+
 @implementation bad
 
 @synthesize specialCopy;
@@ -62,4 +63,3 @@
     foo = nil;
 }
 @end
-

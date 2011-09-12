@@ -181,7 +181,7 @@ class Lint:
             matches = trailingWhiteSpace.finditer(ret)
             for match in matches:
                 file.reportError("Trailing whitespace in %s" % file, match, True)
-        ret = temp
+            ret = temp
 
         multipleNewLines = re.compile(r'\n{3,}')
         temp = multipleNewLines.sub(r'\n\n', ret)
@@ -189,6 +189,21 @@ class Lint:
             matches = multipleNewLines.finditer(ret)
             for match in matches:
                 file.reportError("Excessive newlines in %s" % file, match, True)
-        ret = temp
+            ret = temp
+
+        trailingWhiteSpace = re.compile(r'\n+$')
+        temp = trailingWhiteSpace.sub(r'', ret)
+        if ret != temp:
+            file.reportError("Trailing newlines in %s" % file)
+            ret = temp
+
+        if file.type() in ("objc", "header"):
+            implementationEndWhiteSpace = re.compile(r'@end\n?(\S)')
+            temp = implementationEndWhiteSpace.sub(r'@end\n\n\1', ret)
+            if ret != temp:
+                matches = implementationEndWhiteSpace.finditer(ret)
+                for match in matches:
+                    file.reportError("Insufficient whitespace after @end tag in %s" % file, match)
+                ret = temp
 
         return ret
