@@ -73,6 +73,7 @@ class GitHubConnect:
         except urllib2.HTTPError as e:
             print e
             print e.read()
+            raise e
         
 
         
