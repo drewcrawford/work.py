@@ -132,6 +132,7 @@ def projectShip():
     #create the pull request
     gitHubConnect = GitHubConnect()
     body = raw_input("Type a note:")
+    print gitConnection.getUserRepo()
     pullURL = gitHubConnect.createPullRequest("%s/%s" % gitConnection.getUserRepo(),"work-%d" % caseno,fbConnection.getIntegrationBranch(caseno))
     fbConnection.commentOn(caseno,"Pull request at %s\n%s" %(pullURL,body))
     
