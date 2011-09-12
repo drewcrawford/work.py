@@ -49,7 +49,6 @@ class FogBugzConnect:
         
         email = raw_input("email: ")
         settings = FogBugzConnect.get_setting_dict()
-        settings = json.load(settings,handle,indent=2)
         settings["email"]=email
         settings["fburl"] = fburl and fburl or "http://drewcrawfordapps.fogbugz.com/"
         FogBugzConnect.set_setting_dict(settings)
