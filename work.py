@@ -189,7 +189,7 @@ def projectStartTest(CASE_NO):
     gitConnection.checkoutExistingBranch(parent)
     
     fbConnection.startCase(test,enforceNoTestCases=False)
-    gitHubConnection = GitHubConnection()
+    gitHubConnection = GitHubConnect()
     gitHubConnection.openPullRequestByName("work-%d" % CASE_NO)
 
 
