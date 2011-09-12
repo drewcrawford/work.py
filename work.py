@@ -14,6 +14,7 @@ import sys
 from commands import getstatusoutput
 from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
+from gitHubConnect import GitHubConnect
 
 #
 # Prints the usage string for this script
@@ -128,6 +129,13 @@ def projectShip():
     gitConnection.pushChangesToOriginBranch(branch)
     gitConnection.checkoutMaster()
 
+    #create the pull request
+    gitHubConnect = GitHubConnect()
+    body = raw_input("Type a note:")
+    pullURL = gitHubConnect.createPullRequest("%s/%s" % gitConnection.getUserRepo(),"work-%d" % caseno,fbConnection.getIntegrationBranch(caseno))
+    fbConnection.commentOn(caseno,"Pull request at %s\n%s" %(pullURL,body))
+    
+    
     #is there a test case?
     try:
         (parent,child) = fbConnection.getCaseTuple(caseno)
