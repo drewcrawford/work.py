@@ -72,6 +72,7 @@ class GitHubConnect:
             return json.loads(response.read())["html_url"]
         except urllib2.HTTPError as e:
             print e
+            print e.read()
         
 
         
