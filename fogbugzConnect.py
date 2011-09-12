@@ -448,13 +448,20 @@ class FogBugzConnect:
     #
     def closeCase(self,CASE_NO):
         self.fbConnection.close(ixBug=CASE_NO)
-
+    
+    #
+    # Returns current estimate (hours)
+    #
+    def getEstimate(self,CASE_NO):
+        resp = self.fbConnection.search(q=str(CASE_NO),cols="hrsCurrEst")
+        return float(resp.case.hrscurrest.contents[0])
     #
     # Set Estimate for specified bug, returns the estimate
     #
-    def setEstimate(self, CASE_NO):
-        print "Please provide an estimate for this case: ",
-        timespan = raw_input()
+    def setEstimate(self, CASE_NO,timespan=None):
+        if not timespan:
+            print "Please provide an estimate for this case: ",
+            timespan = raw_input()
         
         self.fbConnection.edit(ixBug=CASE_NO, hrsCurrEst=timespan)
         return timespan;
