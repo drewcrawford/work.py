@@ -134,7 +134,7 @@ def projectShip():
     body = raw_input("Type a note: ")
     list =  gitConnection.getUserRepo()
     (user,repo) = list[0],list[1]
-    pullURL = gitHubConnect.createPullRequest("%s/%s" % (user,repo),"work-%d" % caseno,body,"work-%d" % caseno,fbConnection.getIntegrationBranch(caseno))
+    pullURL = gitHubConnect.createPullRequest("%s/%s" % (user,repo),"work-%d" % caseno,body,fbConnection.getIntegrationBranch(caseno),"work-%d" % caseno)
     fbConnection.commentOn(caseno,"Pull request at %s\n%s" %(pullURL,body))
     
     
