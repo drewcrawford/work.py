@@ -127,11 +127,11 @@ def projectShip():
     # check if branch is the right branch
     caseno = gitConnection.extractCaseFromBranch()
     gitConnection.pushChangesToOriginBranch(branch)
-    #gitConnection.checkoutMaster()
+    gitConnection.checkoutMaster()
 
     #create the pull request
     gitHubConnect = GitHubConnect()
-    body = raw_input("Type a note: ")
+    body = "Ticket at %s/default.asp?%d\n%s" % (fbConnection.getFBURL(),caseno,raw_input("Type a note: "))
     list =  gitConnection.getUserRepo()
     (user,repo) = list[0],list[1]
     pullURL = gitHubConnect.createPullRequest("%s/%s" % (user,repo),"work-%d" % caseno,body,fbConnection.getIntegrationBranch(caseno),"work-%d" % caseno)
@@ -141,9 +141,9 @@ def projectShip():
     #is there a test case?
     try:
         (parent,child) = fbConnection.getCaseTuple(caseno)
-        #fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
+        fbConnection.resolveCase(caseno,isTestCase_CASENO=child)
     except:
-        #fbConnection.resolveCase(caseno)
+        fbConnection.resolveCase(caseno)
         pass
     print """There's about an 80% chance that whatever you just did was work that rightfully belongs to some other (possibly closed) case.  Recharging is a way to signify to EBS that your work should be counted against a different case.
         
