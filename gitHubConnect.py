@@ -76,6 +76,17 @@ class GitHubConnect:
         from os import system
         system("open %s" % url)
         
+    def closePullRequestbyName(self,name):
+        #this is kind of a hack
+        url = self.pullRequestAlreadyExists(name)
+        import re
+        id = re.search("\d+$",url).group()
+        data = json.dumps({"state":"closed"})
+        req = self.Request("https://api.github.com/repos/%s/%s/pulls/%s" % (self.ghRepoUser,self.ghRepo,id),data)
+        req.get_method = lambda: 'PATCH' #functional ftw
+        response = urllib2.urlopen(req)
+
+                
     #
     #   You probably want to call pullRequestAlreadyExists before doing this.
     #
@@ -100,8 +111,8 @@ class TestSequence(unittest.TestCase):
         self.g = GitHubConnect()
     
     def test_pullreq(self):
-        self.g.createPullRequest("drewcrawford/work.py","My sample pull request","This is a body","master","work-2622")
-        
+        #self.g.createPullRequest("drewcrawford/work.py","My sample pull request","This is a body","master","work-2622")
+        self.g.closePullRequestbyName("work-2390")
 if __name__ == '__main__':
     unittest.main()
     

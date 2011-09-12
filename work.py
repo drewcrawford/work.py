@@ -265,7 +265,8 @@ def projectIntegrate(CASE_NO):
     
     gitConnection.checkoutExistingBranch(CASE_NO)
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
-    
+    gitHubConnection = GitHubConnect()
+    gitHubConnection.closePullRequestbyName("work-%d" % CASE_NO)
     #check for test case
     try:
         (parent, test) = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True)
@@ -281,6 +282,9 @@ def projectIntegrate(CASE_NO):
 
     fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
     fbConnection.closeCase(CASE_NO)
+    
+    #close pull request
+    
 
 
 #
