@@ -122,7 +122,7 @@ class FogBugzConnect:
     # log into fogbugz
     #
     def login(self):
-        self.email = self.get_setting_dict('email')
+        self.email = self.get_setting_dict()['email']
         #self.username = self.getCredentials()['username']
         password = keyring.get_password('fogbugz', self.username)
         if not password:
