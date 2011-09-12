@@ -56,8 +56,8 @@ class GitHubConnect:
     
     def __init__(self):
         repouser =  GitConnect().getUserRepo()
-        self.ghRepo = repouser[0]
-        self.ghRepoUser = repouser[1]
+        self.ghRepo = repouser[1]
+        self.ghRepoUser = repouser[0]
         
         self.login()
         
