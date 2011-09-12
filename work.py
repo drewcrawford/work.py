@@ -447,7 +447,7 @@ if __name__=="__main__":
     from urllib2 import urlopen
     version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
     #########################
-    WORK_PY_VERSION_NUMBER=22
+    WORK_PY_VERSION_NUMBER=23
     #########################
     import re
     if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
