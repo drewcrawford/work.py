@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from fogbugzConnect import FogBugzConnect
+from gitConnect import GitConnect
 import json
 try:
     import keyring
@@ -54,19 +55,30 @@ class GitHubConnect:
 
     
     def __init__(self):
+        repouser =  GitConnect().getUserRepo()
+        self.ghRepo = repouser[0]
+        self.ghRepoUser = repouser[1]
+        
         self.login()
+        
 
         
         
+    def pullRequestAlreadyExists(self,titleSearch):
+        req = self.Request("https://api.github.com/repos/%s/%s/pulls?state=open" % (self.ghRepoUser,self.ghRepo))
+        result = json.loads(urllib2.urlopen(req).read())
+        for obj in result:
+            if obj["title"]==titleSearch: return True
+        return False
+        
     #
-    #
+    #   You probably want to call pullRequestAlreadyExists before doing this.
     #
     def createPullRequest(self,projectMiniURI,requestTitle,requestBody,fromHere,toHere):
         dict = {"title":requestTitle,"body":requestBody,"base":fromHere,"head":toHere}
-        print "https://api.github.com/repos/%s/pulls" % projectMiniURI
-        print dict
-        req = self.Request("https://api.github.com/repos/%s/pulls" % projectMiniURI,json.dumps(dict))
-        response = None
+        #print "https://api.github.com/repos/%s/%s/pulls" % (self.ghRepoUser,self.ghRepo)
+        #print dict
+        req = self.Request("https://api.github.com/repos/%s/%s/pulls" % (self.ghRepoUser,self.ghRepo),json.dumps(dict))
         try:
             response = urllib2.urlopen(req)
             return json.loads(response.read())["html_url"]

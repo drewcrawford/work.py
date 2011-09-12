@@ -131,11 +131,12 @@ def projectShip():
 
     #create the pull request
     gitHubConnect = GitHubConnect()
-    body = "Ticket at %s/default.asp?%d\n%s" % (fbConnection.getFBURL(),caseno,raw_input("Type a note: "))
-    list =  gitConnection.getUserRepo()
-    (user,repo) = list[0],list[1]
-    pullURL = gitHubConnect.createPullRequest("%s/%s" % (user,repo),"work-%d" % caseno,body,fbConnection.getIntegrationBranch(caseno),"work-%d" % caseno)
-    fbConnection.commentOn(caseno,"Pull request at %s\n%s" %(pullURL,body))
+    
+    if not gitHubConnect.pullRequestAlreadyExists("work-%d" % caseno):
+        body = "Ticket at %s/default.asp?%d\n%s" % (fbConnection.getFBURL(),caseno,raw_input("Type a note: "))
+        list =  gitConnection.getUserRepo()
+        pullURL = gitHubConnect.createPullRequest("work-%d" % caseno,body,fbConnection.getIntegrationBranch(caseno),"work-%d" % caseno)
+        fbConnection.commentOn(caseno,"Pull request at %s\n%s" %(pullURL,body))
     
     
     #is there a test case?
