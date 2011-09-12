@@ -105,10 +105,10 @@ class FogBugzConnect:
     # get FB URL from settings
     #
     def getFBURL(self):
-        settings = FogBugzConnect.get_settings_dict()
+        settings = FogBugzConnect.get_setting_dict()
         if "fburl" not in settings:
             self.setCredentials()
-            settings = FogBugzConnect.get_settings_dict()
+            settings = FogBugzConnect.get_setting_dict()
         return settings["fburl"]
         
         
@@ -123,7 +123,7 @@ class FogBugzConnect:
     # log into fogbugz
     #
     def login(self):
-        self.email = self.get_settings_dict('email')
+        self.email = self.get_setting_dict('email')
         #self.username = self.getCredentials()['username']
         password = keyring.get_password('fogbugz', self.username)
         if not password:
