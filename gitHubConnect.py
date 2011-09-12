@@ -50,7 +50,8 @@ class GitHubConnect:
         b64_userpass = basic_auth(self.username, self.password)
         req =  urllib2.Request(url,data)
         req.add_header('Authorization', 'Basic %s' % b64_userpass)
-        urllib2.install_opener(urllib2.build_opener(urllib2.HTTPSHandler(debuglevel=9)))
+        #uncomment this line for more debug
+        #urllib2.install_opener(urllib2.build_opener(urllib2.HTTPSHandler(debuglevel=9)))
         return req
 
     
@@ -79,6 +80,9 @@ class GitHubConnect:
     def closePullRequestbyName(self,name):
         #this is kind of a hack
         url = self.pullRequestAlreadyExists(name)
+        if not url:
+            print "There does not appear to be any such pull request"
+            return
         import re
         id = re.search("\d+$",url).group()
         data = json.dumps({"state":"closed"})
