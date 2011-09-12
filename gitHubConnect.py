@@ -90,7 +90,7 @@ class GitHubConnect:
     #
     #   You probably want to call pullRequestAlreadyExists before doing this.
     #
-    def createPullRequest(self,projectMiniURI,requestTitle,requestBody,fromHere,toHere):
+    def createPullRequest(self,requestTitle,requestBody,fromHere,toHere):
         dict = {"title":requestTitle,"body":requestBody,"base":fromHere,"head":toHere}
         #print "https://api.github.com/repos/%s/%s/pulls" % (self.ghRepoUser,self.ghRepo)
         #print dict
