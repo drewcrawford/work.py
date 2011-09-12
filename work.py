@@ -364,6 +364,7 @@ def ls():
 #
 #
 def recharge(fr,to):
+    import dateutil.parser
     fbConnection = FogBugzConnect()
     fbConnection.setParentIfUnset(fr,to)
     #cannot create a time record for a closed case...
@@ -371,7 +372,7 @@ def recharge(fr,to):
     if mustOpen:
         fbConnection.reopen(to,"work.py recharge")
     results = fbConnection.listTimeRecords(fr)
-    
+    time_interval = 0
     for record in results:
         print record
         if record.fdeleted.contents[0]!="false":
@@ -382,10 +383,19 @@ def recharge(fr,to):
             continue
         
         record_desc = "From %s to %s ixPerson %s ixBug %s" % (record.dtstart.contents[0],record.dtend.contents[0],record.ixperson.contents[0],record.ixbug.contents[0])
-#print to,record.dtstart.contents[0],record.dtend.contents[0]
+        from_time = dateutil.parser.parse(record.dtstart.contents[0])
+        to_time = dateutil.parser.parse(record.dtend.contents[0])
+        time_interval += (to_time-from_time).seconds
+        print from_time,to_time,time_interval
+
         fbConnection.commentOn(fr,"recharge: A record was removed from this ticket: %s, see case %d" % (record_desc,to))
         fbConnection.commentOn(to,"recharge: A record was added to this ticket: %s, see case %d" % (record_desc, fr))
         fbConnection.createTimeRecord(to,str(record.dtstart.contents[0]),str(record.dtend.contents[0]))
+    oldEst = fbConnection.getEstimate(fr) * 60.0 * 60.0
+    newEst = (oldEst - time_interval) / 60.0 / 60.0
+    if newEst <= 0: newEst = 1/60.0
+    print "Setting estimate to",newEst
+    fbConnection.setEstimate(to,timespan="%f hours" % newEst)
 #fbConnection.deleteTimeRecord(record.ixinterval.contents[0])
     if mustOpen: fbConnection.closeCase(to)
 
