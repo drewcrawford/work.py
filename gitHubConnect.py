@@ -65,7 +65,7 @@ class GitHubConnect:
         
         
     def pullRequestAlreadyExists(self,titleSearch):
-        req = self.Request("https://api.github.com/repos/%s/%s/pulls?state=open" % (self.ghRepoUser,self.ghRepo))
+        req = self.Request("https://api.github.com/repos/%s/%s/pulls?state=open" % (self.ghRepoUser,self.ghRepo),None)
         result = json.loads(urllib2.urlopen(req).read())
         for obj in result:
             if obj["title"]==titleSearch: return True
