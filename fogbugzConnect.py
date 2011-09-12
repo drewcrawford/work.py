@@ -11,6 +11,12 @@ except:
     print "Could not import keyring API"
     quit()
     
+try:
+    import magic
+except:
+    class Dummy(): pass
+    magic = Dummy()
+    magic.BUILDBOT_USERNAME = None
     
 try:
     from fogbugz import FogBugz
@@ -24,6 +30,8 @@ from xml.dom.minidom import parseString
 SETTINGS = os.path.expanduser("~/.workScript")
 
 class FogBugzConnect:
+    
+    
     
     @staticmethod
     def get_setting_dict():
@@ -136,14 +144,18 @@ class FogBugzConnect:
                 
         #connect to fogbugz with fbapi and login
         self.fbConnection.logon(self.email, password)
-        
         #fix username
-        for person in self.fbConnection.listPeople().people:
-            if person.semail.contents[0]==self.email:
-                self.username = person.sfullname.contents[0].encode('utf-8')
-        if not self.username:
-            raise Exception("No username was found!")
-                #print self.username
+        if magic.BUILDBOT_USERNAME:
+            self.username = magic.BUILDBOT_USERNAME
+        else:
+            for person in self.fbConnection.listPeople().people:
+                if person.semail.contents[0]==self.email:
+                    self.username = person.sfullname.contents[0].encode('utf-8')
+            if not self.username:
+                raise Exception("No username was found!")
+                    #print self.username
+        self.ixPerson = self.usernameToIXPerson()
+        #print self.ixPerson
         
     #
     # search for a FB case with CASE_NO
@@ -159,7 +171,7 @@ class FogBugzConnect:
     # Attach a comment to a case
     #
     def commentOn(self,CASE_NO,msg):
-        response = self.fbConnection.edit(ixBug=CASE_NO,sEvent=msg)
+        response = self.fbConnection.edit(ixBug=CASE_NO,sEvent=msg,ixPersonEditedBy=self.ixPerson)
         
         
     
@@ -190,7 +202,7 @@ class FogBugzConnect:
     # Get ixPerson for a given username or current username
     #
     def usernameToIXPerson(self):
-        for person in self.fbConnection.listPeople().people:
+        for person in self.fbConnection.listPeople(fIncludeVirtual=1).people:
             if person.sfullname.contents[0] == self.username:
                 return person.ixperson.contents[0]
     
@@ -259,7 +271,7 @@ class FogBugzConnect:
             ixTestMilestone = ixTestMilestone.ixfixfor.contents[0]
 
         #print resp.case
-        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.usernameToIXPerson(),hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.ixPerson,hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
     def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
@@ -329,7 +341,7 @@ class FogBugzConnect:
     # List time records for a case
     #
     def listTimeRecords(self,CASE_NO):
-        return list(self.fbConnection.listIntervals(ixPerson=self.usernameToIXPerson(),ixBug=CASE_NO).intervals)
+        return list(self.fbConnection.listIntervals(ixPerson=self.ixPerson,ixBug=CASE_NO).intervals)
     
     #
     # deleting time records

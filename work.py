@@ -16,6 +16,9 @@ from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
 from gitHubConnect import GitHubConnect
 
+
+
+
 #
 # Prints the usage string for this script
 #
@@ -310,7 +313,7 @@ def complain():
         #print case
         if case.hrscurrest.contents[0]=="0":
             print "%s's case %s has no estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
-            fbConnection.commentOn(case["ixbug"],"work.py complain:  This case needs an estimate.")
+            fbConnection.commentOn(case["ixbug"],"I'm afraid this case needs an estimate.  I promise you some delicious cake!")
     response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo")
     for case in response.cases:
         #print case
@@ -319,7 +322,7 @@ def complain():
         act = float(case.hrselapsed.contents[0])
         if est - act < 0:
             print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
-            fbConnection.commentOn(case["ixbug"],"work.py complain:  This case is 'out of time' and needs an updated estimate.")
+            fbConnection.commentOn(case["ixbug"],"Are you still there?")
 
 #
 # Work.py config. Allows user to create/set a setting and insert it into
@@ -433,86 +436,88 @@ def chargeback(case):
 #
 # Check for command line arguments. give usage if none exists
 #
-task = ""
-CASE_NO = 0
-fromSpec = ""
-
-#check for updates
-from urllib2 import urlopen
-version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
-#########################
-WORK_PY_VERSION_NUMBER=22
-#########################
-import re
-if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
-    from gitConnect import bcolors
-    print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE...',bcolors.ENDC
-    
-
-
-#Attention: Older methods in here used to have a fixed argument format (1 = case, 2 = from=case).
-#However, with the plethora of new work commands this assumption is somewhat broken.
-#Going forward, we should do the parsing for the command in its elif block rather than up here
-#todo: refactor existing stuff
-
-if len(sys.argv) > 1:       #if there's at least one argument...
-    task = sys.argv[1];
-    if len(sys.argv) > 2:   # if there's a second argument...
-        try:
-            CASE_NO = int(sys.argv[2])
-        except:
-            target = sys.argv[2]
-    if len(sys.argv) > 3:   # if there's a third argument...
-        try:
-            fromSpec = str(sys.argv[3]).split("=")[1]
-            fromSpec = fromSpec.replace(" ","-")
-        except:
-            pass
-else:   # quit if no task
-    printUsageString()
-
 import unittest
-        
 
-if(task == "start"):
-    projectStart(CASE_NO, fromSpec)
-elif(task == "stop"):
-    projectStop()
-elif(task == "ship"):
-    projectShip()
-elif (task == "testmake"):
-    if not CASE_NO:
+if __name__=="__main__":
+    task = ""
+    CASE_NO = 0
+    fromSpec = ""
+    
+    #check for updates
+    from urllib2 import urlopen
+    version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
+    #########################
+    WORK_PY_VERSION_NUMBER=22
+    #########################
+    import re
+    if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
+        from gitConnect import bcolors
+        print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE...',bcolors.ENDC
+        
+    
+    
+    #Attention: Older methods in here used to have a fixed argument format (1 = case, 2 = from=case).
+    #However, with the plethora of new work commands this assumption is somewhat broken.
+    #Going forward, we should do the parsing for the command in its elif block rather than up here
+    #todo: refactor existing stuff
+    
+    if len(sys.argv) > 1:       #if there's at least one argument...
+        task = sys.argv[1];
+        if len(sys.argv) > 2:   # if there's a second argument...
+            try:
+                CASE_NO = int(sys.argv[2])
+            except:
+                target = sys.argv[2]
+        if len(sys.argv) > 3:   # if there's a third argument...
+            try:
+                fromSpec = str(sys.argv[3]).split("=")[1]
+                fromSpec = fromSpec.replace(" ","-")
+            except:
+                pass
+    else:   # quit if no task
         printUsageString()
-    projectTestMake(CASE_NO)
-elif (task == "integratemake"):
-    projectIntegrateMake(target.replace(" ","-"),fromSpec)
-elif (task == "test"):
-    projectStartTest(CASE_NO)
-elif (task == "fail"):
-    projectFailTest()
-elif (task == "pass"):
-    projectPassTest()
-elif (task == "integrate"):
-    projectIntegrate(CASE_NO)
-elif (task == "view"):
-    projectView(CASE_NO)
-elif (task == "complain"):
-    complain()
-elif (task == "network"):
-    network()
-elif (task == "recharge"):
-    recharge(int(sys.argv[2]),int(sys.argv[3]))
-elif (task=="chargeback"):
-    chargeback(int(sys.argv[2]))
-elif (task == "ls"):
-    ls()
-elif (task == "config"):
-    workConfig(target)
-elif (task=="selftest"):
-    suite = unittest.defaultTestLoader.loadTestsFromNames(["work","gitHubConnect","fogbugzConnect"])
-    unittest.TextTestRunner().run(suite)
-else:
-    printUsageString()
+    
+            
+    
+    if(task == "start"):
+        projectStart(CASE_NO, fromSpec)
+    elif(task == "stop"):
+        projectStop()
+    elif(task == "ship"):
+        projectShip()
+    elif (task == "testmake"):
+        if not CASE_NO:
+            printUsageString()
+        projectTestMake(CASE_NO)
+    elif (task == "integratemake"):
+        projectIntegrateMake(target.replace(" ","-"),fromSpec)
+    elif (task == "test"):
+        projectStartTest(CASE_NO)
+    elif (task == "fail"):
+        projectFailTest()
+    elif (task == "pass"):
+        projectPassTest()
+    elif (task == "integrate"):
+        projectIntegrate(CASE_NO)
+    elif (task == "view"):
+        projectView(CASE_NO)
+    elif (task == "complain"):
+        complain()
+    elif (task == "network"):
+        network()
+    elif (task == "recharge"):
+        recharge(int(sys.argv[2]),int(sys.argv[3]))
+    elif (task=="chargeback"):
+        chargeback(int(sys.argv[2]))
+    elif (task == "ls"):
+        ls()
+    elif (task == "config"):
+        workConfig(target)
+    elif (task=="selftest"):
+        suite = unittest.defaultTestLoader.loadTestsFromNames(["work","gitHubConnect","fogbugzConnect"])
+        unittest.TextTestRunner().run(suite)
+    else:
+        printUsageString()
     
 class TestSequence(unittest.TestCase):
     def setUp(self):
