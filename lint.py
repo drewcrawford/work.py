@@ -91,7 +91,8 @@ class Lint:
         noErrors = True
         for file in self.files:
             file.set(self.convertLineEndings(file))
-            #implementation = file.fileWithExtension(".m")
+            file.set(self.fixWhiteSpace(file))
+            implementation = file.fileWithExtension(".m")
             #if implementation:
             #    file.set(self.fixObjCPropertiesInHeader(file))
             #    implementation.set(self.fixObjCPropertiesInImplementation(implementation))
@@ -154,7 +155,7 @@ class Lint:
 
         for i in range(0, len(notStrings)):
             temp = function(notStrings[i])
-            if self.pretend and notStrings[i] != temp:
+            if notStrings[i] != temp:
                 match = re.search(re.escape(notStrings[i]), file.get())
                 file.reportError("Invalid brace style in %s" % file, match, True)
             notStrings[i] = temp
@@ -164,5 +165,30 @@ class Lint:
             if len(notStrings[i]) > 0:
                 ret += strings.next().group(0) + notStrings[i]
         if not self.sameLine:
-            ret = self.fixBraceIndent(ret)
+            temp = self.fixBraceIndent(ret)
+            if ret != temp:
+                file.reportError("Invalid brace style in %s" % file)
+            ret = temp
         return ret;
+
+    def fixWhiteSpace(self, file):
+        ret = file.get()
+
+        #It's important that we check this first
+        trailingWhiteSpace = re.compile(r'( |\t)+\n')
+        temp = trailingWhiteSpace.sub(r'\n', ret)
+        if ret != temp:
+            matches = trailingWhiteSpace.finditer(ret)
+            for match in matches:
+                file.reportError("Trailing whitespace in %s" % file, match, True)
+        ret = temp
+
+        multipleNewLines = re.compile(r'\n{3,}')
+        temp = multipleNewLines.sub(r'\n\n', ret)
+        if ret != temp:
+            matches = multipleNewLines.finditer(ret)
+            for match in matches:
+                file.reportError("Excessive newlines in %s" % file, match, True)
+        ret = temp
+
+        return ret

@@ -7,7 +7,6 @@
 @end
 @implementation bad
 
-
 @synthesize specialCopy;
 @synthesize specialAssign, lineNum;
 @synthesize temp;
@@ -42,6 +41,7 @@
     //{
     //  NSLog(@"here");
     //} else
+
     //{
     //  NSLog(@"there");
     //}
@@ -62,6 +62,4 @@
     foo = nil;
 }
 @end
-
-
 
