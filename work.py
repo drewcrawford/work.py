@@ -16,6 +16,11 @@ from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
 from gitHubConnect import GitHubConnect
 
+try:
+    import lint
+    lint_loaded = True
+except ImportError:
+    lint_loaded = False
 
 
 
@@ -66,19 +71,19 @@ def projectStart(CASE_NO, fromSpec):
 
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
-        
+
     #check for FogBugz case and clock in
     fbConnection.startCase(CASE_NO)
 
-    
+
 
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
-    
+
     settings = fbConnection.get_setting_dict()
     if not "viewOnStart" in settings or settings["viewOnStart"] == 1:
         fbConnection.view(CASE_NO)
-    
+
     print "Use work ship to commit your changes"
 
 #
@@ -118,6 +123,21 @@ def projectView(CASE_NO):
 #
 #
 def projectShip():
+    if lint_loaded:
+        try:
+            result = lint.Lint.analyze()
+        except:
+            print sys.exc_info()
+            print "Lint sunk the ship, but we still have a liferaft!"
+        else:
+            if not result:
+                while True:
+                    cont = raw_input("You're code failed lint analyses. Continue anyway? (Y/n)")
+                    if cont == "n":
+                        exit()
+                    if cont == "Y":
+                        break
+
     #create new gitConnect object to talk to git
     gitConnection = GitConnect()
     gitConnection.checkForUnsavedChanges();
@@ -136,14 +156,14 @@ def projectShip():
 
     #create the pull request
     gitHubConnect = GitHubConnect()
-    
+
     if not gitHubConnect.pullRequestAlreadyExists("work-%d" % caseno):
         body = "Ticket at %s/default.asp?%d\n%s" % (fbConnection.getFBURL(),caseno,raw_input("Type a note: "))
         list =  gitConnection.getUserRepo()
         pullURL = gitHubConnect.createPullRequest("work-%d" % caseno,body,fbConnection.getIntegrationBranch(caseno),"work-%d" % caseno)
         fbConnection.commentOn(caseno,"Pull request at %s\n%s" %(pullURL,body))
-    
-    
+
+
     #is there a test case?
     try:
         (parent,child) = fbConnection.getCaseTuple(caseno)
@@ -152,13 +172,13 @@ def projectShip():
         fbConnection.resolveCase(caseno)
         pass
     print """There's about an 80% chance that whatever you just did was work that rightfully belongs to some other (possibly closed) case.  Recharging is a way to signify to EBS that your work should be counted against a different case.
-        
+
         Ex 1: You're fixing a somewhat-forseeable bug in a feature that was implemented and estimated in another case, but for some reason a new bug has been filed instead of the old feature reactivated.  Recharge to the original feature, as whoever estimated that should have accounted for a relatively bug-free implementation.
-        
+
         Ex 2: You're implementing a feature that was originally estimated in some other case.  Maybe it was a parent case that was broken down into child cases, or maybe somebody carved out a feature of a larger something for you to implement.
-        
+
         When there are multiple candidates for a recharge, use your judgment.  Pick the newer case where reasonable.
-        
+
         DO NOT RECHARGE
         1) Things that are legitimately and substantially new features
         2) Test cases, inquiries, or fake tickets
@@ -192,7 +212,7 @@ def projectStartTest(CASE_NO):
 
     gitConnection.fetch()
     gitConnection.checkoutExistingBranch(parent)
-    
+
     fbConnection.startCase(test,enforceNoTestCases=False)
     gitHubConnection = GitHubConnect()
     gitHubConnection.openPullRequestByName("work-%d" % CASE_NO)
@@ -226,7 +246,7 @@ def projectFailTest():
 
     # play sounds!
     getstatusoutput ("afplay -v 7 %s/media/dundundun.aiff" % sys.prefix)
-    
+
 #
 #
 #
@@ -252,7 +272,7 @@ def projectPassTest():
 
     # play sounds!
     getstatusoutput("afplay -v 7 %s/media/longcheer.aiff" % sys.prefix)
-    
+
     #fbConnection.closeCase(parent)
 
 #
@@ -263,11 +283,11 @@ def projectIntegrate(CASE_NO):
     gitConnection.checkForUnsavedChanges()
 
     fbConnection = FogBugzConnect()
-#still open here 
+#still open here
     # make sure integration is even worth it...
     fbConnection.ensureReadyForTest(CASE_NO)
-    
-    
+
+
     gitConnection.checkoutExistingBranch(CASE_NO)
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     gitHubConnection = GitHubConnect()
@@ -278,8 +298,8 @@ def projectIntegrate(CASE_NO):
     except:
             print "WARNING: no test case! Press enter to continue"
             raw_input()
-        
-    
+
+
     gitConnection.checkoutExistingBranchRaw(integrate_to)
     gitConnection.pull()
 
@@ -287,9 +307,9 @@ def projectIntegrate(CASE_NO):
 
     fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
     fbConnection.closeCase(CASE_NO)
-    
+
     #close pull request
-    
+
 
 
 #
@@ -334,7 +354,7 @@ def workConfig(settingString):
     if len(settingString.split("=")) < 2:
         printUsageString()
         quit()
-    
+
     setting = settingString.split("=")[0]
     value = settingString.split("=")[1]
     if setting and value:
@@ -346,14 +366,14 @@ def workConfig(settingString):
     else:
         printUsageString()
         quit()
-        
+
 #
 #
 #
 def network():
     gitConnection = GitConnect()
     gitConnection.githubNetwork()
-    
+
 #
 #
 #
@@ -386,7 +406,7 @@ def recharge(fr,to):
         if len(record.dtend)==0:
             print "Skipping open time record %s" % record
             continue
-        
+
         record_desc = "From %s to %s ixPerson %s ixBug %s" % (record.dtstart.contents[0],record.dtend.contents[0],record.ixperson.contents[0],record.ixbug.contents[0])
         from_time = dateutil.parser.parse(record.dtstart.contents[0])
         to_time = dateutil.parser.parse(record.dtend.contents[0])
@@ -424,7 +444,7 @@ def chargeback(case):
     total_time += fbConnection.getElapsed(case) * 60.0 * 60.0
     print total_time / 60.0 / 60.0, "hours"
     return total_time / 60.0 / 60.0
-    
+
 
 
 
@@ -442,7 +462,7 @@ if __name__=="__main__":
     task = ""
     CASE_NO = 0
     fromSpec = ""
-    
+
     #check for updates
     from urllib2 import urlopen
     version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
@@ -453,14 +473,14 @@ if __name__=="__main__":
     if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
         from gitConnect import bcolors
         print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE...',bcolors.ENDC
-        
-    
-    
+
+
+
     #Attention: Older methods in here used to have a fixed argument format (1 = case, 2 = from=case).
     #However, with the plethora of new work commands this assumption is somewhat broken.
     #Going forward, we should do the parsing for the command in its elif block rather than up here
     #todo: refactor existing stuff
-    
+
     if len(sys.argv) > 1:       #if there's at least one argument...
         task = sys.argv[1];
         if len(sys.argv) > 2:   # if there's a second argument...
@@ -476,9 +496,9 @@ if __name__=="__main__":
                 pass
     else:   # quit if no task
         printUsageString()
-    
-            
-    
+
+
+
     if(task == "start"):
         projectStart(CASE_NO, fromSpec)
     elif(task == "stop"):
@@ -518,10 +538,10 @@ if __name__=="__main__":
         unittest.TextTestRunner().run(suite)
     else:
         printUsageString()
-    
+
 class TestSequence(unittest.TestCase):
     def setUp(self):
         pass
-    
+
     def test_chargeback(self):
         self.assertAlmostEqual(chargeback(1111),0.0180555555556)
