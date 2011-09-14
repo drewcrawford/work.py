@@ -19,11 +19,12 @@ import os
 import json
 
 try:
-    import magic
+    from magic import magic
 except:
     class Dummy(): pass
     magic = Dummy()
     magic.SETTINGSFILE = os.path.expanduser("~/.workScript")
+    magic.BUILDBOT_IXPERSON=7
 
 def get_setting_dict():
         try:
@@ -200,7 +201,22 @@ def projectShip():
 def projectTestMake(PARENT_CASE):
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
-    fbConnection.createTestCase(PARENT_CASE)
+    #get estimate
+    print "Please provide an estimate for the test: ",
+    est = raw_input()
+    fbConnection.createTestCase(PARENT_CASE,estimate=est)
+    
+
+#
+#   Automatically creates a test case for a case, if it does not already exist.
+#   You may want to check the bug type before calling this method.
+def autoTestMake(CASE_NO):
+    print "autotestmake", CASE_NO
+    fbConnection = FogBugzConnect()
+    (implement,test)  = fbConnection.getCaseTuple(CASE_NO,exceptOnFailure=False)
+    if not test:
+        ixTester = fbConnection.optimalIxTester(CASE_NO)
+        fbConnection.createTestCase(CASE_NO,ixTester=ixTester)
 
 def projectStartTest(CASE_NO):
     gitConnection = GitConnect()
