@@ -5,18 +5,14 @@ try:
 except:
     import json
     
+    
 try:
     import keyring
 except:
     print "Could not import keyring API"
     quit()
     
-try:
-    import magic
-except:
-    class Dummy(): pass
-    magic = Dummy()
-    magic.BUILDBOT_USERNAME = None
+
     
 try:
     from fogbugz import FogBugz
@@ -27,27 +23,12 @@ except Exception as e:
     quit()
 from xml.dom.minidom import parseString
 
-SETTINGS = os.path.expanduser("~/.workScript")
-
+TEST_IXCATEGORY=6
 class FogBugzConnect:
     
     
     
-    @staticmethod
-    def get_setting_dict():
-        handle = open(SETTINGS, "r")
-        try:
-            result = json.load(handle)
-            handle.close()
-            return result
 
-        except:
-            return {}
-    @staticmethod
-    def set_setting_dict(dict):
-        handle = open(SETTINGS, "w")
-        json.dump(dict,handle,indent=2)
-        handle.close()
 
     #
     # Store settings for email and username in home directory
@@ -56,10 +37,11 @@ class FogBugzConnect:
         fburl = raw_input("FB URL [http://drewcrawfordapps.fogbugz.com/]: ")
         
         email = raw_input("email: ")
-        settings = FogBugzConnect.get_setting_dict()
+        from work import get_setting_dict, set_setting_dict
+        settings = get_setting_dict()
         settings["email"]=email
         settings["fburl"] = fburl and fburl or "http://drewcrawfordapps.fogbugz.com/"
-        FogBugzConnect.set_setting_dict(settings)
+        set_setting_dict(settings)
         return
     
     def listCases(self,projectName):
@@ -100,22 +82,16 @@ class FogBugzConnect:
             else:
                 print ("%.2f" % (float(case.hrscurrest.contents[0])-float(case.hrselapsed.contents[0]))).rjust(8)
             
-    #
-    # set other settings
-    #
-    def setSetting(self, setting, value):
-        settings = FogBugzConnect.get_setting_dict()
-        settings[setting] = value
-        set_settings_dict(settings)
     
     #
     # get FB URL from settings
     #
     def getFBURL(self):
-        settings = FogBugzConnect.get_setting_dict()
+        from work import get_setting_dict
+        settings = get_setting_dict()
         if "fburl" not in settings:
             self.setCredentials()
-            settings = FogBugzConnect.get_setting_dict()
+            settings = get_setting_dict()
         return settings["fburl"]
         
         
@@ -130,30 +106,27 @@ class FogBugzConnect:
     # log into fogbugz
     #
     def login(self):
-        self.email = self.get_setting_dict()['email']
+        from work import get_setting_dict
+        self.email = get_setting_dict()['email']
         #self.username = self.getCredentials()['username']
-        password = keyring.get_password('fogbugz', self.username)
+        password = keyring.get_password('fogbugz', self.email)
         if not password:
             while True:
                 if not password:
                     import getpass
                     password = getpass.getpass("FogBugz password: ")
                 else:
-                    keyring.set_password('fogbugz', self.username, password)
+                    keyring.set_password('fogbugz', self.email, password)
                     break
                 
         #connect to fogbugz with fbapi and login
         self.fbConnection.logon(self.email, password)
-        #fix username
-        if magic.BUILDBOT_USERNAME:
-            self.username = magic.BUILDBOT_USERNAME
-        else:
-            for person in self.fbConnection.listPeople().people:
-                if person.semail.contents[0]==self.email:
-                    self.username = person.sfullname.contents[0].encode('utf-8')
-            if not self.username:
-                raise Exception("No username was found!")
-                    #print self.username
+        for person in self.fbConnection.listPeople().people:
+            if person.semail.contents[0]==self.email:
+                self.username = person.sfullname.contents[0].encode('utf-8')
+        if not self.username:
+            raise Exception("No username was found!")
+                #print self.username
         self.ixPerson = self.usernameToIXPerson()
         #print self.ixPerson
         
@@ -194,7 +167,7 @@ class FogBugzConnect:
                     #print '"%s" is not "%s"' % (person.sfullname.contents[0]), username)
                     if person.sfullname.contents[0]==username:
                         print "reassigning to ixperson %s" % person.ixperson.contents[0]
-                        return person.ixperson.contents[0]
+                        return int(person.ixperson.contents[0])
         raise Exception("No match")
                 
     
@@ -240,16 +213,54 @@ class FogBugzConnect:
         q = self.fbConnection.search(q=CASE_NO,cols="ixBugParent")
         if q.ixbugparent.contents[0]=="0":
             self.fbConnection.edit(ixBug=CASE_NO,ixBugParent=toParent)
+    
+    def lookupIxArea(self,ixArea):
+        resp = self.fbConnection.listAreas(ixArea=ixArea)
+        for area in resp.areas:
+            if area.ixarea.contents[0]==str(ixArea):
+                return area
+    def lookupIxProject(self,ixProject):
+        resp = self.fbConnection.listProjects(ixProject = ixProject)
+        for project in resp.projects:
+            if project.ixproject.contents[0]==str(ixProject):
+                return project
+    
+    #looks up the owner of the area, and failing that, the owner of the project
+    def findCaseAreaixOwner(self,CASE_NO):
+        resp = self.fbConnection.search(q=CASE_NO,cols="ixProject,ixArea")
+        ixArea = int(resp.case.ixarea.contents[0])
+        areaDetail = self.lookupIxArea(ixArea)
+        if len(areaDetail.ixpersonowner.contents)!= 0:
+            return int(areaDetail.ixpersonowner.contents[0])
+        #look up project
+        project = self.lookupIxProject(resp.case.ixproject.contents[0])
+        return int(project.ixpersonowner.contents[0])
+    
+    #
+    # finds an optimal tester for the case (ixperson)
+    #
+    def optimalIxTester(self,CASE_NO):
+        from work import magic
+        area_owner = self.findCaseAreaixOwner(CASE_NO)
+        implementer = int(self.fbConnection.search(q=CASE_NO,cols="ixPersonAssignedTo").case.ixpersonassignedto.contents[0])
+        if area_owner!= implementer:
+            return area_owner
+        #otherwise
+        people = map(lambda x: int(x.ixperson.contents[0]),self.fbConnection.listPeople().people)
+        people = filter(lambda x: x != magic.BUILDBOT_IXPERSON,people)
+        people = filter(lambda x: x != implementer,people)
+        from random import choice
+        return choice(people)
+        
+    
     #
     # create a test case
     #
-    def createTestCase(self,PARENT_CASE):
-        #get estimate
-        print "Please provide an estimate for the test: ",
-        timespan = raw_input()
+    def createTestCase(self,PARENT_CASE,estimate="0 hours",ixTester=None):
+        if not ixTester:
+            ixTester = self.ixPerson
         #extract parent info
-        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor,sFixFor")
-        
+        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor,sFixFor,ixPriority")
         #look for a test milestone
         milestones = self.fbConnection.listFixFors(ixProject=resp.case.ixproject.contents[0])
         ixTestMilestone = 0
@@ -265,25 +276,23 @@ class FogBugzConnect:
         #print "\nfoundTestMilestone: ", foundTestMilestone
 
         if not foundTestMilestone:
-            ixTestMilestone = self.fbConnection.newFixFor(ixProject=resp.case.ixproject.contents[0], sFixFor=testMilestone, fAssignable="1")
+            ixTestMilestone = self.fbConnection.newFixFor(ixProject=resp.case.ixproject.contents[0],sFixFor=testMilestone, fAssignable="1")
             self.fbConnection.addFixForDependency(ixFixFor=ixTestMilestone, ixFixForDependsOn=resp.case.ixproject.contents[0])
             #print "creating new milestone and setting dependencies! New Milestone: ", ixTestMilestone.ixfixfor.contents[0]
             ixTestMilestone = ixTestMilestone.ixfixfor.contents[0]
 
         #print resp.case
-        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.ixPerson,hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=ixTester,hrsCurrEst=estimate,ixPriority=resp.case.ixpriority.contents[0],sEvent="Cake and grief counseling will be available at the conclusion of the test.",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
     def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
-        """Requires a caselist with sTitle,events,fOpen as attributes"""
+        """Requires a caselist with sTitle,ixCategory,fOpen as attributes"""
         for case in actual_beautiful_soup_caselist:
             #print "BEGIN CASE",case
             if not case.fopen: continue
             if case.fopen.contents[0]=="false" and not oldTestCasesOK:return False
-            if case.stitle.contents[0]=="Review":
-                for event in case.events:
-                    if event.s.contents[0]=="work.py automatically created this test case":
-                        return True
+            if not case.stitle.contents[0]=="Review": return False
+            if case.ixcategory.contents[0]==str(TEST_IXCATEGORY): return True
         return False
     
     def allEvents(self,CASE_NO):
@@ -299,7 +308,7 @@ class FogBugzConnect:
     # returns true iff CASE_NO is a work.py test case
     #
     def isTestCase(self,CASE_NO,oldTestCasesOK=False):
-        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events,fOpen")
+        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,ixCategory,fOpen")
         return self.__isTestCase(response,oldTestCasesOK=oldTestCasesOK)
 
         #print response
@@ -316,7 +325,7 @@ class FogBugzConnect:
     #
     # return (actual_case, test_case) given either one
     #
-    def getCaseTuple(self,SOME_CASE,oldTestCasesOK=False):
+    def getCaseTuple(self,SOME_CASE,oldTestCasesOK=False,exceptOnFailure=True):
         if self.isTestCase(SOME_CASE):
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugParent")
             return (int(response.case.ixbugparent.contents[0]),SOME_CASE)
@@ -328,7 +337,11 @@ class FogBugzConnect:
                     if child=="":
                         return (SOME_CASE,None)
                     return (SOME_CASE,int(child))
-        raise Exception("Cannot find a test case for %d",SOME_CASE)
+        
+        if exceptOnFailure:
+            raise Exception("Cannot find a test case for %d",SOME_CASE)
+        else:
+            return (SOME_CASE,None)
         
     #
     # start testing a given case
@@ -382,7 +395,7 @@ class FogBugzConnect:
         
         cols = "fOpen,hrsCurrEst"
         if enforceNoTestCases:
-            cols += ",events,sTitle"
+            cols += ",ixCategory,sTitle"
         resp=self.fbConnection.search(q=query, cols=cols)
         if enforceNoTestCases and self.__isTestCase(resp):
             print "Can't 'work start' a test case (maybe you meant 'work test'?)"
@@ -433,6 +446,65 @@ class FogBugzConnect:
     def getIntegrationBranch(self,CASE_NO):
         resp = self.fbConnection.search(q=CASE_NO,cols="sFixFor")
         return (resp.case.sfixfor.contents[0].encode('utf-8'))
+        
+    #returns the time the user was last active, if any.
+    #If the user has not been active "lately", for some definition of lately, may return none.
+    def userLastActive(self,ixPerson):
+        import datetime
+        resp = self.fbConnection.listIntervals(ixPerson=ixPerson,dtStart=datetime.datetime.now() - datetime.timedelta(days=2))
+        from dateutil.parser import parse
+        last = datetime.datetime.min
+        from dateutil import tz
+        class UTC(datetime.tzinfo):
+            """UTC"""
+
+            def utcoffset(self, dt):
+               return datetime.timedelta(0)
+
+            def tzname(self, dt):
+               return "UTC"
+
+            def dst(self, dt):
+                return datetime.timedelta(0)
+        
+        last = last.replace(tzinfo=UTC())
+        for interval in resp.intervals:
+            if len(interval.dtend)==0: return datetime.datetime.now().replace(tzinfo=tz.tzlocal()) + datetime.timedelta(seconds=-30) #annoyableIxPeople depends on this function returning a time less than the current time.
+            date = parse(interval.dtend.contents[0])
+            if date > last: last = date
+        if last == datetime.datetime.min.replace(tzinfo=UTC()): return None
+        return last
+        
+    #
+    # returns a list of annoyable ixPeople
+    #
+    def annoyableIxPeople(self):
+        from dateutil import tz
+        annoyable = []
+        people = self.fbConnection.listPeople()
+        import datetime
+        for person in people.people:
+            ix = int(person.ixperson.contents[0])
+            referencetime = datetime.datetime.now().replace(hour=12,minute=0,second=0,tzinfo=tz.gettz(name="CST"))
+            nowtime = datetime.datetime.now().replace(tzinfo=tz.tzlocal())
+            #print referencetime
+            #print nowtime
+            if nowtime > referencetime:
+                delta =  (nowtime - referencetime).seconds
+            else:
+                delta =  (referencetime-nowtime).seconds
+            if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
+                annoyable.append(ix)
+            else:
+                lastActive = self.userLastActive(ix)
+                if not lastActive:
+                    print "User",ix,"does not appear to be active recently"
+                    continue
+                
+                delta = (nowtime - lastActive).seconds
+                if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
+                    annoyable.append(ix)
+        return annoyable
     
     #
     # resolve case with CASE_NO
@@ -515,8 +587,23 @@ class TestSequence(unittest.TestCase):
     def setUp(self):
         self.f = FogBugzConnect()
     
+    def test_annoyables(self):
+        print self.f.annoyableIxPeople()
+        
+    def test_optimaltester(self):
+        print self.f.optimalIxTester(2847)
+        
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
+        
+    def test_testcase(self):
+        self.f.createTestCase(3000)
+        
+        
+    def test_lastactive(self):
+        print self.f.userLastActive(2)
+        
+
 if __name__ == '__main__':
     unittest.main()
 

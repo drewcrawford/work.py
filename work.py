@@ -15,6 +15,16 @@ from commands import getstatusoutput
 from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
 from gitHubConnect import GitHubConnect
+import os
+import json
+
+try:
+    from magic import magic
+except:
+    class Dummy(): pass
+    magic = Dummy()
+    magic.SETTINGSFILE = os.path.expanduser("~/.workScript")
+    magic.BUILDBOT_IXPERSON=7
 
 try:
     import lint
@@ -22,6 +32,20 @@ try:
 except ImportError:
     lint_loaded = False
 
+def get_setting_dict():
+        try:
+            handle = open(magic.SETTINGSFILE, "r")
+            result = json.load(handle)
+            handle.close()
+            return result
+
+        except:
+            return {}
+            
+def set_setting_dict(dict):
+        handle = open(magic.SETTINGSFILE, "w")
+        json.dump(dict,handle,indent=2)
+        handle.close()
 
 
 #
@@ -40,7 +64,6 @@ def printUsageString():
     print "  fail : the case has failed to pass a test"
     print "  pass: the case has passed a test"
     print "  integrate: integrate the case to somewhere"
-    print "  complain:  finds and complains about late cases"
     print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch\n\tfor the milestone (off of FROMSPEC)"
     print "  network : it's a series of tubes"
     print "  recharge FROM_CASE TO_CASE : Moves time charged against one case to be charged against another instead"
@@ -79,8 +102,8 @@ def projectStart(CASE_NO, fromSpec):
 
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
-
-    settings = fbConnection.get_setting_dict()
+    
+    settings = get_setting_dict()
     if not "viewOnStart" in settings or settings["viewOnStart"] == 1:
         fbConnection.view(CASE_NO)
 
@@ -198,7 +221,22 @@ def projectShip():
 def projectTestMake(PARENT_CASE):
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
-    fbConnection.createTestCase(PARENT_CASE)
+    #get estimate
+    print "Please provide an estimate for the test: ",
+    est = raw_input()
+    fbConnection.createTestCase(PARENT_CASE,estimate=est)
+    
+
+#
+#   Automatically creates a test case for a case, if it does not already exist.
+#   You may want to check the bug type before calling this method.
+def autoTestMake(CASE_NO,fbConnection=None):
+    print "autotestmake", CASE_NO
+    if not fbConnection: fbConnection = FogBugzConnect()
+    (implement,test)  = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True,exceptOnFailure=False)
+    if not test:
+        ixTester = fbConnection.optimalIxTester(CASE_NO)
+        fbConnection.createTestCase(CASE_NO,ixTester=ixTester)
 
 def projectStartTest(CASE_NO):
     gitConnection = GitConnect()
@@ -322,13 +360,11 @@ def projectIntegrateMake(CASE_NO,fromSpec):
     gitConnection = GitConnect()
     gitConnection.createNewRawBranch(CASE_NO,fromSpec)
 
-#
-#
-#
-def complain():
+
+
+def complain(ixComplainAboutPerson):
     fbConnection = FogBugzConnect()
-    fbConnection.fbConnection.setCurrentFilter(sFilter=10) #Active Cases
-    response = fbConnection.fbConnection.search(cols="hrsCurrEst,sPersonAssignedTo")
+    response = fbConnection.fbConnection.search(q="status:active assignedto:=%d" % ixComplainAboutPerson,cols="hrsCurrEst,sPersonAssignedTo")
     for case in response.cases:
         #print case
         if case.hrscurrest.contents[0]=="0":
@@ -521,8 +557,6 @@ if __name__=="__main__":
         projectIntegrate(CASE_NO)
     elif (task == "view"):
         projectView(CASE_NO)
-    elif (task == "complain"):
-        complain()
     elif (task == "network"):
         network()
     elif (task == "recharge"):
@@ -542,6 +576,10 @@ if __name__=="__main__":
 class TestSequence(unittest.TestCase):
     def setUp(self):
         pass
-
+    
+    def test_autotest(self):
+        #print "HERE OMG"
+        autoTestMake(2453)
+    
     def test_chargeback(self):
         self.assertAlmostEqual(chargeback(1111),0.0180555555556)
