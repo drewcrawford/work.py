@@ -260,8 +260,7 @@ class FogBugzConnect:
         if not ixTester:
             ixTester = self.ixPerson
         #extract parent info
-        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor,sFixFor")
-        
+        resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor,sFixFor,ixPriority")
         #look for a test milestone
         milestones = self.fbConnection.listFixFors(ixProject=resp.case.ixproject.contents[0])
         ixTestMilestone = 0
@@ -277,13 +276,13 @@ class FogBugzConnect:
         #print "\nfoundTestMilestone: ", foundTestMilestone
 
         if not foundTestMilestone:
-            ixTestMilestone = self.fbConnection.newFixFor(ixProject=resp.case.ixproject.contents[0], sFixFor=testMilestone, fAssignable="1")
+            ixTestMilestone = self.fbConnection.newFixFor(ixProject=resp.case.ixproject.contents[0],sFixFor=testMilestone, fAssignable="1")
             self.fbConnection.addFixForDependency(ixFixFor=ixTestMilestone, ixFixForDependsOn=resp.case.ixproject.contents[0])
             #print "creating new milestone and setting dependencies! New Milestone: ", ixTestMilestone.ixfixfor.contents[0]
             ixTestMilestone = ixTestMilestone.ixfixfor.contents[0]
 
         #print resp.case
-        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=ixTester,hrsCurrEst=estimate,sEvent="Cake and grief counseling will be available at the conclusion of the test.",ixCategory=6,
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=ixTester,hrsCurrEst=estimate,ixPriority=resp.case.ixpriority.contents[0],sEvent="Cake and grief counseling will be available at the conclusion of the test.",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
     def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
@@ -596,6 +595,9 @@ class TestSequence(unittest.TestCase):
         
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
+        
+    def test_testcase(self):
+        self.f.createTestCase(3000)
         
         
     def test_lastactive(self):
