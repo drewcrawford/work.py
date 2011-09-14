@@ -23,7 +23,7 @@ except Exception as e:
     quit()
 from xml.dom.minidom import parseString
 
-
+TEST_IXCATEGORY=6
 class FogBugzConnect:
     
     
@@ -167,7 +167,7 @@ class FogBugzConnect:
                     #print '"%s" is not "%s"' % (person.sfullname.contents[0]), username)
                     if person.sfullname.contents[0]==username:
                         print "reassigning to ixperson %s" % person.ixperson.contents[0]
-                        return person.ixperson.contents[0]
+                        return int(person.ixperson.contents[0])
         raise Exception("No match")
                 
     
@@ -213,13 +213,52 @@ class FogBugzConnect:
         q = self.fbConnection.search(q=CASE_NO,cols="ixBugParent")
         if q.ixbugparent.contents[0]=="0":
             self.fbConnection.edit(ixBug=CASE_NO,ixBugParent=toParent)
+    
+    def lookupIxArea(self,ixArea):
+        resp = self.fbConnection.listAreas(ixArea=ixArea)
+        for area in resp.areas:
+            if area.ixarea.contents[0]==str(ixArea):
+                return area
+    def lookupIxProject(self,ixProject):
+        resp = self.fbConnection.listProjects(ixProject = ixProject)
+        for project in resp.projects:
+            if project.ixproject.contents[0]==str(ixProject):
+                return project
+    
+    #looks up the owner of the area, and failing that, the owner of the project
+    def findCaseAreaixOwner(self,CASE_NO):
+        resp = self.fbConnection.search(q=CASE_NO,cols="ixProject,ixArea")
+        ixArea = int(resp.case.ixarea.contents[0])
+        areaDetail = self.lookupIxArea(ixArea)
+        if len(areaDetail.ixpersonowner.contents)!= 0:
+            return int(areaDetail.ixpersonowner.contents[0])
+        #look up project
+        project = self.lookupIxProject(resp.case.ixproject.contents[0])
+        return int(project.ixpersonowner.contents[0])
+    
+    #
+    # finds an optimal tester for the case (ixperson)
+    #
+    def optimalIxTester(self,CASE_NO):
+        from work import magic
+        area_owner = self.findCaseAreaixOwner(CASE_NO)
+        implementer = int(self.fbConnection.search(q=CASE_NO,cols="ixPersonAssignedTo").case.ixpersonassignedto.contents[0])
+        if area_owner!= implementer:
+            return area_owner
+        #otherwise
+        people = map(lambda x: int(x.ixperson.contents[0]),self.fbConnection.listPeople().people)
+        people = filter(lambda x: x != magic.BUILDBOT_IXPERSON,people)
+        people = filter(lambda x: x != implementer,people)
+        from random import choice
+        return choice(people)
+        
+    
     #
     # create a test case
     #
-    def createTestCase(self,PARENT_CASE):
-        #get estimate
-        print "Please provide an estimate for the test: ",
-        timespan = raw_input()
+    def createTestCase(self,PARENT_CASE,estimate="0 hours",ixTester=None):
+        if not ixTester:
+            ixTester = self.ixPerson
         #extract parent info
         resp = self.fbConnection.search(q=PARENT_CASE,cols="ixProject,ixArea,ixFixFor,sFixFor")
         
@@ -244,19 +283,17 @@ class FogBugzConnect:
             ixTestMilestone = ixTestMilestone.ixfixfor.contents[0]
 
         #print resp.case
-        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=self.ixPerson,hrsCurrEst=timespan,sEvent="work.py automatically created this test case",ixCategory=6,
+        response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=ixTester,hrsCurrEst=estimate,sEvent="Cake and grief counseling will be available at the conclusion of the test.",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
     def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
-        """Requires a caselist with sTitle,events,fOpen as attributes"""
+        """Requires a caselist with sTitle,ixCategory,fOpen as attributes"""
         for case in actual_beautiful_soup_caselist:
             #print "BEGIN CASE",case
             if not case.fopen: continue
             if case.fopen.contents[0]=="false" and not oldTestCasesOK:return False
-            if case.stitle.contents[0]=="Review":
-                for event in case.events:
-                    if event.s.contents[0]=="work.py automatically created this test case":
-                        return True
+            if not case.stitle.contents[0]=="Review": return False
+            if case.ixcategory.contents[0]==str(TEST_IXCATEGORY): return True
         return False
     
     def allEvents(self,CASE_NO):
@@ -272,7 +309,7 @@ class FogBugzConnect:
     # returns true iff CASE_NO is a work.py test case
     #
     def isTestCase(self,CASE_NO,oldTestCasesOK=False):
-        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events,fOpen")
+        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,ixCategory,fOpen")
         return self.__isTestCase(response,oldTestCasesOK=oldTestCasesOK)
 
         #print response
@@ -289,7 +326,7 @@ class FogBugzConnect:
     #
     # return (actual_case, test_case) given either one
     #
-    def getCaseTuple(self,SOME_CASE,oldTestCasesOK=False):
+    def getCaseTuple(self,SOME_CASE,oldTestCasesOK=False,exceptOnFailure=True):
         if self.isTestCase(SOME_CASE):
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugParent")
             return (int(response.case.ixbugparent.contents[0]),SOME_CASE)
@@ -301,7 +338,11 @@ class FogBugzConnect:
                     if child=="":
                         return (SOME_CASE,None)
                     return (SOME_CASE,int(child))
-        raise Exception("Cannot find a test case for %d",SOME_CASE)
+        
+        if exceptOnFailure:
+            raise Exception("Cannot find a test case for %d",SOME_CASE)
+        else:
+            return (SOME_CASE,None)
         
     #
     # start testing a given case
@@ -355,7 +396,7 @@ class FogBugzConnect:
         
         cols = "fOpen,hrsCurrEst"
         if enforceNoTestCases:
-            cols += ",events,sTitle"
+            cols += ",ixCategory,sTitle"
         resp=self.fbConnection.search(q=query, cols=cols)
         if enforceNoTestCases and self.__isTestCase(resp):
             print "Can't 'work start' a test case (maybe you meant 'work test'?)"
@@ -550,8 +591,12 @@ class TestSequence(unittest.TestCase):
     def test_annoyables(self):
         print self.f.annoyableIxPeople()
         
+    def test_optimaltester(self):
+        print self.f.optimalIxTester(2847)
+        
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
+        
         
     def test_lastactive(self):
         print self.f.userLastActive(2)
