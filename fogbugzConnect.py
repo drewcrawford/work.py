@@ -406,6 +406,35 @@ class FogBugzConnect:
     def getIntegrationBranch(self,CASE_NO):
         resp = self.fbConnection.search(q=CASE_NO,cols="sFixFor")
         return (resp.case.sfixfor.contents[0].encode('utf-8'))
+        
+    #returns the time the user was last active, if any.
+    #If the user has not been active "lately", for some definition of lately, may return none.
+    def userLastActive(self,ixPerson):
+        import datetime
+        resp = self.fbConnection.listIntervals(ixPerson=ixPerson,dtStart=datetime.datetime.now() - datetime.timedelta(days=2))
+        from dateutil.parser import parse
+        last = datetime.datetime.min
+        class UTC(datetime.tzinfo):
+            """UTC"""
+
+            def utcoffset(self, dt):
+               return datetime.timedelta(0)
+
+            def tzname(self, dt):
+               return "UTC"
+
+            def dst(self, dt):
+                return datetime.timedelta(0)
+        
+        last = last.replace(tzinfo=UTC())
+        for interval in resp.intervals:
+            date = parse(interval.dtend.contents[0])
+            print date
+            print last
+            if date > last: last = date
+        if last == datetime.datetime.min.replace(tzinfo=UTC()): return None
+        return last
+        
     
     #
     # resolve case with CASE_NO
@@ -490,6 +519,9 @@ class TestSequence(unittest.TestCase):
     
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
+        
+    def test_lastactive(self):
+        self.f.userLastActive(5)
 if __name__ == '__main__':
     unittest.main()
 
