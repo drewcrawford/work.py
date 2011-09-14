@@ -15,8 +15,30 @@ from commands import getstatusoutput
 from gitConnect import GitConnect
 from fogbugzConnect import FogBugzConnect
 from gitHubConnect import GitHubConnect
+import os
+import json
 
+try:
+    import magic
+except:
+    class Dummy(): pass
+    magic = Dummy()
+    magic.SETTINGSFILE = os.path.expanduser("~/.workScript")
 
+def get_setting_dict():
+        handle = open(magic.SETTINGSFILE, "r")
+        try:
+            result = json.load(handle)
+            handle.close()
+            return result
+
+        except:
+            return {}
+            
+def set_setting_dict(dict):
+        handle = open(magic.SETTINGSFILE, "w")
+        json.dump(dict,handle,indent=2)
+        handle.close()
 
 
 #

@@ -5,18 +5,14 @@ try:
 except:
     import json
     
+    
 try:
     import keyring
 except:
     print "Could not import keyring API"
     quit()
     
-try:
-    import magic
-except:
-    class Dummy(): pass
-    magic = Dummy()
-    magic.BUILDBOT_USERNAME = None
+
     
 try:
     from fogbugz import FogBugz
@@ -27,27 +23,12 @@ except Exception as e:
     quit()
 from xml.dom.minidom import parseString
 
-SETTINGS = os.path.expanduser("~/.workScript")
 
 class FogBugzConnect:
     
     
     
-    @staticmethod
-    def get_setting_dict():
-        handle = open(SETTINGS, "r")
-        try:
-            result = json.load(handle)
-            handle.close()
-            return result
 
-        except:
-            return {}
-    @staticmethod
-    def set_setting_dict(dict):
-        handle = open(SETTINGS, "w")
-        json.dump(dict,handle,indent=2)
-        handle.close()
 
     #
     # Store settings for email and username in home directory
@@ -56,10 +37,11 @@ class FogBugzConnect:
         fburl = raw_input("FB URL [http://drewcrawfordapps.fogbugz.com/]: ")
         
         email = raw_input("email: ")
-        settings = FogBugzConnect.get_setting_dict()
+        from work import get_setting_dict, set_setting_dict
+        settings = get_setting_dict()
         settings["email"]=email
         settings["fburl"] = fburl and fburl or "http://drewcrawfordapps.fogbugz.com/"
-        FogBugzConnect.set_setting_dict(settings)
+        set_setting_dict(settings)
         return
     
     def listCases(self,projectName):
@@ -100,22 +82,16 @@ class FogBugzConnect:
             else:
                 print ("%.2f" % (float(case.hrscurrest.contents[0])-float(case.hrselapsed.contents[0]))).rjust(8)
             
-    #
-    # set other settings
-    #
-    def setSetting(self, setting, value):
-        settings = FogBugzConnect.get_setting_dict()
-        settings[setting] = value
-        set_settings_dict(settings)
     
     #
     # get FB URL from settings
     #
     def getFBURL(self):
-        settings = FogBugzConnect.get_setting_dict()
+        from work import get_setting_dict
+        settings = get_setting_dict()
         if "fburl" not in settings:
             self.setCredentials()
-            settings = FogBugzConnect.get_setting_dict()
+            settings = get_setting_dict()
         return settings["fburl"]
         
         
@@ -130,7 +106,8 @@ class FogBugzConnect:
     # log into fogbugz
     #
     def login(self):
-        self.email = self.get_setting_dict()['email']
+        from work import get_setting_dict
+        self.email = get_setting_dict()['email']
         #self.username = self.getCredentials()['username']
         password = keyring.get_password('fogbugz', self.username)
         if not password:
@@ -144,16 +121,12 @@ class FogBugzConnect:
                 
         #connect to fogbugz with fbapi and login
         self.fbConnection.logon(self.email, password)
-        #fix username
-        if magic.BUILDBOT_USERNAME:
-            self.username = magic.BUILDBOT_USERNAME
-        else:
-            for person in self.fbConnection.listPeople().people:
-                if person.semail.contents[0]==self.email:
-                    self.username = person.sfullname.contents[0].encode('utf-8')
-            if not self.username:
-                raise Exception("No username was found!")
-                    #print self.username
+        for person in self.fbConnection.listPeople().people:
+            if person.semail.contents[0]==self.email:
+                self.username = person.sfullname.contents[0].encode('utf-8')
+        if not self.username:
+            raise Exception("No username was found!")
+                #print self.username
         self.ixPerson = self.usernameToIXPerson()
         #print self.ixPerson
         
