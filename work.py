@@ -26,8 +26,8 @@ except:
     magic.SETTINGSFILE = os.path.expanduser("~/.workScript")
 
 def get_setting_dict():
-        handle = open(magic.SETTINGSFILE, "r")
         try:
+            handle = open(magic.SETTINGSFILE, "r")
             result = json.load(handle)
             handle.close()
             return result

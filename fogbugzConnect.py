@@ -109,14 +109,14 @@ class FogBugzConnect:
         from work import get_setting_dict
         self.email = get_setting_dict()['email']
         #self.username = self.getCredentials()['username']
-        password = keyring.get_password('fogbugz', self.username)
+        password = keyring.get_password('fogbugz', self.email)
         if not password:
             while True:
                 if not password:
                     import getpass
                     password = getpass.getpass("FogBugz password: ")
                 else:
-                    keyring.set_password('fogbugz', self.username, password)
+                    keyring.set_password('fogbugz', self.email, password)
                     break
                 
         #connect to fogbugz with fbapi and login
