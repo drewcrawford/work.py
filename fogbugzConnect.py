@@ -429,8 +429,8 @@ class FogBugzConnect:
         last = last.replace(tzinfo=UTC())
         for interval in resp.intervals:
             date = parse(interval.dtend.contents[0])
-            print date
-            print last
+            #print date
+            #print last
             if date > last: last = date
         if last == datetime.datetime.min.replace(tzinfo=UTC()): return None
         return last
@@ -521,7 +521,7 @@ class TestSequence(unittest.TestCase):
         self.assertTrue(self.f.allEvents(2525) >= 3)
         
     def test_lastactive(self):
-        self.f.userLastActive(5)
+        print self.f.userLastActive(5)
 if __name__ == '__main__':
     unittest.main()
 
