@@ -23,7 +23,7 @@ except Exception as e:
     quit()
 from xml.dom.minidom import parseString
 
-
+TEST_IXCATEGORY=6
 class FogBugzConnect:
     
     
@@ -287,15 +287,13 @@ class FogBugzConnect:
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
         print "Created case %s" % response.case['ixbug']
     def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
-        """Requires a caselist with sTitle,events,fOpen as attributes"""
+        """Requires a caselist with sTitle,ixCategory,fOpen as attributes"""
         for case in actual_beautiful_soup_caselist:
             #print "BEGIN CASE",case
             if not case.fopen: continue
             if case.fopen.contents[0]=="false" and not oldTestCasesOK:return False
-            if case.stitle.contents[0]=="Review":
-                for event in case.events:
-                    if event.s.contents[0]=="work.py automatically created this test case" or event.s.contents[0]=="Cake and grief counseling will be available at the conclusion of the test.":
-                        return True
+            if not case.stitle.contents[0]=="Review": return False
+            if case.ixcategory.contents[0]==str(TEST_IXCATEGORY): return True
         return False
     
     def allEvents(self,CASE_NO):
@@ -311,7 +309,7 @@ class FogBugzConnect:
     # returns true iff CASE_NO is a work.py test case
     #
     def isTestCase(self,CASE_NO,oldTestCasesOK=False):
-        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,events,fOpen")
+        response = self.fbConnection.search(q=CASE_NO,cols="sTitle,ixCategory,fOpen")
         return self.__isTestCase(response,oldTestCasesOK=oldTestCasesOK)
 
         #print response
@@ -398,7 +396,7 @@ class FogBugzConnect:
         
         cols = "fOpen,hrsCurrEst"
         if enforceNoTestCases:
-            cols += ",events,sTitle"
+            cols += ",ixCategory,sTitle"
         resp=self.fbConnection.search(q=query, cols=cols)
         if enforceNoTestCases and self.__isTestCase(resp):
             print "Can't 'work start' a test case (maybe you meant 'work test'?)"

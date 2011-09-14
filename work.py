@@ -210,9 +210,9 @@ def projectTestMake(PARENT_CASE):
 #
 #   Automatically creates a test case for a case, if it does not already exist.
 #   You may want to check the bug type before calling this method.
-def autoTestMake(CASE_NO):
+def autoTestMake(CASE_NO,fbConnection=None):
     print "autotestmake", CASE_NO
-    fbConnection = FogBugzConnect()
+    if not fbConnection: fbConnection = FogBugzConnect()
     (implement,test)  = fbConnection.getCaseTuple(CASE_NO,exceptOnFailure=False)
     if not test:
         ixTester = fbConnection.optimalIxTester(CASE_NO)
