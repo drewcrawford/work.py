@@ -414,6 +414,7 @@ class FogBugzConnect:
         resp = self.fbConnection.listIntervals(ixPerson=ixPerson,dtStart=datetime.datetime.now() - datetime.timedelta(days=2))
         from dateutil.parser import parse
         last = datetime.datetime.min
+        from dateutil import tz
         class UTC(datetime.tzinfo):
             """UTC"""
 
@@ -428,13 +429,42 @@ class FogBugzConnect:
         
         last = last.replace(tzinfo=UTC())
         for interval in resp.intervals:
+            if len(interval.dtend)==0: return datetime.datetime.now().replace(tzinfo=tz.tzlocal()) + datetime.timedelta(seconds=-30) #annoyableIxPeople depends on this function returning a time less than the current time.
             date = parse(interval.dtend.contents[0])
-            #print date
-            #print last
             if date > last: last = date
         if last == datetime.datetime.min.replace(tzinfo=UTC()): return None
         return last
         
+    #
+    # returns a list of annoyable ixPeople
+    #
+    def annoyableIxPeople(self):
+        from dateutil import tz
+        annoyable = []
+        people = self.fbConnection.listPeople()
+        import datetime
+        for person in people.people:
+            ix = int(person.ixperson.contents[0])
+            referencetime = datetime.datetime.now().replace(hour=12,minute=0,second=0,tzinfo=tz.gettz(name="CST"))
+            nowtime = datetime.datetime.now().replace(tzinfo=tz.tzlocal())
+            #print referencetime
+            #print nowtime
+            if nowtime > referencetime:
+                delta =  (nowtime - referencetime).seconds
+            else:
+                delta =  (referencetime-nowtime).seconds
+            if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
+                annoyable.append(ix)
+            else:
+                lastActive = self.userLastActive(ix)
+                if not lastActive:
+                    print "User",ix,"does not appear to be active recently"
+                    continue
+                
+                delta = (nowtime - lastActive).seconds
+                if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
+                    annoyable.append(ix)
+        return annoyable
     
     #
     # resolve case with CASE_NO
@@ -517,11 +547,16 @@ class TestSequence(unittest.TestCase):
     def setUp(self):
         self.f = FogBugzConnect()
     
+    def test_annoyables(self):
+        print self.f.annoyableIxPeople()
+        
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
         
     def test_lastactive(self):
-        print self.f.userLastActive(5)
+        print self.f.userLastActive(2)
+        
+
 if __name__ == '__main__':
     unittest.main()
 

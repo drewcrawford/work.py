@@ -57,7 +57,6 @@ def printUsageString():
     print "  fail : the case has failed to pass a test"
     print "  pass: the case has passed a test"
     print "  integrate: integrate the case to somewhere"
-    print "  complain:  finds and complains about late cases"
     print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch\n\tfor the milestone (off of FROMSPEC)"
     print "  network : it's a series of tubes"
     print "  recharge FROM_CASE TO_CASE : Moves time charged against one case to be charged against another instead"
@@ -324,13 +323,11 @@ def projectIntegrateMake(CASE_NO,fromSpec):
     gitConnection = GitConnect()
     gitConnection.createNewRawBranch(CASE_NO,fromSpec)
 
-#
-#
-#
-def complain():
+
+
+def complain(ixComplainAboutPerson):
     fbConnection = FogBugzConnect()
-    fbConnection.fbConnection.setCurrentFilter(sFilter=10) #Active Cases
-    response = fbConnection.fbConnection.search(cols="hrsCurrEst,sPersonAssignedTo")
+    response = fbConnection.fbConnection.search(q="status:active assignedto:=%d" % ixComplainAboutPerson,cols="hrsCurrEst,sPersonAssignedTo")
     for case in response.cases:
         #print case
         if case.hrscurrest.contents[0]=="0":
@@ -523,8 +520,6 @@ if __name__=="__main__":
         projectIntegrate(CASE_NO)
     elif (task == "view"):
         projectView(CASE_NO)
-    elif (task == "complain"):
-        complain()
     elif (task == "network"):
         network()
     elif (task == "recharge"):
