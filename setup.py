@@ -1,4 +1,16 @@
 try:
+	import lint
+except:
+	print "It appears you don't have CodeLint installed.  Want to give that a try? y/n"
+	if (raw_input()=="y"):
+		import os
+		os.system("curl -L https://github.com/bionoren/CodeLint/tarball/master > lint.tar.gz")
+		os.system("tar xfvj lint.tar.gz")
+		os.system("rm -rf lint.tar.gz")
+		os.system("cd bionoren-CodeLint-* && python setup.py install")
+		os.system("rm -rf bionoren-CodeLint-*")
+
+try:
 	import BeautifulSoup
 except:
 	print "It appears you don't have beautiful soup installed.  Want to give that a try? y/n"
@@ -21,7 +33,7 @@ except:
 
 from distutils.core import setup
 setup(name='work.py',version='1.0',
-py_modules=['fogbugz','gitConnect','fogbugzConnect'],
+py_modules=['fogbugz','gitConnect','fogbugzConnect','gitHubConnect'],
 scripts=['work.py'],
 data_files = [('media',['media/dundundun.aiff','media/hooray.aiff','media/longcheer.aiff','media/ohno.aiff'])]
 )

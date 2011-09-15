@@ -2,7 +2,6 @@
 
 from fogbugzConnect import FogBugzConnect
 from gitConnect import GitConnect
-import json
 try:
     import keyring
 except:
@@ -11,6 +10,7 @@ except:
 
 import urllib2
 from urllib import quote
+import json
 
 import base64
 
@@ -26,20 +26,22 @@ class GitHubConnect:
     # Collects user settings
     #
     def setCredentials(self):
+        from work import get_setting_dict, set_setting_dict
         user = raw_input("GitHub Username:")
-        settings = FogBugzConnect.get_setting_dict()
+        settings = get_setting_dict()
         settings["githubuser"]=user
-        FogBugzConnect.set_setting_dict(settings)
+        set_setting_dict(settings)
     
 
     
     def login(self):
-        settings = FogBugzConnect.get_setting_dict()
+        from work import get_setting_dict
+        settings = get_setting_dict()
         self.username = None
         if "githubuser" in settings: self.username = settings["githubuser"]
         if not self.username:
             self.setCredentials()
-            self.username = FogBugzConnect.get_setting_dict()["githubuser"]
+            self.username = get_setting_dict()["githubuser"]
         self.password = keyring.get_password("github",self.username)
         if not self.password:
             import getpass
