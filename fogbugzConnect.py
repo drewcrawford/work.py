@@ -598,7 +598,7 @@ class TestSequence(unittest.TestCase):
         self.f = FogBugzConnect()
         
     def test_ixBugChildren(self):
-        self.assertTrue(len(self.f.ixChildren(2525))==0)
+        self.assertTrue(len(self.f.ixChildren(2525))==1)
         self.assertTrue(self.f.ixChildren(407)==[2978])
     
     def test_annoyables(self):

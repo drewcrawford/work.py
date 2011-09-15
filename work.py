@@ -469,17 +469,27 @@ def chargeback(case):
     fbConnection = FogBugzConnect()
     events = fbConnection.allEvents(case)
     total_time = 0
-    for event in events:
-        match = re.match("recharge: A record was removed from this ticket: From (.*) to (.*)(?=ixPerson)",event)
+    
+    def parsecase(match):
         if match:
             (fromt,tot) = match.groups(0)
             import dateutil.parser
             fromd = dateutil.parser.parse(fromt)
             tod = dateutil.parser.parse(tot)
-            total_time += (tod - fromd).seconds
+            return (tod - fromd).seconds
+        return 0
+    for event in events:
+        match = re.match("recharge: A record was removed from this ticket: From (.*) to (.*)(?=ixPerson)",event)
+        total_time += parsecase(match)
+        
+        match = re.match("recharge: A record was added to this ticket: From (.*) to (.*)(?=ixPerson)",event)
+
+        total_time -= parsecase(match)
+        
     total_time += fbConnection.getElapsed(case) * 60.0 * 60.0
-    for child in fbConnection.ixChildren(case):
-        total_time += fbConnection.getElapsed(child) * 60.0 * 60.0
+    (pcase,test) = fbConnection.getCaseTuple(case,oldTestCasesOK=True,exceptOnFailure=False)
+    if test:
+        total_time += fbConnection.getElapsed(test) * 60.0 * 60.0
     print total_time / 60.0 / 60.0, "hours"
     return total_time / 60.0 / 60.0
 
@@ -584,4 +594,9 @@ class TestSequence(unittest.TestCase):
         autoTestMake(2453)
     
     def test_chargeback(self):
-        self.assertAlmostEqual(chargeback(1111),0.0180555555556)
+        f = FogBugzConnect()
+        self.assertAlmostEqual(chargeback(1111),-5.123611111111112) #I'm not 100% sure that this test makes any sense
+        
+        #The sum of a set of tickets should be the same as the sum of the chargebacked tickets.
+        #Note that chargeback adds up the test cases for us, but f.getElapsed does not
+        self.assertAlmostEqual(chargeback(1997)+chargeback(2427)+chargeback(2431)+chargeback(2695),f.getElapsed(1997)+f.getElapsed(2427)+f.getElapsed(2431)+f.getElapsed(2695)+f.getElapsed(2186)+f.getElapsed(2521))
