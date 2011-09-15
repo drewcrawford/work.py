@@ -419,6 +419,8 @@ def chargeback(case):
             tod = dateutil.parser.parse(tot)
             total_time += (tod - fromd).seconds
     total_time += fbConnection.getElapsed(case) * 60.0 * 60.0
+    for child in fbConnection.ixChildren(case):
+        total_time += fbConnection.getElapsed(child) * 60.0 * 60.0
     print total_time / 60.0 / 60.0, "hours"
     return total_time / 60.0 / 60.0
     

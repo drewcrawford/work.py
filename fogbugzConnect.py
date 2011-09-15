@@ -300,7 +300,16 @@ class FogBugzConnect:
             print "Case %d is not ready for test!  (resolved or implemented)" % CASE_NO
             quit()
         
-        
+    #
+    #
+    #
+    def ixChildren(self,CASE_NO):
+        response = self.fbConnection.search(q=CASE_NO,cols="ixBugChildren")
+        children = []
+        for child in "".join(response.case.ixbugchildren).split(","):
+            if child == '': continue
+            children.append(int(child))
+        return children
     #
     # return (actual_case, test_case) given either one
     #
@@ -502,6 +511,10 @@ import unittest
 class TestSequence(unittest.TestCase):
     def setUp(self):
         self.f = FogBugzConnect()
+        
+    def test_ixBugChildren(self):
+        self.assertTrue(len(self.f.ixChildren(2525))==0)
+        self.assertTrue(self.f.ixChildren(407)==[2978])
     
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
