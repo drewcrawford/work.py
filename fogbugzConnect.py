@@ -153,7 +153,7 @@ class FogBugzConnect:
     #
     def findImplementer(self,CASE_NO):
         query = str(CASE_NO)
-        resp = self.fbConnection.search(q=query,cols="events")
+        resp = self.fbConnection.search(q=query,cols="events,ixPersonAssignedTo")
         case = resp.case
         for event in case.events:
             import re
@@ -166,9 +166,10 @@ class FogBugzConnect:
                     #print "matching %s against %s" % (person,username)
                     #print '"%s" is not "%s"' % (person.sfullname.contents[0]), username)
                     if person.sfullname.contents[0]==username:
-                        print "reassigning to ixperson %s" % person.ixperson.contents[0]
+                        #print "reassigning to ixperson %s" % person.ixperson.contents[0]
                         return int(person.ixperson.contents[0])
-        raise Exception("No match")
+        #no match
+        return int(case.ixpersonassignedto.contents[0])
                 
     
     #
@@ -242,7 +243,7 @@ class FogBugzConnect:
     def optimalIxTester(self,CASE_NO):
         from work import magic
         area_owner = self.findCaseAreaixOwner(CASE_NO)
-        implementer = int(self.fbConnection.search(q=CASE_NO,cols="ixPersonAssignedTo").case.ixpersonassignedto.contents[0])
+        implementer = self.findImplementer(CASE_NO)
         if area_owner!= implementer:
             return area_owner
         #otherwise
@@ -591,14 +592,14 @@ class TestSequence(unittest.TestCase):
         print self.f.annoyableIxPeople()
         
     def test_optimaltester(self):
-        print self.f.optimalIxTester(2847)
+        print self.f.optimalIxTester(3028)
         
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
         
     def test_testcase(self):
-        self.f.createTestCase(3000)
-        
+        #self.f.createTestCase(3000)
+        pass
         
     def test_lastactive(self):
         print self.f.userLastActive(2)
