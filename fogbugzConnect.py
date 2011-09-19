@@ -176,9 +176,10 @@ class FogBugzConnect:
     # Get ixPerson for a given username or current username
     #
     def usernameToIXPerson(self):
-        for person in self.fbConnection.listPeople(fIncludeVirtual=1).people:
+        for person in self.fbConnection.listPeople(fIncludeVirtual=1,fIncludeNormal=1).people:
             if person.sfullname.contents[0] == self.username:
                 return person.ixperson.contents[0]
+        raise Exception("No ixperson for %s" % self.username)
     
     #
     # Reactivate case
