@@ -199,6 +199,7 @@ class GitConnect:
             if fromSpec=="Undecided":
                 print "Undecided isn't a valid fromspec.  (Maybe set the milestone on the ticket?)"
                 quit()
+            print "working from",fromSpec
             (fromSpecStatus, output) = commands.getstatusoutput("git checkout {0}".format(fromSpec))
             if(fromSpecStatus):
                 print "Could not checkout FROMSPEC (maybe a 'work integratemake %s' is needed here?)" % fromSpec
@@ -245,7 +246,6 @@ class GitConnect:
             if not fromSpec:
                 #try to fill automatically from FB
                 fromSpec = fbConnection.getIntegrationBranch(CASE_NO)
-                print "using integration branch %s" % fromSpec
             self.createNewWorkBranch(CASE_NO, fromSpec)
             return
                 
