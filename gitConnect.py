@@ -166,7 +166,7 @@ class GitConnect:
             raise Exception("stacktraceplease")
             quit()
 
-        print bcolors.WARNING + output + bcolors.ENDC
+        #print bcolors.WARNING + output + bcolors.ENDC
 
         self.pull()
 
@@ -181,16 +181,21 @@ class GitConnect:
     def __checkoutExistingBranchRaw(self,arg):
         (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout {0}".format(arg))
         if(checkoutNewBranchStatus):
+            print output
             return False
-        else:
-            return output
+        (status,output) = commands.getstatusoutput("git submodule update")
+        if status:
+            print "Error updating a submodule"
+        return True
     #
     # Checks out branch given branch name
     #
     def checkoutExistingBranchRaw(self,BRANCH_NAME):
-        if not self.__checkoutExistingBranch(BRANCH_NAME):
-            print "ERROR: could not checkout existing branch: %s" % output
+        result = self.__checkoutExistingBranchRaw(BRANCH_NAME)
+        if not result:
+            print "ERROR: could not checkout existing branch: %s" % BRANCH_NAME
             quit()
+        return result
 
     #
     # Checkout fromSpec and set up tracking
