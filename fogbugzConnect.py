@@ -148,7 +148,7 @@ class FogBugzConnect:
         
         
     
-    #
+    # 
     # Find implementor for a case
     #
     def findImplementer(self,CASE_NO):
@@ -206,6 +206,121 @@ class FogBugzConnect:
         self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg)
         self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=int(q.ixstatus.contents[0]),sEvent=msg)
     
+    #
+    # 
+    #
+    def fixForDetail(self,ixFixFor):
+        list = self.listFixFors()
+        for fixfor in list:
+            ix = int(fixfor.ixfixfor.contents[0])
+            if ix==ixFixFor:
+                return fixfor
+        raise Exception("Unknown fixfor")
+    
+    #
+    #
+    #
+    def nameForFixFor(self,ixFixForDetail):
+        return ixFixForDetail.sfixfor.contents[0].encode('utf-8')
+        
+        
+    
+    #
+    #
+    #
+    def getFixForDeleted(self,ixFixForDetail):
+        return ixFixForDetail.fdeleted.contents[0]=="true"
+        
+    def getFixForStartDate(self,ixFixForDetail):
+        if ixFixForDetail.dtstart.contents==[]:
+            return "" #FogBugz API understands this string a lot better than None
+        return ixFixForDetail.dtstart.contents[0]
+        
+    #
+    #
+    #
+    def editFixForShipDate(self,ixFixFor,shipDate,depCheck=True):
+        if depCheck:
+            override = False
+            deptree = self._deptree(self.listFixFors())
+            from dateutil.parser import parse
+            import datetime
+            for dep in deptree[ixFixFor]:
+                if dep not in deptree.keys(): continue
+                depdetail = self.fixForDetail(dep)
+                depdate = parse(depdetail.dt.contents[0])
+                if depdate > shipDate:
+                    override = True
+                    shipDate = str(depdate + datetime.timedelta(hours=1))
+            if override:
+                print "Ship date overridden to ",shipDate
+        detail = self.fixForDetail(ixFixFor)
+        name = self.nameForFixFor(detail)
+        print "editing ship date of",name
+        self.fbConnection.editFixFor(ixFixFor=ixFixFor,sFixFor=name,dtRelease=shipDate,dtStart=self.getFixForStartDate(detail),fAssignable=self.getFixForDeleted(detail) and "0" or "1")
+    
+    #
+    # 
+    #
+    def getShipDate(self,ixFixFor,ixPriority=4):
+        r = self.fbConnection.viewShipDateReport(ixFixFor=ixFixFor,ixPriority=ixPriority) 
+        array = list(r.shipdatereport.rgdt.array) #http://www.fogcreek.com/fogbugz/library/80/?topic=/fogbugz/library/80/html/2DCFC902.htm
+        #print array
+        count = len(array)
+        return array[count/2].contents[0]
+    
+    #
+    # 
+    #
+    def listFixFors(self,ixProject=None):
+        if ixProject:
+            r = self.fbConnection.listFixFors(ixProject=ixProject).fixfors
+        else:
+            r = self.fbConnection.listFixFors().fixfors
+        #print r
+        return r
+    
+    def _deptree(self,fixFors):
+        deptree = {} #key = ixFixFor, val = [ixDep1,ixDep2]
+        for fixfor in fixFors:
+            #print "processing ",int(fixfor.ixfixfor.contents[0])
+            deps = []
+            for dep in fixfor.setixfixfordependency:
+                #print dep
+                deps.append(int(dep.contents[0]))
+            deptree[int(fixfor.ixfixfor.contents[0])]=deps
+        return deptree
+        
+    #
+    # Sorts the fixFors into an order with the independent milestones first.
+    # FogBugz tends to complain if you mutate a milestone to be e.g. after its child.
+    #
+    def dependencyOrder(self,fixFors):
+        deptree = self._deptree(fixFors)
+        #print deptree
+        cleared = []
+        while True:
+            for fixfor in deptree.keys():
+                if fixfor in cleared: continue
+                if len(deptree[fixfor])==0:
+                    cleared.append(fixfor)
+                    continue
+                deps_cleared = True
+                for dep in deptree[fixfor]:
+                    if dep not in cleared and deptree.has_key(dep):
+                        deps_cleared = False
+                        break
+                if deps_cleared:
+                    cleared.append(fixfor)
+                    continue
+                else:
+                    pass
+                    #print "Can't add",fixfor,deptree[fixfor],"to list",cleared
+            if len(cleared) == len(deptree):
+                break
+        return cleared
+            
+            
     
     #
     # Sets parent if not currently set
@@ -616,6 +731,12 @@ class TestSequence(unittest.TestCase):
         
     def test_lastactive(self):
         print self.f.userLastActive(2)
+        
+    def test_deptree(self):
+        print self.f.dependencyOrder(self.f.listFixFors())
+        
+    def test_getship(self):
+        print self.f.getShipDate(ixFixFor=43)
         
 
 if __name__ == '__main__':
