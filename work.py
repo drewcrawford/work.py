@@ -434,15 +434,32 @@ def recharge(fr,to):
         fbConnection.reopen(to,"work.py recharge")
     results = fbConnection.listTimeRecords(fr)
     time_interval = 0
+    my_records = []
     for record in results:
-        print record
+        #print record
         if record.fdeleted.contents[0]!="false":
             print "Skipping deleted record %s" % record
             continue
         if len(record.dtend)==0:
             print "Skipping open time record %s" % record
             continue
-
+        my_records.append(record)
+    r = 0
+    for record in my_records:
+        print "%d: %s-%s" % (r,record.dtstart.contents[0],record.dtend.contents[0])
+        r += 1
+        
+    def parse_range(astr): # http://stackoverflow.com/questions/4726168/parsing-command-line-input-for-numbers
+        result=set()
+        for part in astr.split(','):
+            x=part.split('-')
+            result.update(range(int(x[0]),int(x[-1])+1))
+        return sorted(result)
+        
+    strl = raw_input("records  (syntax like 22-27,51-64): ")
+    results = parse_range(strl)
+    for result in results:
+        record = my_records[result]
         record_desc = "From %s to %s ixPerson %s ixBug %s" % (record.dtstart.contents[0],record.dtend.contents[0],record.ixperson.contents[0],record.ixbug.contents[0])
         from_time = dateutil.parser.parse(record.dtstart.contents[0])
         to_time = dateutil.parser.parse(record.dtend.contents[0])
@@ -595,7 +612,7 @@ class TestSequence(unittest.TestCase):
     
     def test_chargeback(self):
         f = FogBugzConnect()
-        self.assertAlmostEqual(chargeback(1111),-5.123611111111112) #I'm not 100% sure that this test makes any sense
+        self.assertAlmostEqual(chargeback(1111),-5.006944444444445) #I'm not 100% sure that this test makes any sense
         
         #The sum of a set of tickets should be the same as the sum of the chargebacked tickets.
         #Note that chargeback adds up the test cases for us, but f.getElapsed does not
