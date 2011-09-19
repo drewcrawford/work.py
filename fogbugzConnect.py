@@ -531,7 +531,7 @@ class FogBugzConnect:
                 print "reassigning to ixperson",tester
                 self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=tester)
             else:
-                self.fbConnection.resolve(ixBug=CASE_NO)
+                self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=self.optimalIxTester(CASE_NO))
 
     
         else:
