@@ -171,7 +171,7 @@ class GitConnect:
             raise Exception("stacktraceplease")
             quit()
 
-        print bcolors.WARNING + output + bcolors.ENDC
+        #print bcolors.WARNING + output + bcolors.ENDC
 
         self.pull()
 
@@ -181,19 +181,26 @@ class GitConnect:
     # Private method: Checks out and existing branch for CASE_NO
     #
     def __checkoutExistingBranch(self, CASE_NO):
-        (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout work-{0}".format(CASE_NO))
+        return self.__checkoutExistingBranchRaw("work-%d" % CASE_NO)
+        
+    def __checkoutExistingBranchRaw(self,arg):
+        (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout {0}".format(arg))
         if(checkoutNewBranchStatus):
+            print output
             return False
-        else:
-            return output
+        (status,output) = commands.getstatusoutput("git submodule update")
+        if status:
+            print "Error updating a submodule"
+        return True
     #
     # Checks out branch given branch name
     #
     def checkoutExistingBranchRaw(self,BRANCH_NAME):
-        (status,output) = commands.getstatusoutput("git checkout %s" % BRANCH_NAME)
-        if (status):
-            print "ERROR: could not checkout existing branch: %s" % output
+        result = self.__checkoutExistingBranchRaw(BRANCH_NAME)
+        if not result:
+            print "ERROR: could not checkout existing branch: %s" % BRANCH_NAME
             quit()
+        return result
 
     #
     # Checkout fromSpec and set up tracking
@@ -204,11 +211,7 @@ class GitConnect:
             if fromSpec=="Undecided":
                 print "Undecided isn't a valid fromspec.  (Maybe set the milestone on the ticket?)"
                 quit()
-            print "working from",fromSpec
-            (fromSpecStatus, output) = commands.getstatusoutput("git checkout {0}".format(fromSpec))
-            if(fromSpecStatus):
-                print "Could not checkout FROMSPEC (maybe a 'work integratemake %s' is needed here?)" % fromSpec
-                quit()
+            self.checkoutExistingBranchRaw(fromSpec)
         #regardless, we need our integration branch to be up to date
         self.pull()
         
@@ -262,11 +265,7 @@ class GitConnect:
     #
     def checkoutMaster(self):
         # try to checkout master
-        (checkoutStatus, output) = commands.getstatusoutput("git checkout master")
-        
-        if(checkoutStatus):
-            print "ERROR: Could not checkout master. Run git status, and try checking out master again!"
-            quit()
+        self.checkoutExistingBranchRaw("master")
     
     #
     # push changes from branch to origin
