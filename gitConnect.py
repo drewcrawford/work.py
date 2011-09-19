@@ -10,6 +10,11 @@ class bcolors:
     WARNING = '\033[43m\033[1;34m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
+    
+def WARN(str):
+    print bcolors.WARNING + str + bcolors.ENDC
+    
+
 class GitConnect:
     #
     # Checks to see if we're in a Git Repo
@@ -115,7 +120,7 @@ class GitConnect:
 
         print "Pulling...",
         if self.getBranch() not in str:
-            print "WARNING: %s is not a tracking branch." % self.getBranch()
+            WARN( "WARNING: %s is not a tracking branch." % self.getBranch())
             print "Attempting to fix...",
             try:
                 self.setUpstream(self.getBranch(),"remotes/origin/{0}".format(self.getBranch()))
@@ -149,7 +154,7 @@ class GitConnect:
         output = self.checkForRepository()
         #if "git status" returns an error..."
         if commands.getstatusoutput("git status --porcelain")[1]:
-            print "WARNING: changes have been made to source code!"
+            WARN("WARNING: changes have been made to source code!")
             print "         use git stash or git commit to save changes"
             quit()
         else:
@@ -238,6 +243,9 @@ class GitConnect:
         # check if a branch for CASE_NO exists
         # if it does, check it out
         if self.__checkoutExistingBranch(CASE_NO):
+            if fromSpec:
+                WARN("Ignoring your fromspec.  To override, re-try with after a git checkout master && git branch -D work-%d && git push origin :work-%d" %(CASE_NO,CASE_NO))
+                WARN("THIS DESTRUCTIVE COMMAND DELETES ANY WORK ON work-%d, USE WITH CAUTION!" % CASE_NO)
             self.pull()
             return
             
