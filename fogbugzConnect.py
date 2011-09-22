@@ -740,7 +740,7 @@ class TestSequence(unittest.TestCase):
         pass
         
     def test_lastactive(self):
-        print self.f.userLastActive(2)
+        print self.f.userLastActive(self.f.ixPerson)
         
     def test_deptree(self):
         print self.f.dependencyOrder(self.f.listFixFors())
