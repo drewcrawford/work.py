@@ -29,7 +29,16 @@ class FogBugzConnect:
     
     
 
-
+    #
+    #
+    #
+    
+    def amIAdministrator(self):
+        people = self.fbConnection.listPeople()
+        for person in people.people:
+            if int(person.ixperson.contents[0])==self.ixPerson:
+                return person.fadministrator.contents[0]=="true"
+        return False
     #
     # Store settings for email and username in home directory
     #
@@ -126,7 +135,7 @@ class FogBugzConnect:
                 self.username = person.sfullname.contents[0].encode('utf-8')
         if not self.username:
             raise Exception("No username was found!")
-                #print self.username
+        #print self.username
         self.ixPerson = self.usernameToIXPerson()
         #print self.ixPerson
         
@@ -176,9 +185,10 @@ class FogBugzConnect:
     # Get ixPerson for a given username or current username
     #
     def usernameToIXPerson(self):
-        for person in self.fbConnection.listPeople(fIncludeVirtual=1).people:
+        for person in self.fbConnection.listPeople(fIncludeVirtual=1,fIncludeNormal=1).people:
             if person.sfullname.contents[0] == self.username:
-                return person.ixperson.contents[0]
+                return int(person.ixperson.contents[0])
+        raise Exception("No such person!")
     
     #
     # Reactivate case
@@ -738,9 +748,12 @@ class TestSequence(unittest.TestCase):
     def test_getship(self):
         print self.f.getShipDate(ixFixFor=43)
         
+    def test_admin(self):
+        print "I am an administrator:",self.f.amIAdministrator()
+        
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(failfast=True)
 
     
     

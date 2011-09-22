@@ -530,6 +530,7 @@ def _fixFors_test_quickly_dates():
                 matched = True
                 break
         if not matched:
+            print testMilestone_raw
             raise Exception("Cannot match "+testName)
         if item.dt.contents==[]:
             print "Can't set",testName," because the non-test milestone has no completion date."
@@ -630,12 +631,13 @@ if __name__=="__main__":
             suite = unittest.defaultTestLoader.loadTestsFromNames(["work.TestSequence."+sys.argv[2]])
         else:
             suite = unittest.defaultTestLoader.loadTestsFromNames(["work","gitHubConnect","fogbugzConnect"])
-        unittest.TextTestRunner().run(suite)
+        unittest.TextTestRunner(failfast=True).run(suite)
     else:
         printUsageString()
 
 class TestSequence(unittest.TestCase):
     def setUp(self):
+        self.f = FogBugzConnect()
         pass
     
     def test_autotest(self):
@@ -643,7 +645,9 @@ class TestSequence(unittest.TestCase):
         autoTestMake(2453)
         
     def test_fixup_fixfors(self):
-        
+        if not self.f.amIAdministrator():
+            print "You can't run test_fixup_fixfors because you're not an administrator."
+            return
         fixUp()
     
     def test_chargeback(self):
