@@ -4,35 +4,35 @@ try:
     import simplejson as json
 except:
     import json
-    
-    
+
+
 try:
     import keyring
 except:
     print "Could not import keyring API"
     quit()
-    
 
-    
+
+
 try:
     from fogbugz import FogBugz
     from fogbugz import FogBugzAPIError
 except Exception as e:
     print "Could not import FogBugz API because: ", e
-    
+
     quit()
 from xml.dom.minidom import parseString
 
 TEST_IXCATEGORY=6
 class FogBugzConnect:
-    
-    
-    
+
+
+
 
     #
     #
     #
-    
+
     def amIAdministrator(self):
         people = self.fbConnection.listPeople()
         for person in people.people:
@@ -44,7 +44,7 @@ class FogBugzConnect:
     #
     def setCredentials(self):
         fburl = raw_input("FB URL [http://drewcrawfordapps.fogbugz.com/]: ")
-        
+
         email = raw_input("email: ")
         from work import get_setting_dict, set_setting_dict
         settings = get_setting_dict()
@@ -52,14 +52,14 @@ class FogBugzConnect:
         settings["fburl"] = fburl and fburl or "http://drewcrawfordapps.fogbugz.com/"
         set_setting_dict(settings)
         return
-    
+
     def listCases(self,projectName):
         query = 'project:"%s" assignedTo:"%s" status:active' % (projectName,self.username.lower())
         cols = "sTitle,ixPriority" #careful with adding things here.  It seems to be the case
         # that adding a field here requires the case to have that field.  Hence
         # the convoluted logic below to also grab cases with no estimate.
         cases = self.fbConnection.search(q= query,cols=cols + ",hrsCurrEst,hrsElapsed")
-        cases = list(cases.cases)        
+        cases = list(cases.cases)
 
         addlcases = self.fbConnection.search(q=query,cols=cols)
         for addlcase in addlcases.cases:
@@ -70,7 +70,7 @@ class FogBugzConnect:
             #print addlcase
             if not searchforixbug(addlcase["ixbug"]):
                 cases.append(addlcase)
-            
+
         def mcmp(x,y):
             x_1 = int(x.ixpriority.contents[0])
             x_2 = int(y.ixpriority.contents[0])
@@ -81,7 +81,7 @@ class FogBugzConnect:
 
         #print cases
         print "case".rjust(5),"title".ljust(55),"priority".rjust(6),"timeleft".rjust(8)
-    
+
         for case in cases:
             print case["ixbug"].rjust(5),
             print case.stitle.contents[0].ljust(55),
@@ -90,8 +90,8 @@ class FogBugzConnect:
                 print "?".rjust(8)
             else:
                 print ("%.2f" % (float(case.hrscurrest.contents[0])-float(case.hrselapsed.contents[0]))).rjust(8)
-            
-    
+
+
     #
     # get FB URL from settings
     #
@@ -102,15 +102,15 @@ class FogBugzConnect:
             self.setCredentials()
             settings = get_setting_dict()
         return settings["fburl"]
-        
-        
+
+
     #
     # Shows you CASE_NO
     #
     def view(self,CASE_NO):
         from os import system
         system("open " + self.getFBURL() + "default.asp?%d" % CASE_NO)
-    
+
     #
     # log into fogbugz
     #
@@ -127,7 +127,7 @@ class FogBugzConnect:
                 else:
                     keyring.set_password('fogbugz', self.email, password)
                     break
-                
+
         #connect to fogbugz with fbapi and login
         self.fbConnection.logon(self.email, password)
         for person in self.fbConnection.listPeople().people:
@@ -138,7 +138,7 @@ class FogBugzConnect:
         #print self.username
         self.ixPerson = self.usernameToIXPerson()
         #print self.ixPerson
-        
+
     #
     # search for a FB case with CASE_NO
     #
@@ -154,10 +154,10 @@ class FogBugzConnect:
     #
     def commentOn(self,CASE_NO,msg):
         response = self.fbConnection.edit(ixBug=CASE_NO,sEvent=msg,ixPersonEditedBy=self.ixPerson)
-        
-        
-    
-    # 
+
+
+
+    #
     # Find implementor for a case
     #
     def findImplementer(self,CASE_NO):
@@ -179,8 +179,8 @@ class FogBugzConnect:
                         return int(person.ixperson.contents[0])
         #no match
         return int(case.ixpersonassignedto.contents[0])
-                
-    
+
+
     #
     # Get ixPerson for a given username or current username
     #
@@ -189,7 +189,7 @@ class FogBugzConnect:
             if person.sfullname.contents[0] == self.username:
                 return int(person.ixperson.contents[0])
         raise Exception("No such person!")
-    
+
     #
     # Reactivate case
     #
@@ -200,24 +200,24 @@ class FogBugzConnect:
             print "Unexpected condition [%s] Is case closed? Attempting to recover..." % e
             response = self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
             print "Recovery was successful."
-    
+
     #
     # isOpen : determines if the case is open
     #
     def isOpen(self,CASE_NO):
         q = self.fbConnection.search(q=CASE_NO,cols="fOpen")
         return q.fopen.contents[0]!="false"
-    
+
     # reopen : reopens case (not a reactivate... this auto-resolves the case)
     def reopen(self,CASE_NO,msg):
         q = self.fbConnection.search(q=CASE_NO,cols="ixStatus")
         #print q.ixstatus.contents[0]
-        
+
         self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg)
         self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=int(q.ixstatus.contents[0]),sEvent=msg)
-    
+
     #
-    # 
+    #
     #
     def fixForDetail(self,ixFixFor):
         list = self.listFixFors()
@@ -226,26 +226,26 @@ class FogBugzConnect:
             if ix==ixFixFor:
                 return fixfor
         raise Exception("Unknown fixfor")
-    
+
     #
     #
     #
     def nameForFixFor(self,ixFixForDetail):
         return ixFixForDetail.sfixfor.contents[0].encode('utf-8')
-        
-        
-    
+
+
+
     #
     #
     #
     def getFixForDeleted(self,ixFixForDetail):
         return ixFixForDetail.fdeleted.contents[0]=="true"
-        
+
     def getFixForStartDate(self,ixFixForDetail):
         if ixFixForDetail.dtstart.contents==[]:
             return "" #FogBugz API understands this string a lot better than None
         return ixFixForDetail.dtstart.contents[0]
-        
+
     #
     #
     #
@@ -268,19 +268,19 @@ class FogBugzConnect:
         name = self.nameForFixFor(detail)
         print "editing ship date of",name
         self.fbConnection.editFixFor(ixFixFor=ixFixFor,sFixFor=name,dtRelease=shipDate,dtStart=self.getFixForStartDate(detail),fAssignable=self.getFixForDeleted(detail) and "0" or "1")
-    
+
     #
-    # 
+    #
     #
     def getShipDate(self,ixFixFor,ixPriority=4):
-        r = self.fbConnection.viewShipDateReport(ixFixFor=ixFixFor,ixPriority=ixPriority) 
+        r = self.fbConnection.viewShipDateReport(ixFixFor=ixFixFor,ixPriority=ixPriority)
         array = list(r.shipdatereport.rgdt.array) #http://www.fogcreek.com/fogbugz/library/80/?topic=/fogbugz/library/80/html/2DCFC902.htm
         #print array
         count = len(array)
         return array[count/2].contents[0]
-    
+
     #
-    # 
+    #
     #
     def listFixFors(self,ixProject=None):
         if ixProject:
@@ -289,7 +289,7 @@ class FogBugzConnect:
             r = self.fbConnection.listFixFors().fixfors
         #print r
         return r
-    
+
     def _deptree(self,fixFors):
         deptree = {} #key = ixFixFor, val = [ixDep1,ixDep2]
         for fixfor in fixFors:
@@ -300,7 +300,7 @@ class FogBugzConnect:
                 deps.append(int(dep.contents[0]))
             deptree[int(fixfor.ixfixfor.contents[0])]=deps
         return deptree
-        
+
     #
     # Sorts the fixFors into an order with the independent milestones first.
     # FogBugz tends to complain if you mutate a milestone to be e.g. after its child.
@@ -329,9 +329,9 @@ class FogBugzConnect:
             if len(cleared) == len(deptree):
                 break
         return cleared
-            
-            
-    
+
+
+
     #
     # Sets parent if not currently set
     #
@@ -339,7 +339,7 @@ class FogBugzConnect:
         q = self.fbConnection.search(q=CASE_NO,cols="ixBugParent")
         if q.ixbugparent.contents[0]=="0":
             self.fbConnection.edit(ixBug=CASE_NO,ixBugParent=toParent)
-    
+
     def lookupIxArea(self,ixArea):
         resp = self.fbConnection.listAreas(ixArea=ixArea)
         for area in resp.areas:
@@ -350,7 +350,7 @@ class FogBugzConnect:
         for project in resp.projects:
             if project.ixproject.contents[0]==str(ixProject):
                 return project
-    
+
     #looks up the owner of the area, and failing that, the owner of the project
     def findCaseAreaixOwner(self,CASE_NO):
         resp = self.fbConnection.search(q=CASE_NO,cols="ixProject,ixArea")
@@ -361,7 +361,7 @@ class FogBugzConnect:
         #look up project
         project = self.lookupIxProject(resp.case.ixproject.contents[0])
         return int(project.ixpersonowner.contents[0])
-    
+
     #
     # finds an optimal tester for the case (ixperson)
     #
@@ -377,8 +377,8 @@ class FogBugzConnect:
         people = filter(lambda x: x != implementer,people)
         from random import choice
         return choice(people)
-        
-    
+
+
     #
     # create a test case
     #
@@ -396,7 +396,7 @@ class FogBugzConnect:
             if(aMilestone.sfixfor.contents[0].find(resp.case.sfixfor.contents[0] + "-test") != -1):
                 foundTestMilestone = True
                 ixTestMilestone = aMilestone.ixfixfor.contents[0]
-        
+
         testMilestone = resp.case.sfixfor.contents[0] + "-test"
         #print "testMilestone: ", testMilestone
         #print "\nfoundTestMilestone: ", foundTestMilestone
@@ -420,7 +420,7 @@ class FogBugzConnect:
             if not case.stitle.contents[0]=="Review": return False
             if case.ixcategory.contents[0]==str(TEST_IXCATEGORY): return True
         return False
-    
+
     def allEvents(self,CASE_NO):
         resp = self.fbConnection.search(q=CASE_NO,cols="events")
         case = resp.case
@@ -429,7 +429,7 @@ class FogBugzConnect:
             if len(event.s.contents)==0: continue
             events.append(event.s.contents[0])
         return events
-        
+
     #
     # returns true iff CASE_NO is a work.py test case
     #
@@ -439,14 +439,14 @@ class FogBugzConnect:
 
         #print response
     #
-    # 
+    #
     #
     def ensureReadyForTest(self,CASE_NO):
         response = self.fbConnection.search(q=CASE_NO,cols="sStatus")
         if "Implemented" not in response.case.sstatus.contents[0] and "Fixed" not in response.case.sstatus.contents[0]:
             print "Case %d is not ready for test!  (resolved or implemented)" % CASE_NO
             quit()
-        
+
     #
     #
     #
@@ -464,7 +464,7 @@ class FogBugzConnect:
         if self.isTestCase(SOME_CASE):
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugParent")
             return (int(response.case.ixbugparent.contents[0]),SOME_CASE)
-            
+
         else: #parent case
             response = self.fbConnection.search(q=SOME_CASE,cols="ixBugChildren")
             for child in "".join(response.case.ixbugchildren).split(","):
@@ -472,32 +472,32 @@ class FogBugzConnect:
                     if child=="":
                         return (SOME_CASE,None)
                     return (SOME_CASE,int(child))
-        
+
         if exceptOnFailure:
             raise Exception("Cannot find a test case for %d",SOME_CASE)
         else:
             return (SOME_CASE,None)
-        
+
     #
     # start testing a given case
     #
     def startTest(self,SOME_CASE):
         (parent,test) = self.getCaseTuple(SOME_CASE)
-        
-    
+
+
     #
     # List time records for a case
     #
     def listTimeRecords(self,CASE_NO):
         return list(self.fbConnection.listIntervals(ixPerson=self.ixPerson,ixBug=CASE_NO).intervals)
-    
+
     #
     # deleting time records
     # FB API has no support for this, so we're spoofing a web request...
     #
     def deleteTimeRecord(self,ixInterval,dt=None):
         #get the date for FB
-        
+
         import urllib2, urllib
         import cookielib
         cj = cookielib.CookieJar()
@@ -515,19 +515,19 @@ class FogBugzConnect:
         #result = urllib2.urlopen(BASE_URL+"default.asp?fAlaCarte=1&pg=pgAlaCartePopupContent&fPgFavorites=0&fList=0&fPlatformChrome=0&sSearchString=&_=1312763516639")
         data = urllib.urlencode([("ixInterval",ixInterval),("pre","preDeleteInterval"),("dt",dt),("btnDelete","Yes")])
         result = urllib2.urlopen(BASE_URL+"default.asp",data)
-    
+
     #
     # Create time records for a case
     #
     def createTimeRecord(self,CASE_NO,dtStart,dtEnd):
         self.fbConnection.newInterval(ixBug=CASE_NO,dtStart=dtStart,dtEnd=dtEnd)
-    
+
     #
     # Start work on a case
     #
     def startCase(self, CASE_NO,enforceNoTestCases=True):
         query = 'assignedto:"{0}" case:"{1}"'.format(self.username.lower(), CASE_NO)
-        
+
         cols = "fOpen,hrsCurrEst"
         if enforceNoTestCases:
             cols += ",ixCategory,sTitle"
@@ -549,7 +549,7 @@ class FogBugzConnect:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!!"
             quit()
         return
-    
+
     #
     # Lists statuses for a given case
     #
@@ -562,7 +562,7 @@ class FogBugzConnect:
             if status.fresolved.contents[0]=="false": continue
             result[status.ixstatus.contents[0]] = status.sstatus.contents[0]
         return result
-    
+
     #
     # Stop work
     #
@@ -574,14 +574,14 @@ class FogBugzConnect:
         else:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!"
         return
-    
+
     #
     #
     #
     def getIntegrationBranch(self,CASE_NO):
         resp = self.fbConnection.search(q=CASE_NO,cols="sFixFor")
         return (resp.case.sfixfor.contents[0].encode('utf-8'))
-        
+
     #returns the time the user was last active, if any.
     #If the user has not been active "lately", for some definition of lately, may return none.
     def userLastActive(self,ixPerson):
@@ -601,7 +601,7 @@ class FogBugzConnect:
 
             def dst(self, dt):
                 return datetime.timedelta(0)
-        
+
         last = last.replace(tzinfo=UTC())
         for interval in resp.intervals:
             if len(interval.dtend)==0: return datetime.datetime.now().replace(tzinfo=tz.tzlocal()) + datetime.timedelta(seconds=-30) #annoyableIxPeople depends on this function returning a time less than the current time.
@@ -609,7 +609,7 @@ class FogBugzConnect:
             if date > last: last = date
         if last == datetime.datetime.min.replace(tzinfo=UTC()): return None
         return last
-        
+
     #
     # returns a list of annoyable ixPeople
     #
@@ -635,12 +635,12 @@ class FogBugzConnect:
                 if not lastActive:
                     print "User",ix,"does not appear to be active recently"
                     continue
-                
+
                 delta = (nowtime - lastActive).seconds
                 if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
                     annoyable.append(ix)
         return annoyable
-    
+
     #
     # resolve case with CASE_NO
     #
@@ -657,7 +657,7 @@ class FogBugzConnect:
             else:
                 self.fbConnection.resolve(ixBug=CASE_NO)
 
-    
+
         else:
             print "ERROR: FogBugz case does not exists or isn't assigned to you!"
         return
@@ -671,15 +671,15 @@ class FogBugzConnect:
         if(resp):
             tester = resp.case.ixpersonassignedto.contents[0]
             return tester
-            
-    
+
+
     #
     # close case with CASE_NO
     #
     def closeCase(self,CASE_NO):
         self.fbConnection.close(ixBug=CASE_NO)
-    
-    
+
+
     #
     # Returns the elapsed time (hours)
     #
@@ -687,7 +687,7 @@ class FogBugzConnect:
         resp = self.fbConnection.search(q=str(CASE_NO),cols="hrsElapsed")
         return float(resp.case.hrselapsed.contents[0])
 
-    
+
     #
     # Returns current estimate (hours)
     #
@@ -701,7 +701,7 @@ class FogBugzConnect:
         if not timespan:
             print "Please provide an estimate for this case: ",
             timespan = raw_input()
-        
+
         self.fbConnection.edit(ixBug=CASE_NO, hrsCurrEst=timespan)
         return timespan;
 
@@ -714,46 +714,46 @@ class FogBugzConnect:
         self.username = ""
         self.fbConnection = FogBugz(self.getFBURL())
         self.login()
-    
+
 import unittest
 
 
 class TestSequence(unittest.TestCase):
     def setUp(self):
         self.f = FogBugzConnect()
-        
+
     def test_ixBugChildren(self):
         self.assertTrue(len(self.f.ixChildren(2525))==1)
         self.assertTrue(self.f.ixChildren(407)==[2978])
-    
+
     def test_annoyables(self):
+        if not self.f.amIAdministrator():
+            print "WARNING: NOT RUNNING test_annoyables BECAUSE YOU ARE NOT AN ADMINISTRATOR"
+            return
         print self.f.annoyableIxPeople()
-        
+
     def test_optimaltester(self):
         print self.f.optimalIxTester(3028)
-        
+
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
-        
+
     def test_testcase(self):
         #self.f.createTestCase(3000)
         pass
-        
+
     def test_lastactive(self):
         print self.f.userLastActive(self.f.ixPerson)
-        
+
     def test_deptree(self):
         print self.f.dependencyOrder(self.f.listFixFors())
-        
+
     def test_getship(self):
         print self.f.getShipDate(ixFixFor=43)
-        
+
     def test_admin(self):
         print "I am an administrator:",self.f.amIAdministrator()
-        
+
 
 if __name__ == '__main__':
     unittest.main(failfast=True)
-
-    
-    
