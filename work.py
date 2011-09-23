@@ -364,24 +364,21 @@ def projectIntegrateMake(CASE_NO,fromSpec):
 
 def complain(ixComplainAboutPerson):
     fbConnection = FogBugzConnect()
-    response = fbConnection.fbConnection.search(q="status:active assignedto:=%d" % ixComplainAboutPerson,cols="hrsCurrEst,sPersonAssignedTo,sMilestone")
+    response = fbConnection.fbConnection.search(q="status:active assignedto:=%d" % ixComplainAboutPerson,cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo,sFixFor")
     for case in response.cases:
         #print case
         if case.hrscurrest.contents[0]=="0":
             print "%s's case %s has no estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"This next test could take a very, VERY long time.")
-    response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo")
-    for case in response.cases:
-        #print case
-
+        if case.sfixfor.contents[0]=="Undecided":
+            print "%s needs a milestone" % case["ixbug"]
+            fbConnection.commentOn(case["ixbug"],"If you choose not to decide, you still have made a choice.  (Don't think about it, don't think about it...)  It's a paradox!  There IS no answer.")
         est = float(case.hrscurrest.contents[0])
         act = float(case.hrselapsed.contents[0])
         if est - act < 0:
             print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"I'll give you credit:  I guess you ARE listening to me.  But for the record:  You don't have to go THAT slowly.")
-        if case.smilestone.contents[0]=="Undecided":
-            print "%s needs a milestone" % case["ixbug"]
-            fbConnection.commentOn(case["ixbug"],"If you choose not to decide, you still have made a choice.  (Don't think about it, don't think about it...)  It's a paradox!  There IS no answer.")
+        
 
 #
 # Work.py config. Allows user to create/set a setting and insert it into
@@ -521,7 +518,9 @@ def _fixFors_to_EBS_dates():
     fixfors = fbConnection.dependencyOrder(fbConnection.listFixFors())
     
     for item in fixfors:
-        print "processing",item
+        name = fbConnection.nameForFixFor(fbConnection.fixForDetail(item))
+        if name.startswith("Never"): continue
+        print "processing",name,item
         date = fbConnection.getShipDate(item)
         from dateutil.parser import parse
         fbConnection.editFixForShipDate(item,parse(date))
@@ -536,9 +535,11 @@ def _fixFors_test_quickly_dates():
     import datetime
     #print fixfors
     for testMilestone in fixfors:
-        print "processing",testMilestone
+        
         testMilestone_raw = fbConnection.fixForDetail(testMilestone)
         testName = fbConnection.nameForFixFor(testMilestone_raw)
+        if testName.startswith("Never"): continue
+        print "processing",testMilestone,testName
         if not testName.endswith("-test"): continue
         if testName=="Undecided-test": continue
         matched = False
@@ -672,7 +673,7 @@ class TestSequence(unittest.TestCase):
     
     def test_chargeback(self):
         f = FogBugzConnect()
-        self.assertAlmostEqual(chargeback(1111),-5.006944444444445) #I'm not 100% sure that this test makes any sense
+        self.assertAlmostEqual(chargeback(1111),-5.123611111111112) #I'm not 100% sure that this test makes any sense
         
         #The sum of a set of tickets should be the same as the sum of the chargebacked tickets.
         #Note that chargeback adds up the test cases for us, but f.getElapsed does not
