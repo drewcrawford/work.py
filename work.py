@@ -364,12 +364,12 @@ def projectIntegrateMake(CASE_NO,fromSpec):
 
 def complain(ixComplainAboutPerson):
     fbConnection = FogBugzConnect()
-    response = fbConnection.fbConnection.search(q="status:active assignedto:=%d" % ixComplainAboutPerson,cols="hrsCurrEst,sPersonAssignedTo")
+    response = fbConnection.fbConnection.search(q="status:active assignedto:=%d" % ixComplainAboutPerson,cols="hrsCurrEst,sPersonAssignedTo,sMilestone")
     for case in response.cases:
         #print case
         if case.hrscurrest.contents[0]=="0":
             print "%s's case %s has no estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
-            fbConnection.commentOn(case["ixbug"],"I'm afraid this case needs an estimate.  I promise you some delicious cake!")
+            fbConnection.commentOn(case["ixbug"],"This next test could take a very, VERY long time.")
     response = fbConnection.fbConnection.search(cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo")
     for case in response.cases:
         #print case
@@ -378,7 +378,10 @@ def complain(ixComplainAboutPerson):
         act = float(case.hrselapsed.contents[0])
         if est - act < 0:
             print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
-            fbConnection.commentOn(case["ixbug"],"Are you still there?")
+            fbConnection.commentOn(case["ixbug"],"I'll give you credit:  I guess you ARE listening to me.  But for the record:  You don't have to go THAT slowly.")
+        if case.smilestone.contents[0]=="Undecided":
+            print "%s needs a milestone" % case["ixbug"]
+            fbConnection.commentOn(case["ixbug"],"If you choose not to decide, you still have made a choice.  (Don't think about it, don't think about it...)  It's a paradox!  There IS no answer.")
 
 #
 # Work.py config. Allows user to create/set a setting and insert it into
