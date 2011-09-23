@@ -511,8 +511,55 @@ def chargeback(case):
     return total_time / 60.0 / 60.0
 
 
+#sets a reasonable completion date per the EBS estimate for the milestone
+def _fixFors_to_EBS_dates():
+    print "--------SETTING DATES PER EBS-----------"
+    fbConnection = FogBugzConnect()
+    fixfors = fbConnection.dependencyOrder(fbConnection.listFixFors())
+    
+    for item in fixfors:
+        print "processing",item
+        date = fbConnection.getShipDate(item)
+        from dateutil.parser import parse
+        fbConnection.editFixForShipDate(item,parse(date))
+    
+#sets each test milestone to be one day following the appropriate release milestone.
+def _fixFors_test_quickly_dates():
+    print "--------FIXING TEST MILESTONES-----------"
+    fbConnection = FogBugzConnect()
+    fixfors_raw = fbConnection.listFixFors()
+    fixfors = fbConnection.dependencyOrder(fixfors_raw)
+    from dateutil.parser import parse
+    import datetime
+    #print fixfors
+    for testMilestone in fixfors:
+        print "processing",testMilestone
+        testMilestone_raw = fbConnection.fixForDetail(testMilestone)
+        testName = fbConnection.nameForFixFor(testMilestone_raw)
+        if not testName.endswith("-test"): continue
+        if testName=="Undecided-test": continue
+        matched = False
+        if testMilestone_raw.ixproject.contents==[]: continue
+        for item in fbConnection.listFixFors(ixProject=int(testMilestone_raw.ixproject.contents[0])):
+            #print testName[:-5],fbConnection.nameForFixFor(item)
+            if item.sfixfor.contents[0]==testName[:-5]:
+                #print "matching",testName,fbConnection.nameForFixFor(item)
+                matched = True
+                break
+        if not matched:
+            print testMilestone_raw
+            raise Exception("Cannot match "+testName)
+        if item.dt.contents==[]:
+            print "Can't set",testName," because the non-test milestone has no completion date."
+            continue
+        date = item.dt.contents[0]
+        newDate = parse(date)+datetime.timedelta(hours=6) #turns out that using 1 day produces weird results.  If the next implementation milestone is completed within 24 hours, lots of weird things can happen
+        print "setting",testName,"to",newDate
+        fbConnection.editFixForShipDate(testMilestone,newDate)
 
-
+def fixUp():
+    _fixFors_to_EBS_dates()
+    _fixFors_test_quickly_dates()
 
 
 ################################################################################
@@ -597,18 +644,28 @@ if __name__=="__main__":
     elif (task == "config"):
         workConfig(target)
     elif (task=="selftest"):
-        suite = unittest.defaultTestLoader.loadTestsFromNames(["work","gitHubConnect","fogbugzConnect"])
-        unittest.TextTestRunner().run(suite)
+        if len(sys.argv)>=3:
+            suite = unittest.defaultTestLoader.loadTestsFromNames(["work.TestSequence."+sys.argv[2]])
+        else:
+            suite = unittest.defaultTestLoader.loadTestsFromNames(["work","gitHubConnect","fogbugzConnect"])
+        unittest.TextTestRunner(failfast=True).run(suite)
     else:
         printUsageString()
 
 class TestSequence(unittest.TestCase):
     def setUp(self):
+        self.f = FogBugzConnect()
         pass
     
     def test_autotest(self):
         #print "HERE OMG"
         autoTestMake(2453)
+        
+    def test_fixup_fixfors(self):
+        if not self.f.amIAdministrator():
+            print "You can't run test_fixup_fixfors because you're not an administrator."
+            return
+        fixUp()
     
     def test_chargeback(self):
         f = FogBugzConnect()
