@@ -94,7 +94,6 @@ def projectStart(CASE_NO, fromSpec):
 
     #create new FogBugzConnect object to talk to FBAPI
     fbConnection = FogBugzConnect()
-
     #check for FogBugz case and clock in
     fbConnection.startCase(CASE_NO)
 
@@ -183,7 +182,10 @@ def projectShip():
     if not gitHubConnect.pullRequestAlreadyExists("work-%d" % caseno):
         body = "Ticket at %s/default.asp?%d\n%s" % (fbConnection.getFBURL(),caseno,raw_input("Type a note: "))
         list =  gitConnection.getUserRepo()
-        pullURL = gitHubConnect.createPullRequest("work-%d" % caseno,body,fbConnection.getIntegrationBranch(caseno),"work-%d" % caseno)
+        integrationBranch = fbConnection.getIntegrationBranch(caseno)
+        if integrationBranch=="Undecided":
+            raise Exception("Come on now, you've implemented the ticket before you decided what mielstone it was?  You have to decide!")
+        pullURL = gitHubConnect.createPullRequest("work-%d" % caseno,body,integrationBranch,"work-%d" % caseno)
         fbConnection.commentOn(caseno,"Pull request at %s\n%s" %(pullURL,body))
 
 
