@@ -1,8 +1,5 @@
-from subprocess import Popen, PIPE
 import os
 import sys
-from commands import getstatusoutput
-import commands
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -16,11 +13,37 @@ def WARN(str):
     
 
 class GitConnect:
+        
+    
+    @staticmethod
+    def clone(url,into):
+        import subprocess
+        import shlex
+        args = shlex.split("git clone %s %s" % (url,into))
+        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
+        if pipe.returncode != None:
+            raise Exception("Can't clone repository %s" % "".join(pipe.stdout.readlines()))
+        
+        
+    #
+    # status_output_wrapper
+    #
+    def statusOutput(self,cmd):
+        import subprocess
+        import shlex
+        args = shlex.split(cmd)
+        #with help from http://stackoverflow.com/questions/1193583/what-is-the-multiplatform-alternative-to-subprocess-getstatusoutput-older-comman
+        pipe = subprocess.Popen(args,cwd=self.wd,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
+        sts = pipe.returncode
+        output = "".join(pipe.stdout.readlines())
+        if sts is None: sts = 0
+        return sts,output
+    
     #
     # Checks to see if we're in a Git Repo
     #
     def checkForRepository(self):
-        (status, output) = commands.getstatusoutput("git status")
+        (status, output) = self.statusOutput("git status")
         if(status):
             print "ERROR: Not in git repository! Check your current directory!"
             quit()
@@ -32,7 +55,7 @@ class GitConnect:
     # Return (user,repo) for current working copy
     #
     def getUserRepo(self):
-        (status,output) = commands.getstatusoutput("git remote show origin")
+        (status,output) = self.statusOutput("git remote show origin")
         import re
         userRepo = re.search("(?<=Fetch URL: git@github.com:).*",output).group(0).split("/")
         userRepo[1] = userRepo[1].replace(".git","")
@@ -78,7 +101,7 @@ class GitConnect:
     #
     def fetch(self):
         self.checkForRepository()
-        (status,output) = commands.getstatusoutput("git fetch")
+        (status,output) = self.statusOutput("git fetch")
         if status:
             print "ERROR:  Cannot fetch! %s" % output
             quit()
@@ -98,16 +121,16 @@ class GitConnect:
         if pretend:
             return self.__mergeInPretend(BRANCH_NAME)
         print "Merging in %s..." % BRANCH_NAME
-        (status,output) = commands.getstatusoutput("git merge --no-ff %s" % BRANCH_NAME)
+        (status,output) = self.statusOutput("git merge --no-ff %s" % BRANCH_NAME)
         print output
         if status:
             print "ERROR: merge was unsuccessful."
             # play sounds!
-            getstatusoutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
+            self.statusOutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
             quit()
         else:
             # play sounds!
-            getstatusoutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
+            self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
         print "Use 'git push' to ship."
     
     #
@@ -139,11 +162,11 @@ class GitConnect:
             except:
                 print "ERROR: DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG."
 
-            (status,output) = commands.getstatusoutput("git pull origin %s" % self.getBranch())
+            (status,output) = self.statusOutput("git pull origin %s" % self.getBranch())
             if status:
                 print "ERROR:  Cannot pull! %s" % output
         else:
-            (status,output) = commands.getstatusoutput("git pull")
+            (status,output) = self.statusOutput("git pull")
             if status:
                 print "ERROR:  Cannot pull! %s" % output
                 quit()
@@ -152,10 +175,11 @@ class GitConnect:
     #
     # GitConnect Constructor
     #
-    def __init__(self):
-        currentDir = os.getcwd()
-        currentBranch = self.getBranch()
-        #print currentBranch + " in '" + currentDir + "'."
+    def __init__(self,wd=None):
+        if wd:
+            if not os.path.exists(wd):
+                raise IOError("Directory not found.")
+        self.wd=wd
     
     #
     # check if there are any unsaved changes since last commit. if there are,
@@ -164,7 +188,7 @@ class GitConnect:
     def checkForUnsavedChanges(self):
         output = self.checkForRepository()
         #if "git status" returns an error..."
-        if commands.getstatusoutput("git status --porcelain")[1]:
+        if self.statusOutput("git status --porcelain")[1]:
             WARN("WARNING: changes have been made to source code!")
             print "         use git stash or git commit to save changes"
             quit()
@@ -195,11 +219,11 @@ class GitConnect:
         return self.__checkoutExistingBranchRaw("work-%d" % CASE_NO)
         
     def __checkoutExistingBranchRaw(self,arg):
-        (checkoutNewBranchStatus, output) = commands.getstatusoutput("git checkout {0}".format(arg))
+        (checkoutNewBranchStatus, output) = self.statusOutput("git checkout {0}".format(arg))
         if(checkoutNewBranchStatus):
             print output
             return False
-        (status,output) = commands.getstatusoutput("git submodule update")
+        (status,output) = self.statusOutput("git submodule update")
         if status:
             print "Error updating a submodule"
         return True
@@ -249,7 +273,7 @@ class GitConnect:
 
         
         # get output from git branch command
-        (branchStatus, branchOutput) = commands.getstatusoutput("git branch")
+        (branchStatus, branchOutput) = self.statusOutput("git branch")
         
         #fetch git repo information
         self.fetch()
@@ -283,7 +307,7 @@ class GitConnect:
     #
     def pushChangesToOriginBranch(self, branch="master"):
         # try to push changes
-        (checkoutStatus, output) = commands.getstatusoutput("git push origin {0}".format(branch))
+        (checkoutStatus, output) = self.statusOutput("git push origin {0}".format(branch))
         if(checkoutStatus):
             print "ERROR: Could not push to origin!"
             quit()
@@ -292,7 +316,7 @@ class GitConnect:
    # set upstream tracking information
    #
     def setUpstream(self, branch, upstreamPath):
-        (status,output) = commands.getstatusoutput("git branch --set-upstream {0} {1}".format(branch, upstreamPath))
+        (status,output) = self.statusOutput("git branch --set-upstream {0} {1}".format(branch, upstreamPath))
         if status:
             print "ERROR: Can't make this a tracking branch..."
             print output
