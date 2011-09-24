@@ -110,10 +110,11 @@ class GitConnect:
         (status,ancestor) = self.statusOutput("git merge-base %s %s" % (BRANCH_NAME,self.getBranch()))
         if status:
             raise Exception("Unexpected error while pretending %d %s" % (status,ancestor))
-        print "a",ancestor
-        print "b",self.getBranch()
-        (status,output) = self.statusOutput("git merge-tree %s %s %s" % (ancestor,BRANCH_NAME,self.getBranch()))
-        print status, output
+        (status,output) = self.statusOutput("git merge-tree %s %s %s" % (ancestor,self.getBranch(),BRANCH_NAME))
+        #print status, output
+        if output.find("+<<<<<<<") != -1:
+            return False
+        else: return True
     #
     #
     #
@@ -330,7 +331,7 @@ class TestSequence(unittest.TestCase):
         self.g = GitConnect()
 
     def test_pretendmerge(self):
-        self.g.mergeIn("master",pretend=True)
+        self.assertFalse(self.g.mergeIn("remotes/origin/work-2622",pretend=True))
 
 
 if __name__ == '__main__':
