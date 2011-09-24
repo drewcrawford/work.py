@@ -82,10 +82,21 @@ class GitConnect:
         if status:
             print "ERROR:  Cannot fetch! %s" % output
             quit()
+            
+    def __mergeInPretend(self,BRANCH_NAME): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
+        (status,ancestor) = self.statusOutput("git merge-base %s %s" % (BRANCH_NAME,self.getBranch()))
+        if status:
+            raise Exception("Unexpected error while pretending %d %s" % (status,ancestor))
+        print "a",ancestor
+        print "b",self.getBranch()
+        (status,output) = self.statusOutput("git merge-tree %s %s %s" % (ancestor,BRANCH_NAME,self.getBranch()))
+        print status, output
     #
     #
     #
-    def mergeIn(self,BRANCH_NAME):
+    def mergeIn(self,BRANCH_NAME,pretend=False):
+        if pretend:
+            return self.__mergeInPretend(BRANCH_NAME)
         print "Merging in %s..." % BRANCH_NAME
         (status,output) = commands.getstatusoutput("git merge --no-ff %s" % BRANCH_NAME)
         print output
@@ -287,8 +298,19 @@ class GitConnect:
             print output
             raise Exception("Can't set upstream")
     
-    
-    
+import unittest
+
+
+class TestSequence(unittest.TestCase):
+    def setUp(self):
+        self.g = GitConnect()
+
+    def test_pretendmerge(self):
+        self.g.mergeIn("master",pretend=True)
+
+
+if __name__ == '__main__':
+    unittest.main(failfast=True)
     
     
     
