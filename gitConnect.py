@@ -34,7 +34,9 @@ class GitConnect:
         args = shlex.split(cmd)
         #with help from http://stackoverflow.com/questions/1193583/what-is-the-multiplatform-alternative-to-subprocess-getstatusoutput-older-comman
         pipe = subprocess.Popen(args,cwd=self.wd,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
+        pipe.wait()
         sts = pipe.returncode
+        #print "sts is",sts
         output = "".join(pipe.stdout.readlines())
         if sts is None: sts = 0
         return sts,output
@@ -295,7 +297,7 @@ class GitConnect:
                 WARN("THIS DESTRUCTIVE COMMAND DELETES ANY WORK ON work-%d, USE WITH CAUTION!" % CASE_NO)
             self.pull()
             return
-            
+        
         # if a branch does not exist, create one and check it out
         else:
             if not fromSpec:

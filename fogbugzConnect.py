@@ -655,12 +655,8 @@ class FogBugzConnect:
         if(resp):
             if (ixstatus):
                 self.fbConnection.resolve(ixBug=CASE_NO,ixStatus=ixstatus)
-            elif(isTestCase_CASENO):
-                tester = self.findTestCaseOwner(isTestCase_CASENO)
-                print "reassigning to ixperson",tester
-                self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=tester)
             else:
-                self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=self.optimalIxTester(CASE_NO))
+                self.fbConnection.resolve(ixBug=CASE_NO,ixPersonAssignedTo=7)
 
 
         else:
