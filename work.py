@@ -318,8 +318,14 @@ def projectPassTest():
 #
 #
 #
-def projectIntegrate(CASE_NO):
-    gitConnection = GitConnect()
+def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
+    if not defaultgitConnection:
+        interactive = True
+    else:
+        interactive = False
+    gitConnection = defaultgitConnection
+    
+    
     gitConnection.checkForUnsavedChanges()
 
     fbConnection = FogBugzConnect()
@@ -329,26 +335,30 @@ def projectIntegrate(CASE_NO):
 
 
     gitConnection.checkoutExistingBranch(CASE_NO)
+    
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
+    gitConnection.checkoutExistingBranchRaw(integrate_to)
+    
     gitHubConnection = GitHubConnect()
     gitHubConnection.closePullRequestbyName("work-%d" % CASE_NO)
     #check for test case
     try:
         (parent, test) = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True)
     except:
-            print "WARNING: no test case! Press enter to continue"
-            raw_input()
-
-
-    gitConnection.checkoutExistingBranchRaw(integrate_to)
-    gitConnection.pull()
-
+            if interactive:
+                print "WARNING: no test case! Press enter to continue"
+                raw_input()
+                
+    if not interactive:
+        if not gitConnection.mergeIn("work-%d" % CASE_NO,pretend=True):
+            return False
     gitConnection.mergeIn("work-%d" % CASE_NO)
 
     fbConnection.commentOn(CASE_NO,"Merged into %s" % integrate_to)
     fbConnection.closeCase(CASE_NO)
-
-    #close pull request
+    if not interactive:
+        gitConnection.pushChangesToOriginBranch(branch=integrate_to)
+    return True
 
 
 

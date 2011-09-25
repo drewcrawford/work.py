@@ -131,7 +131,11 @@ class GitConnect:
             quit()
         else:
             # play sounds!
-            self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
+            from work import get_setting_dict
+            if get_setting_dict().has_key("disablesounds") and get_setting_dict()["disablesounds"]=="YES":
+                pass
+            else:
+                self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
         print "Use 'git push' to ship."
     
     #
@@ -141,7 +145,10 @@ class GitConnect:
         self.checkForRepository()
         import ConfigParser
         c = ConfigParser.ConfigParser()
-        path = ".git/config"
+        if self.wd:
+            path = self.wd + "/.git/config"
+        else:
+            path =".git/config"
         import os
         for i in range(0,30):
             if os.path.exists(path): break
@@ -192,7 +199,7 @@ class GitConnect:
         if self.statusOutput("git status --porcelain")[1]:
             WARN("WARNING: changes have been made to source code!")
             print "         use git stash or git commit to save changes"
-            quit()
+            raise Exception("stacktraceplease")
         else:
             return
         
@@ -210,6 +217,7 @@ class GitConnect:
         #print bcolors.WARNING + output + bcolors.ENDC
 
         self.pull()
+        return True
 
 
     

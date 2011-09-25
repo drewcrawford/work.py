@@ -442,10 +442,15 @@ class FogBugzConnect:
     #
     #
     def ensureReadyForTest(self,CASE_NO):
+            if not self.isReadyForTest(CASE_NO):
+                print "Case %d is not ready for test!  (resolved or implemented)" % CASE_NO
+                quit()
+            
+    def isReadyForTest(self,CASE_NO):
         response = self.fbConnection.search(q=CASE_NO,cols="sStatus")
         if "Implemented" not in response.case.sstatus.contents[0] and "Fixed" not in response.case.sstatus.contents[0]:
-            print "Case %d is not ready for test!  (resolved or implemented)" % CASE_NO
-            quit()
+            return False
+        return True
 
     #
     #
