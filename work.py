@@ -683,10 +683,11 @@ class TestSequence(unittest.TestCase):
     def setUp(self):
         self.f = FogBugzConnect()
         pass
-    
+
     def test_autotest(self):
         #print "HERE OMG"
         autoTestMake(2453)
+        pass
         
     def test_fixup_fixfors(self):
         if not self.f.amIAdministrator():

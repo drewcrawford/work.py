@@ -21,8 +21,9 @@ class GitConnect:
         import shlex
         args = shlex.split("git clone %s %s" % (url,into))
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
-        if pipe.returncode != None:
-            raise Exception("Can't clone repository %s" % "".join(pipe.stdout.readlines()))
+        (output,err) = pipe.communicate()
+        if pipe.returncode != 0:
+            raise Exception("Can't clone repository %s" % output)
         
         
     #
