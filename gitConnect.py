@@ -24,6 +24,16 @@ class GitConnect:
         (output,err) = pipe.communicate()
         if pipe.returncode != 0:
             raise Exception("Can't clone repository %s" % output)
+        args = shlex.split("git submodule init")
+        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
+        (output,err) = pipe.communicate()
+        if not output:
+            raise Exception("Error initing a submodule")
+        args = shlex.split("git submodule update")
+        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
+        (output,err) = pipe.communicate()
+        if not output:
+            raise Exception("Error initing a submodule")
         
         
     #
