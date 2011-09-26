@@ -119,7 +119,7 @@ class FogBugz:
             'User-Agent': 'INSERT USERAGENTNAME',
             'Content-Type': content_type
             }
-        h.request('POST', selector, body, headers)
+        h.request('POST', selector, body.decode('utf-8').encode('ascii', 'replace'), headers)
         res = h.getresponse()
         return res.read()
     
