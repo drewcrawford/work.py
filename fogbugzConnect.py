@@ -723,6 +723,9 @@ import unittest
 class TestSequence(unittest.TestCase):
     def setUp(self):
         self.f = FogBugzConnect()
+    
+    def test_aa_fileupload(self):
+        self.f.fbConnection.edit(ixBug=3178,sEvent="test upload event",files={"filename1.txt":"Contents of filename1","filename2.txt":"Contents of filename2"})
 
     def test_ixBugChildren(self):
         self.assertTrue(len(self.f.ixChildren(2525))==1)

@@ -1,6 +1,8 @@
 import urllib
 import urllib2
 
+import httplib, mimetypes
+
 from BeautifulSoup import BeautifulSoup, CData
 
 class FogBugzAPIError(Exception):
@@ -43,7 +45,6 @@ class FogBugz:
         self._token = response.token.string
         if type(self._token) == CData:
                 self._token = self._token.encode('utf-8')
-        
     def logoff(self):
         """
         Logs off the current user.
@@ -56,11 +57,33 @@ class FogBugz:
         if self._token:
             kwargs["token"] = self._token
         try:
-            response = BeautifulSoup(self._opener.open(self._url+urllib.urlencode(kwargs))).response
+            if kwargs.has_key("files"):
+                files = []
+                fields = []
+                fileCount = 0
+                for key in kwargs:
+                    if key.startswith("file"):
+                        for filename in kwargs[key].keys():
+                            fileCount += 1
+                            files.append(("File%d" % fileCount,filename,kwargs[key][filename]))
+                            
+                            
+                    else:
+                        fields.append((key,str(kwargs[key])))
+                fields.append(("nFileCount",str(fileCount)))
+                from urlparse import urlsplit
+                parsed = urlsplit(self._url)
+                response = BeautifulSoup(self.post_multipart(parsed[1],parsed[2],fields,files)).response
+                    
+                
+            else:
+                response = BeautifulSoup(self._opener.open(self._url+urllib.urlencode(kwargs))).response
         except urllib2.URLError, e:
             raise FogBugzConnectionError(e)
         if response.error:
-            raise FogBugzAPIError('Error Code %s: %s' % (response.error['code'], response.error.string,))
+            print response
+            print response.error
+            raise FogBugzAPIError('Error Code %s: %s' % (response.error['code'], response.error.string))
         return response
 
     def __getattr__(self, name):
@@ -81,3 +104,53 @@ class FogBugz:
             self.__handlerCache[name] = handler
         return self.__handlerCache[name]
 
+
+# http://code.activestate.com/recipes/146306-http-client-to-post-using-multipartform-data/
+    def post_multipart(self,host, selector, fields, files):
+        """
+        Post fields and files to an http host as multipart/form-data.
+        fields is a sequence of (name, value) elements for regular form fields.
+        files is a sequence of (name, filename, value) elements for data to be uploaded as files
+        Return the server's response page.
+        """
+        content_type, body = self.encode_multipart_formdata(fields, files)
+        h = httplib.HTTPSConnection(host)
+        headers = {
+            'User-Agent': 'INSERT USERAGENTNAME',
+            'Content-Type': content_type
+            }
+        h.request('POST', selector, body, headers)
+        res = h.getresponse()
+        return res.read()
+    
+    def encode_multipart_formdata(self,fields, files):
+        """
+        fields is a sequence of (name, value) elements for regular form fields.
+        files is a sequence of (name, filename, value) elements for data to be uploaded as files
+        Return (content_type, body) ready for httplib.HTTP instance
+        """
+        BOUNDARY = 'ThIs_Is_tHe_bouNdaRY_$'
+        CRLF = '\r\n'
+        L = []
+        #L.append('Content-Type: multipart/form-data; boundary=%s' % BOUNDARY)
+        #L.append('')
+        for (key, value) in fields:
+            L.append('--' + BOUNDARY)
+            L.append('Content-Disposition: form-data; name="%s"' % key)
+            L.append('')
+            L.append(value)
+        for (key, filename, value) in files:
+            pass
+            L.append('--' + BOUNDARY)
+            L.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
+            L.append('Content-Type: %s' % self.get_content_type(filename))
+            L.append('')
+            L.append(value)
+        L.append('--' + BOUNDARY + '--')
+        L.append('')
+        body = CRLF.join(L)
+        content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
+        return content_type, body
+    
+    def get_content_type(self,filename):
+        return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
