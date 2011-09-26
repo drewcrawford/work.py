@@ -27,12 +27,12 @@ class GitConnect:
         args = shlex.split("git submodule init")
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=into,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
-        if not output:
+        if pipe.returncode:
             raise Exception("Error initing a submodule" + output + err)
         args = shlex.split("git submodule update")
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=into,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
-        if not output:
+        if pipe.returncode:
             raise Exception("Error initing a submodule" + output + err)
         
         
