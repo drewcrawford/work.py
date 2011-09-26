@@ -21,8 +21,9 @@ class GitConnect:
         import shlex
         args = shlex.split("git clone %s %s" % (url,into))
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
-        if pipe.returncode != None:
-            raise Exception("Can't clone repository %s" % "".join(pipe.stdout.readlines()))
+        (output,err) = pipe.communicate()
+        if pipe.returncode != 0:
+            raise Exception("Can't clone repository %s" % output)
         
         
     #
@@ -34,10 +35,10 @@ class GitConnect:
         args = shlex.split(cmd)
         #with help from http://stackoverflow.com/questions/1193583/what-is-the-multiplatform-alternative-to-subprocess-getstatusoutput-older-comman
         pipe = subprocess.Popen(args,cwd=self.wd,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
-        pipe.wait()
+        (output,stderr) = pipe.communicate()
+
         sts = pipe.returncode
         #print "sts is",sts
-        output = "".join(pipe.stdout.readlines())
         if sts is None: sts = 0
         return sts,output
     

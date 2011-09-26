@@ -539,13 +539,14 @@ class FogBugzConnect:
         resp=self.fbConnection.search(q=query, cols=cols)
         if enforceNoTestCases and self.__isTestCase(resp):
             print "Can't 'work start' a test case (maybe you meant 'work test'?)"
+            return
         if (resp and resp.case):
             #print resp
             if resp.case.fopen.contents[0] != "true":
                 print "FATAL ERROR: FogBugz case is closed"
                 quit()
             if resp.case.hrscurrest.contents[0] != "0":
-                self.fbConnection.startWork(ixBug=CASE_NO)
+                self.fbConnection.startWork(ixBug=CASE_NO,enforceNoTestCases=enforceNoTestCases)
                 self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
             else:
                 self.setEstimate(CASE_NO)
@@ -722,6 +723,9 @@ import unittest
 class TestSequence(unittest.TestCase):
     def setUp(self):
         self.f = FogBugzConnect()
+    
+    def test_aa_fileupload(self):
+        self.f.fbConnection.edit(ixBug=3178,sEvent="test upload event",files={"filename1.txt":"Contents of filename1","filename2.txt":"Contents of filename2"})
 
     def test_ixBugChildren(self):
         self.assertTrue(len(self.f.ixChildren(2525))==1)

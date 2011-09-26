@@ -18,6 +18,9 @@ from gitHubConnect import GitHubConnect
 import os
 import json
 
+PURGATORY_STMT = "Through no fault of the Enrichment Center, you have managed to trap yourself in this room."
+
+
 try:
     from magic import magic
 except:
@@ -272,6 +275,9 @@ def projectFailTest():
     reason = raw_input()
     if reason in reasons.keys():
         reason = reasons[reason]
+        purgatory = False
+    else:
+        purgatory = True
 
 
 
@@ -281,7 +287,10 @@ def projectFailTest():
 
     fbConnection = FogBugzConnect()
     (parent,test) = fbConnection.getCaseTuple(caseno)
-    fbConnection.reactivate(parent,fbConnection.findImplementer(caseno),"Terribly sorry, but your case FAILED a test: %s" % reason)
+    if purgatory: fbConnection.commentOn(parent,PURGATORY_STMT) #this signals buildbot to fail the case back to the implementer after PURGATORY expires
+    #buildbot special-cases Inspect passes to be in PURGATORY, so no signaling is required for the pass case
+    
+    fbConnection.fbConnection.assign(ixBug=parent,ixPersonAssignedTo=magic.BUILDBOT_IXPERSON,sEvent="Terribly sorry but your case FAILED a test: %s" % reason)
     fbConnection.stopWork(test)
 
     # play sounds!
@@ -309,6 +318,8 @@ def projectPassTest():
 
     fbConnection.resolveCase(test,ixstatus=ix)
     fbConnection.closeCase(test)
+    
+    fbConnection.fbConnection.assign(ixBug=parent,ixPersonAssignedTo=magic.BUILDBOT_IXPERSON)
 
     # play sounds!
     getstatusoutput("afplay -v 7 %s/media/longcheer.aiff" % sys.prefix)
@@ -672,10 +683,11 @@ class TestSequence(unittest.TestCase):
     def setUp(self):
         self.f = FogBugzConnect()
         pass
-    
+
     def test_autotest(self):
         #print "HERE OMG"
         autoTestMake(2453)
+        pass
         
     def test_fixup_fixfors(self):
         if not self.f.amIAdministrator():
