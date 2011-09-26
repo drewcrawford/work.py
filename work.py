@@ -44,7 +44,7 @@ def get_setting_dict():
 
         except:
             return {}
-            
+
 def set_setting_dict(dict):
         handle = open(magic.SETTINGSFILE, "w")
         json.dump(dict,handle,indent=2)
@@ -104,7 +104,7 @@ def projectStart(CASE_NO, fromSpec):
 
     #checkout or create branch with CASE_NO
     gitConnection.checkoutBranch(CASE_NO,fromSpec,fbConnection)
-    
+
     settings = get_setting_dict()
     if not "viewOnStart" in settings or settings["viewOnStart"] == 1:
         fbConnection.view(CASE_NO)
@@ -157,7 +157,7 @@ def projectShip():
         else:
             if not result:
                 while True:
-                    cont = raw_input("You're code failed lint analyses. Continue anyway? (Y/n)")
+                    cont = raw_input("Your code failed lint analyses. Continue anyway? (Y/n)")
                     if cont == "n":
                         exit()
                     if cont == "Y":
@@ -230,7 +230,7 @@ def projectTestMake(PARENT_CASE):
     print "Please provide an estimate for the test: ",
     est = raw_input()
     fbConnection.createTestCase(PARENT_CASE,estimate=est)
-    
+
 
 #
 #   Automatically creates a test case for a case, if it does not already exist.
@@ -289,7 +289,7 @@ def projectFailTest():
     (parent,test) = fbConnection.getCaseTuple(caseno)
     if purgatory: fbConnection.commentOn(parent,PURGATORY_STMT) #this signals buildbot to fail the case back to the implementer after PURGATORY expires
     #buildbot special-cases Inspect passes to be in PURGATORY, so no signaling is required for the pass case
-    
+
     fbConnection.fbConnection.assign(ixBug=parent,ixPersonAssignedTo=magic.BUILDBOT_IXPERSON,sEvent="Terribly sorry but your case FAILED a test: %s" % reason)
     fbConnection.stopWork(test)
 
@@ -318,7 +318,7 @@ def projectPassTest():
 
     fbConnection.resolveCase(test,ixstatus=ix)
     fbConnection.closeCase(test)
-    
+
     fbConnection.fbConnection.assign(ixBug=parent,ixPersonAssignedTo=magic.BUILDBOT_IXPERSON)
 
     # play sounds!
@@ -335,8 +335,8 @@ def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
     else:
         interactive = False
     gitConnection = defaultgitConnection
-    
-    
+
+
     gitConnection.checkForUnsavedChanges()
 
     fbConnection = FogBugzConnect()
@@ -346,10 +346,10 @@ def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
 
 
     gitConnection.checkoutExistingBranch(CASE_NO)
-    
+
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     gitConnection.checkoutExistingBranchRaw(integrate_to)
-    
+
     gitHubConnection = GitHubConnect()
     gitHubConnection.closePullRequestbyName("work-%d" % CASE_NO)
     #check for test case
@@ -359,7 +359,7 @@ def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
             if interactive:
                 print "WARNING: no test case! Press enter to continue"
                 raw_input()
-                
+
     if not interactive:
         if not gitConnection.mergeIn("work-%d" % CASE_NO,pretend=True):
             return False
@@ -401,7 +401,7 @@ def complain(ixComplainAboutPerson):
         if est - act < 0:
             print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"I'll give you credit:  I guess you ARE listening to me.  But for the record:  You don't have to go THAT slowly.")
-        
+
 
 #
 # Work.py config. Allows user to create/set a setting and insert it into
@@ -471,14 +471,14 @@ def recharge(fr,to):
     for record in my_records:
         print "%d: %s-%s" % (r,record.dtstart.contents[0],record.dtend.contents[0])
         r += 1
-        
+
     def parse_range(astr): # http://stackoverflow.com/questions/4726168/parsing-command-line-input-for-numbers
         result=set()
         for part in astr.split(','):
             x=part.split('-')
             result.update(range(int(x[0]),int(x[-1])+1))
         return sorted(result)
-        
+
     strl = raw_input("records  (syntax like 22-27,51-64): ")
     results = parse_range(strl)
     for result in results:
@@ -509,7 +509,7 @@ def chargeback(case):
     fbConnection = FogBugzConnect()
     events = fbConnection.allEvents(case)
     total_time = 0
-    
+
     def parsecase(match):
         if match:
             (fromt,tot) = match.groups(0)
@@ -521,11 +521,11 @@ def chargeback(case):
     for event in events:
         match = re.match("recharge: A record was removed from this ticket: From (.*) to (.*)(?=ixPerson)",event)
         total_time += parsecase(match)
-        
+
         match = re.match("recharge: A record was added to this ticket: From (.*) to (.*)(?=ixPerson)",event)
 
         total_time -= parsecase(match)
-        
+
     total_time += fbConnection.getElapsed(case) * 60.0 * 60.0
     (pcase,test) = fbConnection.getCaseTuple(case,oldTestCasesOK=True,exceptOnFailure=False)
     if test:
@@ -539,7 +539,7 @@ def _fixFors_to_EBS_dates():
     print "--------SETTING DATES PER EBS-----------"
     fbConnection = FogBugzConnect()
     fixfors = fbConnection.dependencyOrder(fbConnection.listFixFors())
-    
+
     for item in fixfors:
         name = fbConnection.nameForFixFor(fbConnection.fixForDetail(item))
         if name.startswith("Never"): continue
@@ -547,7 +547,7 @@ def _fixFors_to_EBS_dates():
         date = fbConnection.getShipDate(item)
         from dateutil.parser import parse
         fbConnection.editFixForShipDate(item,parse(date))
-    
+
 #sets each test milestone to be one day following the appropriate release milestone.
 def _fixFors_test_quickly_dates():
     print "--------FIXING TEST MILESTONES-----------"
@@ -558,7 +558,7 @@ def _fixFors_test_quickly_dates():
     import datetime
     #print fixfors
     for testMilestone in fixfors:
-        
+
         testMilestone_raw = fbConnection.fixForDetail(testMilestone)
         testName = fbConnection.nameForFixFor(testMilestone_raw)
         if testName.startswith("Never"): continue
@@ -688,17 +688,17 @@ class TestSequence(unittest.TestCase):
         #print "HERE OMG"
         autoTestMake(2453)
         pass
-        
+
     def test_fixup_fixfors(self):
         if not self.f.amIAdministrator():
             print "You can't run test_fixup_fixfors because you're not an administrator."
             return
         fixUp()
-    
+
     def test_chargeback(self):
         f = FogBugzConnect()
         self.assertAlmostEqual(chargeback(1111),-5.123611111111112) #I'm not 100% sure that this test makes any sense
-        
+
         #The sum of a set of tickets should be the same as the sum of the chargebacked tickets.
         #Note that chargeback adds up the test cases for us, but f.getElapsed does not
         self.assertAlmostEqual(chargeback(1997)+chargeback(2427)+chargeback(2431)+chargeback(2695),f.getElapsed(1997)+f.getElapsed(2427)+f.getElapsed(2431)+f.getElapsed(2695)+f.getElapsed(2186)+f.getElapsed(2521))
