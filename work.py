@@ -381,7 +381,7 @@ def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
 def projectIntegrateMake(CASE_NO,fromSpec):
     if not fromSpec:
         print "Sorry, you have to manually specify a fromspec.  Ask somebody."
-        quit()
+        raise Exception("stacktraceplease")
     gitConnection = GitConnect()
     gitConnection.createNewRawBranch(CASE_NO,fromSpec)
 
@@ -414,7 +414,7 @@ def workConfig(settingString):
     ALLOWED_SETTINGS = ["viewOnStart"]
     if len(settingString.split("=")) < 2:
         printUsageString()
-        quit()
+        raise Exception("stacktraceplease")
 
     setting = settingString.split("=")[0]
     value = settingString.split("=")[1]
@@ -426,7 +426,7 @@ def workConfig(settingString):
         fbConnection.setSetting(setting, value)
     else:
         printUsageString()
-        quit()
+        raise Exception("stacktraceplease")
 
 #
 #
@@ -498,7 +498,7 @@ def recharge(fr,to):
     newEst = (oldEst - time_interval) / 60.0 / 60.0
     if newEst <= 0: newEst = 1/60.0
     print "Setting estimate to",newEst
-    fbConnection.setEstimate(to,timespan="%f hours" % newEst)
+    fbConnection.setEstimate(fr,timespan="%f hours" % newEst)
 #fbConnection.deleteTimeRecord(record.ixinterval.contents[0])
     if mustOpen: fbConnection.closeCase(to)
 
@@ -537,28 +537,34 @@ def chargeback(case):
 
 
 #sets a reasonable completion date per the EBS estimate for the milestone
-def _fixFors_to_EBS_dates():
+def _fixFors_to_EBS_dates(abbreviatedTest=False):
     print "--------SETTING DATES PER EBS-----------"
     fbConnection = FogBugzConnect()
     fixfors = fbConnection.dependencyOrder(fbConnection.listFixFors())
-
+    if abbreviatedTest:
+        fixfors = fixfors[:5]
     for item in fixfors:
         name = fbConnection.nameForFixFor(fbConnection.fixForDetail(item))
         if name.startswith("Never"): continue
         print "processing",name,item
         date = fbConnection.getShipDate(item)
         from dateutil.parser import parse
-        fbConnection.editFixForShipDate(item,parse(date))
-
+        if not abbreviatedTest:
+            fbConnection.editFixForShipDate(item,parse(date))
+        #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
+        else:
+            print "Not editing the ship date in %s to %s because this is an abbreviated test." % (item,date)
+    
 #sets each test milestone to be one day following the appropriate release milestone.
-def _fixFors_test_quickly_dates():
+def _fixFors_test_quickly_dates(abbreviatedTest=False):
     print "--------FIXING TEST MILESTONES-----------"
     fbConnection = FogBugzConnect()
     fixfors_raw = fbConnection.listFixFors()
     fixfors = fbConnection.dependencyOrder(fixfors_raw)
     from dateutil.parser import parse
     import datetime
-    #print fixfors
+    if abbreviatedTest:
+        fixfors = fixfors[:5]
     for testMilestone in fixfors:
 
         testMilestone_raw = fbConnection.fixForDetail(testMilestone)
@@ -584,11 +590,15 @@ def _fixFors_test_quickly_dates():
         date = item.dt.contents[0]
         newDate = parse(date)+datetime.timedelta(hours=6) #turns out that using 1 day produces weird results.  If the next implementation milestone is completed within 24 hours, lots of weird things can happen
         print "setting",testName,"to",newDate
-        fbConnection.editFixForShipDate(testMilestone,newDate)
+        if not abbreviatedTest:
+            fbConnection.editFixForShipDate(testMilestone,newDate)
+        #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
+        else:
+            print "Not editing the ship date in %s to %s because this is an abbreviated test." % (testMilestone,newDate)
 
-def fixUp():
-    _fixFors_to_EBS_dates()
-    _fixFors_test_quickly_dates()
+def fixUp(abbreviatedTest=False):
+    _fixFors_to_EBS_dates(abbreviatedTest=abbreviatedTest)
+    _fixFors_test_quickly_dates(abbreviatedTest=abbreviatedTest)
 
 
 ################################################################################
@@ -692,11 +702,8 @@ class TestSequence(unittest.TestCase):
         pass
 
     def test_fixup_fixfors(self):
-        if not self.f.amIAdministrator():
-            print "You can't run test_fixup_fixfors because you're not an administrator."
-            return
-        fixUp()
-
+        fixUp(abbreviatedTest=True)
+    
     def test_chargeback(self):
         f = FogBugzConnect()
         self.assertAlmostEqual(chargeback(1111),-5.123611111111112) #I'm not 100% sure that this test makes any sense

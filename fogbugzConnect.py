@@ -10,7 +10,7 @@ try:
     import keyring
 except:
     print "Could not import keyring API"
-    quit()
+    raise Exception("stacktraceplease")
 
 
 
@@ -20,7 +20,7 @@ try:
 except Exception as e:
     print "Could not import FogBugz API because: ", e
 
-    quit()
+    raise Exception("stacktraceplease")
 from xml.dom.minidom import parseString
 
 TEST_IXCATEGORY=6
@@ -444,7 +444,7 @@ class FogBugzConnect:
     def ensureReadyForTest(self,CASE_NO):
             if not self.isReadyForTest(CASE_NO):
                 print "Case %d is not ready for test!  (resolved or implemented)" % CASE_NO
-                quit()
+                raise Exception("stacktraceplease")
             
     def isReadyForTest(self,CASE_NO):
         response = self.fbConnection.search(q=CASE_NO,cols="sStatus")
@@ -544,7 +544,7 @@ class FogBugzConnect:
             #print resp
             if resp.case.fopen.contents[0] != "true":
                 print "FATAL ERROR: FogBugz case is closed"
-                quit()
+                raise Exception("stacktraceplease")
             if resp.case.hrscurrest.contents[0] != "0":
                 self.fbConnection.startWork(ixBug=CASE_NO,enforceNoTestCases=enforceNoTestCases)
                 self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
@@ -553,7 +553,7 @@ class FogBugzConnect:
                 self.startCase(CASE_NO)
         else:
             print "ERROR: FogBugz case does not exist or isn't assigned to you!!"
-            quit()
+            raise Exception("stacktraceplease")
         return
 
     #
@@ -730,6 +730,10 @@ class TestSequence(unittest.TestCase):
     def test_ixBugChildren(self):
         self.assertTrue(len(self.f.ixChildren(2525))==1)
         self.assertTrue(self.f.ixChildren(407)==[2978])
+        
+    def test_setestimate(self):
+        self.f.setEstimate(3262,timespan="0.0586111111111 hours")
+        self.assertAlmostEqual(self.f.getEstimate(3262),0.06)
 
     def test_annoyables(self):
         if not self.f.amIAdministrator():
