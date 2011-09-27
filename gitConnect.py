@@ -59,7 +59,7 @@ class GitConnect:
         (status, output) = self.statusOutput("git status")
         if(status):
             print "ERROR: Not in git repository! Check your current directory!"
-            quit()
+            raise Exception("stacktraceplease")
         else: 
             return output
         
@@ -117,7 +117,7 @@ class GitConnect:
         (status,output) = self.statusOutput("git fetch")
         if status:
             print "ERROR:  Cannot fetch! %s" % output
-            quit()
+            raise Exception("stacktraceplease")
             
     def __mergeInPretend(self,BRANCH_NAME): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
         (status,ancestor) = self.statusOutput("git merge-base %s %s" % (BRANCH_NAME,self.getBranch()))
@@ -141,7 +141,7 @@ class GitConnect:
             print "ERROR: merge was unsuccessful."
             # play sounds!
             self.statusOutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
-            quit()
+            raise Exception("stacktraceplease")
         else:
             # play sounds!
             from work import get_setting_dict
@@ -190,7 +190,7 @@ class GitConnect:
             (status,output) = self.statusOutput("git pull")
             if status:
                 print "ERROR:  Cannot pull! %s" % output
-                quit()
+                raise Exception("stacktraceplease")
         print "Success!"
     
     #
@@ -225,7 +225,7 @@ class GitConnect:
         if not output:
             print "ERROR: could not checkout existing branch: %s" % output
             raise Exception("stacktraceplease")
-            quit()
+            raise Exception("stacktraceplease")
 
         #print bcolors.WARNING + output + bcolors.ENDC
 
@@ -256,7 +256,7 @@ class GitConnect:
         result = self.__checkoutExistingBranchRaw(BRANCH_NAME)
         if not result:
             print "ERROR: could not checkout existing branch: %s" % BRANCH_NAME
-            quit()
+            raise Exception("stacktraceplease")
         return result
 
     #
@@ -267,7 +267,7 @@ class GitConnect:
         if(fromSpec):
             if fromSpec=="Undecided":
                 print "Undecided isn't a valid fromspec.  (Maybe set the milestone on the ticket?)"
-                quit()
+                raise Exception("stacktraceplease")
             self.checkoutExistingBranchRaw(fromSpec)
         #regardless, we need our integration branch to be up to date
         self.pull()
@@ -332,7 +332,7 @@ class GitConnect:
         (checkoutStatus, output) = self.statusOutput("git push origin {0}".format(branch))
         if(checkoutStatus):
             print "ERROR: Could not push to origin!"
-            quit()
+            raise Exception("stacktraceplease")
 
    #
    # set upstream tracking information
