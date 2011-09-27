@@ -498,7 +498,7 @@ def recharge(fr,to):
     newEst = (oldEst - time_interval) / 60.0 / 60.0
     if newEst <= 0: newEst = 1/60.0
     print "Setting estimate to",newEst
-    fbConnection.setEstimate(to,timespan="%f hours" % newEst)
+    fbConnection.setEstimate(fr,timespan="%f hours" % newEst)
 #fbConnection.deleteTimeRecord(record.ixinterval.contents[0])
     if mustOpen: fbConnection.closeCase(to)
 
