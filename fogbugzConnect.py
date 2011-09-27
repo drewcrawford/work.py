@@ -730,6 +730,10 @@ class TestSequence(unittest.TestCase):
     def test_ixBugChildren(self):
         self.assertTrue(len(self.f.ixChildren(2525))==1)
         self.assertTrue(self.f.ixChildren(407)==[2978])
+        
+    def test_setestimate(self):
+        self.f.setEstimate(3262,timespan="0.0586111111111 hours")
+        self.assertAlmostEqual(self.f.getEstimate(3262),0.06)
 
     def test_annoyables(self):
         if not self.f.amIAdministrator():
