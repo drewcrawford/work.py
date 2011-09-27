@@ -242,6 +242,8 @@ def autoTestMake(CASE_NO,fbConnection=None):
     if not test:
         ixTester = fbConnection.optimalIxTester(CASE_NO)
         fbConnection.createTestCase(CASE_NO,ixTester=ixTester)
+        return True
+    return False
 
 def projectStartTest(CASE_NO):
     gitConnection = GitConnect()
