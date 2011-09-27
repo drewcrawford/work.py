@@ -245,6 +245,9 @@ class GitConnect:
         if(checkoutNewBranchStatus):
             print output
             return False
+        (status,output) = self.statusOutput("git submodule init")
+        if status:
+            print "could not init submodule"
         (status,output) = self.statusOutput("git submodule update")
         if status:
             print "Error updating a submodule"
