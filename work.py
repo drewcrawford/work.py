@@ -381,7 +381,7 @@ def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
 def projectIntegrateMake(CASE_NO,fromSpec):
     if not fromSpec:
         print "Sorry, you have to manually specify a fromspec.  Ask somebody."
-        quit()
+        raise Exception("stacktraceplease")
     gitConnection = GitConnect()
     gitConnection.createNewRawBranch(CASE_NO,fromSpec)
 
@@ -414,7 +414,7 @@ def workConfig(settingString):
     ALLOWED_SETTINGS = ["viewOnStart"]
     if len(settingString.split("=")) < 2:
         printUsageString()
-        quit()
+        raise Exception("stacktraceplease")
 
     setting = settingString.split("=")[0]
     value = settingString.split("=")[1]
@@ -426,7 +426,7 @@ def workConfig(settingString):
         fbConnection.setSetting(setting, value)
     else:
         printUsageString()
-        quit()
+        raise Exception("stacktraceplease")
 
 #
 #

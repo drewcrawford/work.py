@@ -6,7 +6,7 @@ try:
     import keyring
 except:
     print "Could not import keyring API"
-    quit()
+    raise Exception("stacktraceplease")
 
 import urllib2
 from urllib import quote
