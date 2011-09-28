@@ -33,7 +33,7 @@ except:
 
 from distutils.core import setup
 from os import system
-system("git rev-parse HEAD > /usr/local/bin/.work.version")
+system("git rev-parse HEAD > /usr/local/etc/.work.version")
 setup(name='work.py',version='1.0',
 py_modules=['fogbugz','gitConnect','fogbugzConnect','gitHubConnect'],
 scripts=['work.py'],
