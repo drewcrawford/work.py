@@ -427,7 +427,7 @@ def workConfig(settingString):
     else:
         printUsageString()
         raise Exception("stacktraceplease")
-
+#
 #
 #
 #
@@ -620,7 +620,7 @@ if __name__=="__main__":
     latest_version_no = json.loads(urlopen("https://api.github.com/repos/drewcrawford/work.py/git/refs/heads/master").read())["object"]["sha"]
     try:
         f = open("/usr/local/bin/.work.version")
-        our_version_no = f.read()
+        our_version_no = f.read().strip()
         f.close()
     except:
         our_version_no = "UNKNOWN"
