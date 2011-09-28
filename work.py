@@ -616,14 +616,18 @@ if __name__=="__main__":
 
     #check for updates
     from urllib2 import urlopen
-    version_no = urlopen("http://dl.dropbox.com/u/59605/work_autoupdate.txt").read()
-    #########################
-    WORK_PY_VERSION_NUMBER=23
-    #########################
-    import re
-    if re.search("(?<=WORK_PY_VERSION_NUMBER=)\d+",version_no).group(0) != str(WORK_PY_VERSION_NUMBER):
+    import json
+    latest_version_no = json.loads(urlopen("https://api.github.com/repos/drewcrawford/work.py/git/refs/heads/master").read())["object"]["sha"]
+    try:
+        f = open("/usr/local/bin/.work.version")
+        our_version_no = f.read()
+        f.close()
+    except:
+        our_version_no = "UNKNOWN"
+    if latest_version_no != our_version_no:
         from gitConnect import bcolors
-        print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE...',bcolors.ENDC
+        print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE... (repo is %s, local is %s)' % (latest_version_no[:6],our_version_no[:6]),bcolors.ENDC
+
 
 
 
