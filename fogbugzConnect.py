@@ -261,7 +261,7 @@ class FogBugzConnect:
                 depdate = parse(depdetail.dt.contents[0])
                 if depdate > shipDate:
                     override = True
-                    shipDate = str(depdate + datetime.timedelta(hours=1))
+                    shipDate = depdate + datetime.timedelta(hours=1)
             if override:
                 print "Ship date overridden to ",shipDate
         detail = self.fixForDetail(ixFixFor)
