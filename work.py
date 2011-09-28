@@ -618,9 +618,12 @@ if __name__=="__main__":
     from urllib2 import urlopen
     import json
     latest_version_no = json.loads(urlopen("https://api.github.com/repos/drewcrawford/work.py/git/refs/heads/master").read())["object"]["sha"]
-    f = open("/usr/local/bin/.work.version")
-    our_version_no = f.read()
-    f.close()
+    try:
+        f = open("/usr/local/bin/.work.version")
+        our_version_no = f.read()
+        f.close()
+    except:
+        our_version_no = "UNKNOWN"
     if latest_version_no != our_version_no:
         from gitConnect import bcolors
         print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE... (repo is %s, local is %s)' % (latest_version_no[:6],our_version_no[:6]),bcolors.ENDC
