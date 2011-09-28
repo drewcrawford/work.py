@@ -51,6 +51,10 @@ class GitConnect:
         #print "sts is",sts
         if sts is None: sts = 0
         return sts,output
+
+    def resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND(self):
+        self.statusOutput("git clean -d -x -f")
+        self.statusOutput("git reset --hard")
     
     #
     # Checks to see if we're in a Git Repo
