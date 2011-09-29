@@ -10,7 +10,7 @@ try:
     import keyring
 except:
     print "Could not import keyring API"
-    raise Exception("stacktraceplease")
+    #raise Exception("stacktraceplease")
 
 
 
@@ -20,7 +20,7 @@ try:
 except Exception as e:
     print "Could not import FogBugz API because: ", e
 
-    raise Exception("stacktraceplease")
+    #raise Exception("stacktraceplease")
 from xml.dom.minidom import parseString
 
 TEST_IXCATEGORY=6
@@ -118,18 +118,21 @@ class FogBugzConnect:
         from work import get_setting_dict
         self.email = get_setting_dict()['email']
         #self.username = self.getCredentials()['username']
-        password = keyring.get_password('fogbugz', self.email)
-        if not password:
-            while True:
-                if not password:
-                    import getpass
-                    password = getpass.getpass("FogBugz password: ")
-                else:
-                    keyring.set_password('fogbugz', self.email, password)
-                    break
+        if get_setting_dict().has_key('explicitFBToken'):
+            self.fbConnection.logonTok(get_setting_dict()['explicitFBToken'])
+        else:
+            password = keyring.get_password('fogbugz', self.email)
+            if not password:
+                while True:
+                    if not password:
+                        import getpass
+                        password = getpass.getpass("FogBugz password: ")
+                    else:
+                        keyring.set_password('fogbugz', self.email, password)
+                        break
 
-        #connect to fogbugz with fbapi and login
-        self.fbConnection.logon(self.email, password)
+            #connect to fogbugz with fbapi and login
+            self.fbConnection.logon(self.email, password)
         for person in self.fbConnection.listPeople().people:
             if person.semail.contents[0]==self.email:
                 self.username = person.sfullname.contents[0].encode('utf-8')

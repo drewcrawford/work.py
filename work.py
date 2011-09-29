@@ -37,6 +37,7 @@ except ImportError:
 
 def get_setting_dict():
         try:
+
             handle = open(magic.SETTINGSFILE, "r")
             result = json.load(handle)
             handle.close()
