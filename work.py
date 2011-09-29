@@ -37,6 +37,7 @@ except ImportError:
 
 def get_setting_dict():
         try:
+
             handle = open(magic.SETTINGSFILE, "r")
             result = json.load(handle)
             handle.close()
@@ -619,7 +620,7 @@ if __name__=="__main__":
     import json
     latest_version_no = json.loads(urlopen("https://api.github.com/repos/drewcrawford/work.py/git/refs/heads/master").read())["object"]["sha"]
     try:
-        f = open("/usr/local/bin/.work.version")
+        f = open("/usr/local/etc/.work.version")
         our_version_no = f.read().strip()
         f.close()
     except:
