@@ -29,6 +29,8 @@ class FogBugz:
         self._url = url + soup.response.url.string
         self.currentFilter = None
 
+    def logonTok(self,token):
+        self._token = token
     def logon(self, username, password):
         """
         Logs the user on to FogBugz.
