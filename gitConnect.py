@@ -39,7 +39,7 @@ class GitConnect:
     # repo-config
     #
     def repoConfig(self,key,value):
-        self.statusOutputExcept("git config %s %s" % key,value)
+        self.statusOutputExcept("git config %s %s" % (key,value))
 
         
     #
