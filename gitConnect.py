@@ -35,6 +35,12 @@ class GitConnect:
         if pipe.returncode:
             raise Exception("Error initing a submodule" + output + err)
         
+    #
+    # repo-config
+    #
+    def repoConfig(self,key,value):
+        self.statusOutputExcept("git config %s %s" % key,value)
+
         
     #
     # status_output_wrapper
@@ -51,6 +57,11 @@ class GitConnect:
         #print "sts is",sts
         if sts is None: sts = 0
         return sts,output
+    
+    def statusOutputExcept(self,cmd):
+        (status,output) = self.statusOutput(cmd)
+        if status:
+            raise Exception("Command returned invalid status: %d; %s; %s" % (status,cmd,output))
 
     def resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND(self):
         self.statusOutput("git clean -d -x -f")
@@ -74,7 +85,7 @@ class GitConnect:
     def getUserRepo(self):
         (status,output) = self.statusOutput("git remote show origin")
         import re
-        userRepo = re.search("(?<=Fetch URL: git@github.com:).*",output).group(0).split("/")
+        userRepo = re.search("(?<=Fetch URL:)[^:]+:(.*)",output).group(1).split("/")
         userRepo[1] = userRepo[1].replace(".git","")
         return userRepo
         
