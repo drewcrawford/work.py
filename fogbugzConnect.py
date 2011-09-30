@@ -840,16 +840,13 @@ class TestSequence(unittest.TestCase):
     def test_admin(self):
         print "I am an administrator:",self.f.amIAdministrator()
 
-    def test_prettify(self):
-        j = self.f.listFixFors()
-        self.assertTrue(self.f.prettify(j).has_key["ixfixfor"])
     def test_burndown(self):
         print self.f.getBurndown(ixFixFor=43)
 
     def test_listtimerecords(self):
         records = self.f.listTimeRecords(1111)
         self.assertEqual(len(records),1)
-        self.assertEqual(self.f.sumTimeRecords(self.f.prettify(records)),26)
+        self.assertEqual(self.f.sumTimeRecords(records),26)
 
     def test_workingschedule(self):
         import datetime
