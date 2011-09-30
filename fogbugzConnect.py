@@ -27,8 +27,40 @@ TEST_IXCATEGORY=6
 class FogBugzConnect:
 
 
+    """
+    def prettify(self,fogbugzObj,omitTopLevel=False):
+        Going forward, this is the recommended method to parse objects from BeautifulSoup.
 
-
+        from BeautifulSoup import CData, NavigableString
+        if omitTopLevel: return [self.prettify(child,omitTopLevel=False) for child in fogbugzObj]
+        adict = {}
+        done_something = False
+        def append_or_someth(dict,key,obj):
+            if not dict.has_key(key): dict[key]=obj
+            elif isinstance(dict[key],list): dict[key].append(obj)
+            else: dict[key] = [dict[key],obj]
+        for k in fogbugzObj:
+            if str(k).strip()=="": continue #schedule likes to insert random newlines
+            if not hasattr(k,"name"):
+                if isinstance(k,CData): 
+                    assert(not done_something)
+                    #print "fastreturn",k
+                    return k.encode('utf-8')
+                elif isinstance(k,NavigableString):
+                    assert(not done_something)
+                    #print "fastreturn",k
+                    return k
+                else:
+                    print "unknown class",k.__class__
+                    done_something = True
+                    append_or_someth(adict,"other",str(k))
+            else:
+                done_something = True
+                #print "push",k.name
+                krepr = self.prettify(k.contents,omitTopLevel=False)
+                append_or_someth(adict,k.name,krepr)
+        #print "returning",adict
+        return adict"""
     #
     #
     #
@@ -281,6 +313,13 @@ class FogBugzConnect:
         #print array
         count = len(array)
         return array[count/2].contents[0]
+    #
+    #
+    #
+    def getBurndown(self,ixFixFor,cumulativeHours=True,ixPriority=4):
+        array = list (self.fbConnection.viewHoursRemainingReport(ixFixFor=ixFixFor,ixPriority=ixPriority,fThisFixForOnly=not cumulativeHours).rghr.array)
+        count = len(array)
+        return array[count/2].contents[0]
 
     #
     #
@@ -496,8 +535,43 @@ class FogBugzConnect:
     #
     # List time records for a case
     #
-    def listTimeRecords(self,CASE_NO):
-        return list(self.fbConnection.listIntervals(ixPerson=self.ixPerson,ixBug=CASE_NO).intervals)
+    def listTimeRecords(self,CASE_NO="",dateStart="",dateEnd="",ixPerson=None):
+        if not ixPerson:
+            ixPerson = self.ixPerson
+        return list(self.fbConnection.listIntervals(ixPerson=ixPerson,ixBug=CASE_NO,dtStart=dateStart,dtEnd=dateEnd).intervals)
+
+    def sumTimeRecords(self,prettyRecordList):
+        secs = 0
+        from dateutil.parser import parse
+        for record in prettyRecordList:
+            #print record
+            start = parse(record.dtstart.string)
+            if not record.dtend.contents: continue
+            end = parse(record.dtend.string)
+            secs += (end - start).seconds
+        return secs
+
+    def expectedWorkHours(self,ixPerson,date):
+        import datetime
+        from dateutil.tz import tzutc
+        schedule = self.fbConnection.listWorkingSchedule(ixPerson=ixPerson)
+        # http://support.fogcreek.com/default.asp?fogbugz.4.60277.3
+        start = float(schedule.nworkdaystarts.string)
+        end = float(schedule.nworkdayends.string)
+        hours_worked =  abs(end - start)
+        if start > end: hours_worked -= 24
+        hours_worked = abs(hours_worked)
+        if schedule.fhaslunch.string!="false":hours_worked -= float(schedule.hrslunchlength.string)
+        days = ["sunday","monday","tuesday","wednesday","thursday","friday"]
+        workdays = filter(lambda x: str(x).strip() != "",list(schedule.rgworkdays))
+        #print workdays
+        if workdays[date.weekday()].string=="true":
+            return hours_worked
+        else:
+            return 0.0
+
+        print hours_worked
+        return schedule
 
     #
     # deleting time records
@@ -765,6 +839,21 @@ class TestSequence(unittest.TestCase):
 
     def test_admin(self):
         print "I am an administrator:",self.f.amIAdministrator()
+
+    def test_prettify(self):
+        j = self.f.listFixFors()
+        self.assertTrue(self.f.prettify(j).has_key["ixfixfor"])
+    def test_burndown(self):
+        print self.f.getBurndown(ixFixFor=43)
+
+    def test_listtimerecords(self):
+        records = self.f.listTimeRecords(1111)
+        self.assertEqual(len(records),1)
+        self.assertEqual(self.f.sumTimeRecords(self.f.prettify(records)),26)
+
+    def test_workingschedule(self):
+        import datetime
+        print "Drew works %f hours" % self.f.expectedWorkHours(ixPerson=2,date=datetime.datetime.now())
 
 
 if __name__ == '__main__':
