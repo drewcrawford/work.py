@@ -20,10 +20,10 @@ class GitConnect:
         import subprocess
         import shlex
         args = shlex.split("git clone %s %s" % (url,into))
-        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
+        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
         if pipe.returncode != 0:
-            raise Exception("Can't clone repository %s" % output)
+            raise Exception("Can't clone repository %s" % output+err)
         args = shlex.split("git submodule init")
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=into,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
@@ -40,7 +40,15 @@ class GitConnect:
     #
     def repoConfig(self,key,value):
         self.statusOutputExcept("git config %s %s" % (key,value))
-
+    
+    #
+    # Add files to the index
+    #
+    def add(self,path_desc):
+        self.statusOutputExcept("git add %s" % path_desc)
+    
+    def commit(self,msg):
+        self.statusOutputExcept("git commit -m '%s'" % msg)
         
     #
     # status_output_wrapper
@@ -115,6 +123,13 @@ class GitConnect:
         output = self.checkForRepository()
         output = output.split("\n")[0].split(" ")[3]
         return output
+
+    #
+    # Gets the current commit ID (SHA)
+    #
+    def getSHA(self):
+        (status,output) = self.statusOutput("git rev-parse HEAD")
+        return output.strip()
     
     #
     #
