@@ -20,10 +20,10 @@ class GitConnect:
         import subprocess
         import shlex
         args = shlex.split("git clone %s %s" % (url,into))
-        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
+        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
         if pipe.returncode != 0:
-            raise Exception("Can't clone repository %s" % output)
+            raise Exception("Can't clone repository %s" % output+err)
         args = shlex.split("git submodule init")
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=into,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
@@ -40,7 +40,15 @@ class GitConnect:
     #
     def repoConfig(self,key,value):
         self.statusOutputExcept("git config %s %s" % (key,value))
-
+    
+    #
+    # Add files to the index
+    #
+    def add(self,path_desc):
+        self.statusOutputExcept("git add %s" % path_desc)
+    
+    def commit(self,msg):
+        self.statusOutputExcept("git commit -m '%s'" % msg)
         
     #
     # status_output_wrapper
@@ -115,6 +123,13 @@ class GitConnect:
         output = self.checkForRepository()
         output = output.split("\n")[0].split(" ")[3]
         return output
+
+    #
+    # Gets the current commit ID (SHA)
+    #
+    def getSHA(self):
+        (status,output) = self.statusOutput("git rev-parse HEAD")
+        return output.strip()
     
     #
     #
@@ -141,7 +156,9 @@ class GitConnect:
             raise Exception("Unexpected error while pretending %d %s" % (status,ancestor))
         (status,output) = self.statusOutput("git merge-tree %s %s %s" % (ancestor,self.getBranch(),BRANCH_NAME))
         #print status, output
-        if output.find("+<<<<<<<") != -1:
+        import re
+        if re.search("^\+<<<<<<<",output,flags=re.MULTILINE) and re.search("^\+=======",output,flags=re.MULTILINE) and re.search("^\+>>>>>>>",output,flags=re.MULTILINE):
+            print "Merge will not apply cleanly",output
             return False
         else: return True
     #
@@ -372,6 +389,18 @@ class TestSequence(unittest.TestCase):
 
     def test_pretendmerge(self):
         self.assertFalse(self.g.mergeIn("remotes/origin/work-2622",pretend=True))
+
+    def test_merge_pretend(self):
+        from os import system
+        system("rm -rf /tmp/g")
+        GitConnect.clone("git://github.com/drewcrawford/work.py.git","/tmp/g")
+        g = GitConnect("/tmp/g")
+        self.assertTrue(g.mergeIn("remotes/origin/merge_a",pretend=True))
+        self.assertTrue(g.mergeIn("remotes/origin/merge_b",pretend=True))
+        g.mergeIn("remotes/origin/merge_a") #no pretend
+        self.assertFalse(g.mergeIn("remotes/origin/merge_b",pretend=True))
+        
+        system("rm -rf /tmp/g")
 
 
 if __name__ == '__main__':

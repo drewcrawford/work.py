@@ -404,6 +404,26 @@ class FogBugzConnect:
         project = self.lookupIxProject(resp.case.ixproject.contents[0])
         return int(project.ixpersonowner.contents[0])
 
+    def getIxFixFor(self,sProject,sFixFor):
+        fixfors = self.fbConnection.listFixFors(fIncludeDeleted=1)
+        for fixfor in fixfors.fixfors:
+            #print fixfor.sproject.string,fixfor.sfixfor.string
+            if fixfor.sproject.string==sProject and fixfor.sfixfor.string==sFixFor:
+                return int(fixfor.ixfixfor.string)
+        raise Exception("Can't find the fixfor.")
+
+    #
+    # release-notes
+    #
+    def releaseNotes(self,ixFixFor):
+        cases = self.fbConnection.search(q="fixFor:'=%s'" % (ixFixFor),cols="ixBug,sTitle,sReleaseNotes")
+        notes = []
+        for case in cases.cases:
+            if not case.sreleasenotes.string:
+                notes.append(case.stitle.string)
+            else: notes.append(case.sreleasenotes.string)
+        return notes
+
     #
     # finds an optimal tester for the case (ixperson)
     #
@@ -857,6 +877,9 @@ class TestSequence(unittest.TestCase):
         date = datetime.datetime(2011, 10, 1, 15, 31, 25, 178583)
         self.assertTrue(self.f.expectedWorkHours(ixPerson=5,date=date)==0.0)
         self.assertTrue(self.f.expectedWorkHours(ixPerson=5,date=datetime.datetime(2011,10,4,15,31,25,178583)))==7.0
+    def test_releasenotes(self):
+        releaseNotes = self.f.releaseNotes(self.f.getIxFixFor("semaps","1.5.1"))
+        self.assertEqual(releaseNotes,[u'We need the new logbuddy in semaps', u'09cc3f6667f88d390890a82e33b39b51', u'86a4d8e259d0ba1fe91b1cf50bb79fe0', u'Performance improvements to how map tiles are loaded over 3G connections', u'Upgrade to AGSAPI 2.0.1', u'Contour label?', u'Name entry fields', u'Units', u'Line visibility', u'sample case'])
 
 
 if __name__ == '__main__':
