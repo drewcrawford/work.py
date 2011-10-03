@@ -141,7 +141,9 @@ class GitConnect:
             raise Exception("Unexpected error while pretending %d %s" % (status,ancestor))
         (status,output) = self.statusOutput("git merge-tree %s %s %s" % (ancestor,self.getBranch(),BRANCH_NAME))
         #print status, output
-        if output.find("+<<<<<<<") != -1:
+        import re
+        if re.search("^\+<<<<<<<",output,flags=re.MULTILINE) and re.search("^\+=======",output,flags=re.MULTILINE) and re.search("^\+>>>>>>>",output,flags=re.MULTILINE):
+            print "Merge will not apply cleanly",output
             return False
         else: return True
     #
@@ -372,6 +374,18 @@ class TestSequence(unittest.TestCase):
 
     def test_pretendmerge(self):
         self.assertFalse(self.g.mergeIn("remotes/origin/work-2622",pretend=True))
+
+    def test_merge_pretend(self):
+        from os import system
+        system("rm -rf /tmp/g")
+        GitConnect.clone("git://github.com/drewcrawford/work.py.git","/tmp/g")
+        g = GitConnect("/tmp/g")
+        self.assertTrue(g.mergeIn("remotes/origin/merge_a",pretend=True))
+        self.assertTrue(g.mergeIn("remotes/origin/merge_b",pretend=True))
+        g.mergeIn("remotes/origin/merge_a") #no pretend
+        self.assertFalse(g.mergeIn("remotes/origin/merge_b",pretend=True))
+        
+        system("rm -rf /tmp/g")
 
 
 if __name__ == '__main__':
