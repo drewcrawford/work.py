@@ -67,13 +67,13 @@ def printUsageString():
     print "  test CASE_NO : you are performing are reviewing/testing CASE_NO"
     print "  fail : the case has failed to pass a test"
     print "  pass: the case has passed a test"
-    print "  integrate: integrate the case to somewhere"
     print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch\n\tfor the milestone (off of FROMSPEC)"
     print "  network : it's a series of tubes"
     print "  recharge FROM_CASE TO_CASE : Moves time charged against one case to be charged against another instead"
     print "  chargeback CASE : Prints total hours, including hours that were been recharged away somewhere else"
     print "  ls: list cases (EXPERIMENTAL)"
     print "  selftest: runs the tests (POOR TEST COVERAGE)"
+    print "  releasenotes PROJECT MILESTONE : prints release notes for the milestone"
     print ""
     sys.exit()
 
@@ -328,6 +328,16 @@ def projectPassTest():
     getstatusoutput("afplay -v 7 %s/media/longcheer.aiff" % sys.prefix)
 
     #fbConnection.closeCase(parent)
+
+#
+#
+#
+def releaseNotes(project,milestone):
+    fb = FogBugzConnect()
+    ixMilestone = fb.getIxFixFor(project,milestone)
+    notes = fb.releaseNotes(ixMilestone)
+    for note in notes:
+        print note
 
 #
 #
@@ -673,8 +683,8 @@ if __name__=="__main__":
         projectFailTest()
     elif (task == "pass"):
         projectPassTest()
-    elif (task == "integrate"):
-        projectIntegrate(CASE_NO)
+    elif (task == "releasenotes"):
+        releaseNotes(sys.argv[2],sys.argv[3])
     elif (task == "view"):
         projectView(CASE_NO)
     elif (task == "network"):
