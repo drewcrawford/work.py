@@ -562,10 +562,10 @@ class FogBugzConnect:
         if start > end: hours_worked -= 24
         hours_worked = abs(hours_worked)
         if schedule.fhaslunch.string!="false":hours_worked -= float(schedule.hrslunchlength.string)
-        days = ["sunday","monday","tuesday","wednesday","thursday","friday"]
+        days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
         workdays = filter(lambda x: str(x).strip() != "",list(schedule.rgworkdays))
         #print workdays
-        if workdays[date.weekday()].string=="true":
+        if filter(lambda x: x.name==days[date.weekday()],workdays)[0].string=="true":
             return hours_worked
         else:
             return 0.0
@@ -851,6 +851,12 @@ class TestSequence(unittest.TestCase):
     def test_workingschedule(self):
         import datetime
         print "Drew works %f hours" % self.f.expectedWorkHours(ixPerson=2,date=datetime.datetime.now())
+
+    def test_expectedworkhours(self):
+        import datetime
+        date = datetime.datetime(2011, 10, 1, 15, 31, 25, 178583)
+        self.assertTrue(self.f.expectedWorkHours(ixPerson=5,date=date)==0.0)
+        self.assertTrue(self.f.expectedWorkHours(ixPerson=5,date=datetime.datetime(2011,10,4,15,31,25,178583)))==7.0
 
 
 if __name__ == '__main__':
