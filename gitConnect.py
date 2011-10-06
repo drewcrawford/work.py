@@ -18,13 +18,14 @@ class GitConnect:
     @staticmethod
     def clone(url,into):
         import subprocess
-        import shlex
         args = shlex.split("git clone %s %s" % (url,into))
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
         if pipe.returncode != 0:
             raise Exception("Can't clone repository %s" % output+err)
-        self.submoduleUpdate()
+        g = GitConnect(into)
+        g.submoduleUpdate()
+        return g
         
         
     #
@@ -34,13 +35,15 @@ class GitConnect:
         self.statusOutputExcept("git config %s %s" % (key,value))
 
     def submoduleUpdate(self):
+        import shlex
+        import subprocess
         args = shlex.split("git submodule init")
-        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=into,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
+        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=self.wd,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
         if pipe.returncode:
             raise Exception("Error initing a submodule" + output + err)
         args = shlex.split("git submodule update")
-        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=into,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
+        pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=self.wd,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
         if pipe.returncode:
             raise Exception("Error initing a submodule" + output + err)
