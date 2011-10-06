@@ -24,6 +24,16 @@ class GitConnect:
         (output,err) = pipe.communicate()
         if pipe.returncode != 0:
             raise Exception("Can't clone repository %s" % output+err)
+        self.submoduleUpdate()
+        
+        
+    #
+    # repo-config
+    #
+    def repoConfig(self,key,value):
+        self.statusOutputExcept("git config %s %s" % (key,value))
+
+    def submoduleUpdate(self):
         args = shlex.split("git submodule init")
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,cwd=into,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
@@ -34,12 +44,6 @@ class GitConnect:
         (output,err) = pipe.communicate()
         if pipe.returncode:
             raise Exception("Error initing a submodule" + output + err)
-        
-    #
-    # repo-config
-    #
-    def repoConfig(self,key,value):
-        self.statusOutputExcept("git config %s %s" % (key,value))
     
     #
     # Add files to the index
@@ -224,6 +228,7 @@ class GitConnect:
             if status:
                 print "ERROR:  Cannot pull! %s" % output
                 raise Exception("stacktraceplease")
+        self.submoduleUpdate()
         print "Success!"
     
     #
