@@ -65,9 +65,9 @@ class GitConnect:
         import shlex
         args = shlex.split(cmd)
         #with help from http://stackoverflow.com/questions/1193583/what-is-the-multiplatform-alternative-to-subprocess-getstatusoutput-older-comman
-        pipe = subprocess.Popen(args,cwd=self.wd,stdout=subprocess.PIPE,shell=False,universal_newlines=True)
+        pipe = subprocess.Popen(args,cwd=self.wd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,stderr) = pipe.communicate()
-
+        output += stderr
         sts = pipe.returncode
         #print "sts is",sts
         if sts is None: sts = 0
@@ -157,17 +157,23 @@ class GitConnect:
             print "ERROR:  Cannot fetch! %s" % output
             raise Exception("stacktraceplease")
             
+    def _processPretendMergeResults(self,output):
+        import re
+        if re.search("^\+<<<<<<<",output,flags=re.MULTILINE) and re.search("^\+=======",output,flags=re.MULTILINE) and re.search("^\+>>>>>>>",output,flags=re.MULTILINE):
+            print "Merge will not apply cleanly",output
+            return False
+        if re.search("warning: Cannot merge binary files",output):
+            print "Merge will not apply cleanly (binary files)",output
+            return False
+        return True
+
     def __mergeInPretend(self,BRANCH_NAME): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
         (status,ancestor) = self.statusOutput("git merge-base %s %s" % (BRANCH_NAME,self.getBranch()))
         if status:
             raise Exception("Unexpected error while pretending %d %s" % (status,ancestor))
         (status,output) = self.statusOutput("git merge-tree %s %s %s" % (ancestor,self.getBranch(),BRANCH_NAME))
         #print status, output
-        import re
-        if re.search("^\+<<<<<<<",output,flags=re.MULTILINE) and re.search("^\+=======",output,flags=re.MULTILINE) and re.search("^\+>>>>>>>",output,flags=re.MULTILINE):
-            print "Merge will not apply cleanly",output
-            return False
-        else: return True
+        return self._processPretendMergeResults(output)
     #
     #
     #
@@ -409,6 +415,12 @@ class TestSequence(unittest.TestCase):
         self.assertFalse(g.mergeIn("remotes/origin/merge_b",pretend=True))
         
         system("rm -rf /tmp/g")
+
+    def test_merge_binary(self):
+        f = open("merge-fail-binary.log")
+        data = f.read()
+        f.close()
+        self.assertFalse(self.g._processPretendMergeResults(data))
 
 
 if __name__ == '__main__':
