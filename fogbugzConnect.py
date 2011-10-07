@@ -879,7 +879,10 @@ class TestSequence(unittest.TestCase):
         self.assertTrue(self.f.expectedWorkHours(ixPerson=5,date=datetime.datetime(2011,10,4,15,31,25,178583)))==7.0
     def test_releasenotes(self):
         releaseNotes = self.f.releaseNotes(self.f.getIxFixFor("semaps","1.5.1"))
-        self.assertEqual(releaseNotes,[u'We need the new logbuddy in semaps', u'09cc3f6667f88d390890a82e33b39b51', u'86a4d8e259d0ba1fe91b1cf50bb79fe0', u'Performance improvements to how map tiles are loaded over 3G connections', u'Upgrade to AGSAPI 2.0.1', u'Contour label?', u'Name entry fields', u'Units', u'Line visibility', u'sample case'])
+        releaseNotes.sort()
+        myExample = [u'We need the new logbuddy in semaps', u'09cc3f6667f88d390890a82e33b39b51', u'86a4d8e259d0ba1fe91b1cf50bb79fe0', u'Performance improvements to how map tiles are loaded over 3G connections', u'Upgrade to AGSAPI 2.0.1', u'Contour label?', u'Name entry fields', u'Units', u'Line visibility', u'sample case']
+        myExample.sort()
+        self.assertEqual(releaseNotes,myExample)
 
 
 if __name__ == '__main__':
