@@ -158,6 +158,9 @@ class GitConnect:
         if re.search("warning: Cannot merge binary files",output):
             print "Merge will not apply cleanly (binary files)",output
             return False
+        if re.search("warning: Failed to merge submodule",output):
+            print "Merge will not apply cleanly (submodule conflict)",output
+            return False
         return True
 
     def __mergeInPretend(self,BRANCH_NAME): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
