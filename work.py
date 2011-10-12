@@ -499,7 +499,7 @@ def recharge(fr,to):
         record_desc = "From %s to %s ixPerson %s ixBug %s" % (record.dtstart.contents[0],record.dtend.contents[0],record.ixperson.contents[0],record.ixbug.contents[0])
         from_time = dateutil.parser.parse(record.dtstart.contents[0])
         to_time = dateutil.parser.parse(record.dtend.contents[0])
-        time_interval += (to_time-from_time).seconds
+        time_interval += (to_time-from_time).total_seconds()
         print from_time,to_time,time_interval
 
         fbConnection.commentOn(fr,"recharge: A record was removed from this ticket: %s, see case %d" % (record_desc,to))
@@ -529,7 +529,7 @@ def chargeback(case):
             import dateutil.parser
             fromd = dateutil.parser.parse(fromt)
             tod = dateutil.parser.parse(tot)
-            return (tod - fromd).seconds
+            return (tod - fromd).total_seconds()
         return 0
     for event in events:
         match = re.match("recharge: A record was removed from this ticket: From (.*) to (.*)(?=ixPerson)",event)
