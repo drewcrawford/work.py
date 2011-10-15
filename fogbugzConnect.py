@@ -568,7 +568,7 @@ class FogBugzConnect:
             start = parse(record.dtstart.string)
             if not record.dtend.contents: continue
             end = parse(record.dtend.string)
-            secs += (end - start).seconds
+            secs += (end - start).total_seconds()
         return secs
 
     def expectedWorkHours(self,ixPerson,date):
@@ -728,9 +728,9 @@ class FogBugzConnect:
             #print referencetime
             #print nowtime
             if nowtime > referencetime:
-                delta =  (nowtime - referencetime).seconds
+                delta =  (nowtime - referencetime).total_seconds()
             else:
-                delta =  (referencetime-nowtime).seconds
+                delta =  (referencetime-nowtime).total_seconds()
             if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
                 annoyable.append(ix)
             else:
@@ -739,7 +739,7 @@ class FogBugzConnect:
                     print "User",ix,"does not appear to be active recently"
                     continue
 
-                delta = (nowtime - lastActive).seconds
+                delta = (nowtime - lastActive).total_seconds()
                 if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
                     annoyable.append(ix)
         return annoyable
