@@ -254,10 +254,14 @@ def projectStartTest(CASE_NO):
 
     #get the appropriate cases out of FogBugz
     (parent,test) = fbConnection.getCaseTuple(CASE_NO)
-    fbConnection.ensureReadyForTest(parent)
+    if not fbConnection.isReadyForTest(parent):
+        print "This doesn't look ready to be tested (resolved/implemented)... are you sure about this? (press Enter to continue)"
+        raw_input()
+    
+    
 
     gitConnection.fetch()
-    gitConnection.checkoutExistingBranch(parent)
+    gitConnection.checkoutBranch(parent,None,fbConnection)
 
     fbConnection.startCase(test,enforceNoTestCases=False)
     gitHubConnection = GitHubConnect()

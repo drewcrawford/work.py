@@ -275,7 +275,6 @@ class GitConnect:
         if not output:
             print "ERROR: could not checkout existing branch: %s" % output
             raise Exception("stacktraceplease")
-            raise Exception("stacktraceplease")
 
         #print bcolors.WARNING + output + bcolors.ENDC
 
