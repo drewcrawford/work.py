@@ -24,6 +24,7 @@ except Exception as e:
 from xml.dom.minidom import parseString
 
 TEST_IXCATEGORY=6
+TEST_TAG="GLaDOS_default_tag"
 class FogBugzConnect:
 
 
@@ -471,7 +472,7 @@ class FogBugzConnect:
 
         #print resp.case
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=ixTester,hrsCurrEst=estimate,ixPriority=resp.case.ixpriority.contents[0],sEvent="Cake and grief counseling will be available at the conclusion of the test.",ixCategory=6,
-                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
+                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone,sTags=TEST_TAG)
         print "Created case %s" % response.case['ixbug']
     def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
         """Requires a caselist with sTitle,ixCategory,fOpen as attributes"""
@@ -845,7 +846,7 @@ class TestSequence(unittest.TestCase):
         self.assertTrue(self.f.allEvents(2525) >= 3)
 
     def test_testcase(self):
-        #self.f.createTestCase(3000)
+        #self.f.createTestCase(3581)
         pass
 
     def test_lastactive(self):
