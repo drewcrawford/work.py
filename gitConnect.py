@@ -18,6 +18,7 @@ class GitConnect:
     @staticmethod
     def clone(url,into):
         import subprocess
+        import shlex
         args = shlex.split("git clone %s %s" % (url,into))
         pipe = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,err) = pipe.communicate()
