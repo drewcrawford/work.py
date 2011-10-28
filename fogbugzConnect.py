@@ -310,16 +310,16 @@ class FogBugzConnect:
     def getShipDate(self,ixFixFor,ixPriority=4):
         r = self.fbConnection.viewShipDateReport(ixFixFor=ixFixFor,ixPriority=ixPriority)
         array = list(r.shipdatereport.rgdt.array) #http://www.fogcreek.com/fogbugz/library/80/?topic=/fogbugz/library/80/html/2DCFC902.htm
-        #print array
         count = len(array)
         return array[count/2].contents[0]
     #
     #
     #
     def getBurndown(self,ixFixFor,cumulativeHours=True,ixPriority=4):
-        array = list (self.fbConnection.viewHoursRemainingReport(ixFixFor=ixFixFor,ixPriority=ixPriority,fThisFixForOnly=not cumulativeHours).rghr.array)
+        array = list (self.fbConnection.viewHoursRemainingReport(ixFixFor=ixFixFor,ixPriority=ixPriority,fThisFixForOnly=(not cumulativeHours) and 1 or 0).rghr.array)
         count = len(array)
-        return array[count/2].contents[0]
+        print array
+        return array[count/2 - 1].contents[0]
 
     #
     #
@@ -841,7 +841,7 @@ class TestSequence(unittest.TestCase):
         print "I am an administrator:",self.f.amIAdministrator()
 
     def test_burndown(self):
-        print self.f.getBurndown(ixFixFor=43)
+        self.assertLess( self.f.getBurndown(ixFixFor=228,cumulativeHours=False), self.f.getBurndown(ixFixFor=228,cumulativeHours=True)) #never-test
 
     def test_listtimerecords(self):
         records = self.f.listTimeRecords(1111)
