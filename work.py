@@ -67,13 +67,13 @@ def printUsageString():
     print "  test CASE_NO : you are performing are reviewing/testing CASE_NO"
     print "  fail : the case has failed to pass a test"
     print "  pass: the case has passed a test"
-    print "  integrate: integrate the case to somewhere"
     print "  integratemake MILESTONE --from=FROMSPEC: create a new integration branch\n\tfor the milestone (off of FROMSPEC)"
     print "  network : it's a series of tubes"
     print "  recharge FROM_CASE TO_CASE : Moves time charged against one case to be charged against another instead"
     print "  chargeback CASE : Prints total hours, including hours that were been recharged away somewhere else"
     print "  ls: list cases (EXPERIMENTAL)"
     print "  selftest: runs the tests (POOR TEST COVERAGE)"
+    print "  releasenotes PROJECT MILESTONE : prints release notes for the milestone"
     print ""
     sys.exit()
 
@@ -254,10 +254,14 @@ def projectStartTest(CASE_NO):
 
     #get the appropriate cases out of FogBugz
     (parent,test) = fbConnection.getCaseTuple(CASE_NO)
-    fbConnection.ensureReadyForTest(parent)
+    if not fbConnection.isReadyForTest(parent):
+        print "This doesn't look ready to be tested (resolved/implemented)... are you sure about this? (press Enter to continue)"
+        raw_input()
+    
+    
 
     gitConnection.fetch()
-    gitConnection.checkoutExistingBranch(parent)
+    gitConnection.checkoutBranch(parent,None,fbConnection)
 
     fbConnection.startCase(test,enforceNoTestCases=False)
     gitHubConnection = GitHubConnect()
@@ -328,6 +332,16 @@ def projectPassTest():
     getstatusoutput("afplay -v 7 %s/media/longcheer.aiff" % sys.prefix)
 
     #fbConnection.closeCase(parent)
+
+#
+#
+#
+def releaseNotes(project,milestone):
+    fb = FogBugzConnect()
+    ixMilestone = fb.getIxFixFor(project,milestone)
+    notes = fb.releaseNotes(ixMilestone)
+    for note in notes:
+        print note
 
 #
 #
@@ -489,7 +503,7 @@ def recharge(fr,to):
         record_desc = "From %s to %s ixPerson %s ixBug %s" % (record.dtstart.contents[0],record.dtend.contents[0],record.ixperson.contents[0],record.ixbug.contents[0])
         from_time = dateutil.parser.parse(record.dtstart.contents[0])
         to_time = dateutil.parser.parse(record.dtend.contents[0])
-        time_interval += (to_time-from_time).seconds
+        time_interval += (to_time-from_time).total_seconds()
         print from_time,to_time,time_interval
 
         fbConnection.commentOn(fr,"recharge: A record was removed from this ticket: %s, see case %d" % (record_desc,to))
@@ -519,7 +533,7 @@ def chargeback(case):
             import dateutil.parser
             fromd = dateutil.parser.parse(fromt)
             tod = dateutil.parser.parse(tot)
-            return (tod - fromd).seconds
+            return (tod - fromd).total_seconds()
         return 0
     for event in events:
         match = re.match("recharge: A record was removed from this ticket: From (.*) to (.*)(?=ixPerson)",event)
@@ -673,8 +687,8 @@ if __name__=="__main__":
         projectFailTest()
     elif (task == "pass"):
         projectPassTest()
-    elif (task == "integrate"):
-        projectIntegrate(CASE_NO)
+    elif (task == "releasenotes"):
+        releaseNotes(sys.argv[2],sys.argv[3])
     elif (task == "view"):
         projectView(CASE_NO)
     elif (task == "network"):

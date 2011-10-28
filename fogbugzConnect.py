@@ -24,6 +24,7 @@ except Exception as e:
 from xml.dom.minidom import parseString
 
 TEST_IXCATEGORY=6
+TEST_TAG="GLaDOS_default_tag"
 class FogBugzConnect:
 
 
@@ -404,6 +405,26 @@ class FogBugzConnect:
         project = self.lookupIxProject(resp.case.ixproject.contents[0])
         return int(project.ixpersonowner.contents[0])
 
+    def getIxFixFor(self,sProject,sFixFor):
+        fixfors = self.fbConnection.listFixFors(fIncludeDeleted=1)
+        for fixfor in fixfors.fixfors:
+            #print fixfor.sproject.string,fixfor.sfixfor.string
+            if fixfor.sproject.string==sProject and fixfor.sfixfor.string==sFixFor:
+                return int(fixfor.ixfixfor.string)
+        raise Exception("Can't find the fixfor.")
+
+    #
+    # release-notes
+    #
+    def releaseNotes(self,ixFixFor):
+        cases = self.fbConnection.search(q="fixFor:'=%s'" % (ixFixFor),cols="ixBug,sTitle,sReleaseNotes")
+        notes = []
+        for case in cases.cases:
+            if not case.sreleasenotes.string:
+                notes.append(case.stitle.string)
+            else: notes.append(case.sreleasenotes.string)
+        return notes
+
     #
     # finds an optimal tester for the case (ixperson)
     #
@@ -451,7 +472,7 @@ class FogBugzConnect:
 
         #print resp.case
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=ixTester,hrsCurrEst=estimate,ixPriority=resp.case.ixpriority.contents[0],sEvent="Cake and grief counseling will be available at the conclusion of the test.",ixCategory=6,
-                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone)
+                                         ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone,sTags=TEST_TAG)
         print "Created case %s" % response.case['ixbug']
     def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
         """Requires a caselist with sTitle,ixCategory,fOpen as attributes"""
@@ -548,7 +569,7 @@ class FogBugzConnect:
             start = parse(record.dtstart.string)
             if not record.dtend.contents: continue
             end = parse(record.dtend.string)
-            secs += (end - start).seconds
+            secs += (end - start).total_seconds()
         return secs
 
     def expectedWorkHours(self,ixPerson,date):
@@ -708,9 +729,9 @@ class FogBugzConnect:
             #print referencetime
             #print nowtime
             if nowtime > referencetime:
-                delta =  (nowtime - referencetime).seconds
+                delta =  (nowtime - referencetime).total_seconds()
             else:
-                delta =  (referencetime-nowtime).seconds
+                delta =  (referencetime-nowtime).total_seconds()
             if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
                 annoyable.append(ix)
             else:
@@ -719,7 +740,7 @@ class FogBugzConnect:
                     print "User",ix,"does not appear to be active recently"
                     continue
 
-                delta = (nowtime - lastActive).seconds
+                delta = (nowtime - lastActive).total_seconds()
                 if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
                     annoyable.append(ix)
         return annoyable
@@ -825,7 +846,7 @@ class TestSequence(unittest.TestCase):
         self.assertTrue(self.f.allEvents(2525) >= 3)
 
     def test_testcase(self):
-        #self.f.createTestCase(3000)
+        #self.f.createTestCase(3581)
         pass
 
     def test_lastactive(self):
@@ -857,6 +878,12 @@ class TestSequence(unittest.TestCase):
         date = datetime.datetime(2011, 10, 1, 15, 31, 25, 178583)
         self.assertTrue(self.f.expectedWorkHours(ixPerson=5,date=date)==0.0)
         self.assertTrue(self.f.expectedWorkHours(ixPerson=5,date=datetime.datetime(2011,10,4,15,31,25,178583)))==7.0
+    def test_releasenotes(self):
+        releaseNotes = self.f.releaseNotes(self.f.getIxFixFor("semaps","1.5.1"))
+        releaseNotes.sort()
+        myExample = [u'We need the new logbuddy in semaps', u'09cc3f6667f88d390890a82e33b39b51', u'86a4d8e259d0ba1fe91b1cf50bb79fe0', u'Performance improvements to how map tiles are loaded over 3G connections', u'Upgrade to AGSAPI 2.0.1', u'Contour label?', u'Name entry fields', u'Units', u'Line visibility', u'sample case']
+        myExample.sort()
+        self.assertEqual(releaseNotes,myExample)
 
 
 if __name__ == '__main__':
