@@ -157,27 +157,19 @@ class GitConnect:
         if status:
             print "ERROR:  Cannot fetch! %s" % output
             raise Exception("stacktraceplease")
-            
-    def _processPretendMergeResults(self,output):
-        import re
-        if re.search("^\+<<<<<<<",output,flags=re.MULTILINE) and re.search("^\+=======",output,flags=re.MULTILINE) and re.search("^\+>>>>>>>",output,flags=re.MULTILINE):
-            print "Merge will not apply cleanly",output
-            return False
-        if re.search("warning: Cannot merge binary files",output):
-            print "Merge will not apply cleanly (binary files)",output
-            return False
-        if re.search("warning: Failed to merge submodule",output):
-            print "Merge will not apply cleanly (submodule conflict)",output
-            return False
-        return True
 
     def __mergeInPretend(self,BRANCH_NAME): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
-        (status,ancestor) = self.statusOutput("git merge-base %s %s" % (BRANCH_NAME,self.getBranch()))
+        self.checkForUnsavedChanges()
+        (status,output) = self.statusOutput("git merge --no-commit --no-ff %s" % BRANCH_NAME)
         if status:
-            raise Exception("Unexpected error while pretending %d %s" % (status,ancestor))
-        (status,output) = self.statusOutput("git merge-tree %s %s %s" % (ancestor,self.getBranch(),BRANCH_NAME))
-        #print status, output
-        return self._processPretendMergeResults(output)
+            print "gitConnect __mergeInPretend: merge %s will not apply cleanly.  " % BRANCH_NAME
+            print output
+            print "Rolling back this merge..." #this happens anyway of the condition, we just print it in the error case for log file clarity.
+        self.resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND()
+        #if you see an exception on the line below, we failed to roll back the merge
+        self.checkForUnsavedChanges()
+        return status==0
+
     #
     #
     #
@@ -404,8 +396,6 @@ class TestSequence(unittest.TestCase):
     def setUp(self):
         self.g = GitConnect()
 
-    def test_pretendmerge(self):
-        self.assertFalse(self.g.mergeIn("remotes/origin/work-2622",pretend=True))
 
     def test_merge_pretend(self):
         from os import system
@@ -418,12 +408,6 @@ class TestSequence(unittest.TestCase):
         self.assertFalse(g.mergeIn("remotes/origin/merge_b",pretend=True))
         
         system("rm -rf /tmp/g")
-
-    def test_merge_binary(self):
-        f = open("merge-fail-binary.log")
-        data = f.read()
-        f.close()
-        self.assertFalse(self.g._processPretendMergeResults(data))
 
 
 if __name__ == '__main__':
