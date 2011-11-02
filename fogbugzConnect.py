@@ -338,6 +338,8 @@ class FogBugzConnect:
             r = self.fbConnection.listFixFors(ixProject=ixProject).fixfors
         elif sProject:
             r = self.fbConnection.listFixFors(sProject=sProject).fixfors
+        else:
+            r = self.fbConnection.listFixFors().fixfors
         #print r
         return r
 
