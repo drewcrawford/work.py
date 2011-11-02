@@ -193,6 +193,14 @@ class GitConnect:
                 self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
         print "Use 'git push' to ship."
     
+    def needsPull(self):
+        (status,output) = self.statusOutput("git status")
+        if status: return True
+        if output.find("Your branch is behind") != -1:
+            return True
+        return False
+
+        
     #
     # Performs a git pull
     #

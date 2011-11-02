@@ -321,15 +321,23 @@ class FogBugzConnect:
         count = len(array)
         print array
         return array[count/2 - 1].contents[0]
+    def ixProjectFromsProject(self,sProject):
+        sProjects = self.fbConnection.listProjects()
+        for project in sProjects.projects:
+            sproject = project.sproject.contents[0].encode('utf-8')
+            if sproject==sProject: return int(project.ixproject.contents[0])
+        return None
 
     #
     #
     #
-    def listFixFors(self,ixProject=None):
+    def listFixFors(self,ixProject=None,sProject=None):
+        if sProject:
+            ixProject = self.ixProjectFromsProject(sProject)
         if ixProject:
             r = self.fbConnection.listFixFors(ixProject=ixProject).fixfors
-        else:
-            r = self.fbConnection.listFixFors().fixfors
+        elif sProject:
+            r = self.fbConnection.listFixFors(sProject=sProject).fixfors
         #print r
         return r
 
@@ -838,6 +846,11 @@ class TestSequence(unittest.TestCase):
             print "WARNING: NOT RUNNING test_annoyables BECAUSE YOU ARE NOT AN ADMINISTRATOR"
             return
         print self.f.annoyableIxPeople()
+
+    def test_listfixfors(self):
+        semaps_fixfors = self.f.listFixFors(sProject="semaps")
+        print semaps_fixfors
+        self.assertTrue(len(semaps_fixfors) > 0)
 
     def test_optimaltester(self):
         print self.f.optimalIxTester(3028)
