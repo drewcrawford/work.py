@@ -319,7 +319,7 @@ class FogBugzConnect:
     def getBurndown(self,ixFixFor,cumulativeHours=True,ixPriority=4):
         array = list (self.fbConnection.viewHoursRemainingReport(ixFixFor=ixFixFor,ixPriority=ixPriority,fThisFixForOnly=(not cumulativeHours) and 1 or 0).rghr.array)
         count = len(array)
-        print array
+        #print array
         return array[count/2 - 1].contents[0]
     def ixProjectFromsProject(self,sProject):
         sProjects = self.fbConnection.listProjects()
