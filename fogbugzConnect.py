@@ -191,7 +191,8 @@ class FogBugzConnect:
     def commentOn(self,CASE_NO,msg):
         response = self.fbConnection.edit(ixBug=CASE_NO,sEvent=msg,ixPersonEditedBy=self.ixPerson)
 
-
+    def setPriority(self,CASE_NO,ixPriority):
+        self.fbConnection.edit(ixBug=CASE_NO,ixPriority=ixPriority)
 
     #
     # Find implementor for a case
@@ -451,7 +452,10 @@ class FogBugzConnect:
         from random import choice
         return choice(people)
 
+    def listTestCases(self):
+        return self.fbConnection.search(q="category:'=%d' status:open" % TEST_IXCATEGORY)
 
+        
     #
     # create a test case
     #
