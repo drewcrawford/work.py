@@ -694,11 +694,39 @@ class FogBugzConnect:
         return
 
     #
+    def isFixForGlobal(self,fixForDetail):
+        return fixForDetail.ixproject.contents==[]
+    #
     #
     #
     def getIntegrationBranch(self,CASE_NO):
-        resp = self.fbConnection.search(q=CASE_NO,cols="sFixFor")
-        return (resp.case.sfixfor.contents[0].encode('utf-8'))
+        resp = self.fbConnection.search(q=CASE_NO,cols="sFixFor,ixFixFor,sProject")
+        ix = int(resp.ixfixfor.contents[0].encode('utf-8'))
+        isGlobal = self.isFixForGlobal(self.fixForDetail(ix))
+        if not isGlobal: return (resp.case.sfixfor.contents[0].encode('utf-8'))
+        former = None
+        events = self.fbConnection.search(q=CASE_NO,cols="events")
+        #print events
+        for event in events.events:
+            if event.schanges.contents == []: continue
+            eventdesc = event.schanges.contents[0].encode('utf-8')
+            import re
+            match = re.match("Milestone changed from '(.*): .*' to '(.*): .*'",eventdesc)
+            if match:
+                #print resp.sproject.string
+                maybe_former = match.groups()[0]
+                #print maybe_former
+                try:
+                    lookup_maybe_ix = self.getIxFixFor(resp.sproject.string,maybe_former)
+                    detail = self.fixForDetail(lookup_maybe_ix)
+                    former = maybe_former
+                except Exception as ex:
+                    #it's a global milestone, continue
+                    #print ex
+                    pass
+        if not former: raise Exception("Cannot find an integration branch (%s is a sprint and is therefore invalid)" % resp.case.sfixfor.contents[0].encode('utf-8'))
+        return former
+        
 
     #returns the time the user was last active, if any.
     #If the user has not been active "lately", for some definition of lately, may return none.
@@ -891,6 +919,14 @@ class TestSequence(unittest.TestCase):
     def test_workingschedule(self):
         import datetime
         print "Drew works %f hours" % self.f.expectedWorkHours(ixPerson=2,date=datetime.datetime.now())
+
+    def test_getIntegrationBranch(self):
+        #self.assertTrue(self.f.getIxFixFor("",""))
+        self.assertTrue(self.f.getIntegrationBranch(3977)=="master")
+        self.assertTrue(self.f.getIntegrationBranch(3888)=="master")
+        self.assertTrue(self.f.getIntegrationBranch(4055)=="Inbox")
+
+
 
     def test_expectedworkhours(self):
         import datetime
