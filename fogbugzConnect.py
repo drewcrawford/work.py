@@ -262,7 +262,7 @@ class FogBugzConnect:
             ix = int(fixfor.ixfixfor.contents[0])
             if ix==ixFixFor:
                 return fixfor
-        raise Exception("Unknown fixfor")
+        raise Exception("Unknown fixfor %s" % ixFixFor)
 
     #
     #
