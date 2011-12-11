@@ -335,7 +335,7 @@ class FogBugzConnect:
     def listFixFors(self,ixProject=None,sProject=None,includeDeleted=False):
         deleted_int_flag = includeDeleted and 1 or 0
         if sProject:
-            ixProject = self.ixProjectFromsProject(sProject,fIncludeDeleted=deleted_int_flag)
+            ixProject = self.ixProjectFromsProject(sProject)
         if ixProject:
             r = self.fbConnection.listFixFors(ixProject=ixProject,fIncludeDeleted=deleted_int_flag).fixfors
         elif sProject:
