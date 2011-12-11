@@ -257,7 +257,7 @@ class FogBugzConnect:
     #
     #
     def fixForDetail(self,ixFixFor):
-        list = self.listFixFors()
+        list = self.listFixFors(includeDeleted=True)
         for fixfor in list:
             ix = int(fixfor.ixfixfor.contents[0])
             if ix==ixFixFor:
@@ -332,15 +332,16 @@ class FogBugzConnect:
     #
     #
     #
-    def listFixFors(self,ixProject=None,sProject=None):
+    def listFixFors(self,ixProject=None,sProject=None,includeDeleted=False):
+        deleted_int_flag = includeDeleted and 1 or 0
         if sProject:
-            ixProject = self.ixProjectFromsProject(sProject)
+            ixProject = self.ixProjectFromsProject(sProject,fIncludeDeleted=deleted_int_flag)
         if ixProject:
-            r = self.fbConnection.listFixFors(ixProject=ixProject).fixfors
+            r = self.fbConnection.listFixFors(ixProject=ixProject,fIncludeDeleted=deleted_int_flag).fixfors
         elif sProject:
-            r = self.fbConnection.listFixFors(sProject=sProject).fixfors
+            r = self.fbConnection.listFixFors(sProject=sProject,fIncludeDeleted=deleted_int_flag).fixfors
         else:
-            r = self.fbConnection.listFixFors().fixfors
+            r = self.fbConnection.listFixFors(fIncludeDeleted=deleted_int_flag).fixfors
         #print r
         return r
 
@@ -929,7 +930,7 @@ class TestSequence(unittest.TestCase):
     def test_case4139(self):
         detail = self.f.fixForDetail(55)
         self.assertIsNot(detail,None)
-        self.assertFalse(self.f.isFixForGlobal(detail))
+        self.assertFalse(self.f.isFixForGlobal(self.f.fixForDetail(240)))
 
 
 
