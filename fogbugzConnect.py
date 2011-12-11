@@ -926,6 +926,11 @@ class TestSequence(unittest.TestCase):
         self.assertTrue(self.f.getIntegrationBranch(3888)=="master")
         self.assertTrue(self.f.getIntegrationBranch(4055)=="Inbox")
 
+    def test_case4139(self):
+        detail = self.f.fixForDetail(55)
+        self.assertIsNot(detail,None)
+        self.assertFalse(self.f.isFixForGlobal(detail))
+
 
 
     def test_expectedworkhours(self):
