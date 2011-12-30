@@ -932,6 +932,10 @@ class TestSequence(unittest.TestCase):
         self.assertIsNot(detail,None)
         self.assertFalse(self.f.isFixForGlobal(self.f.fixForDetail(240)))
 
+    def test_findImplementer(self):
+        self.assertEqual(self.f.findImplementer(4327),2)
+        self.assertEqual(self.f.findImplementer(4172),2)
+
 
 
     def test_expectedworkhours(self):
