@@ -201,6 +201,7 @@ class FogBugzConnect:
         query = str(CASE_NO)
         resp = self.fbConnection.search(q=query,cols="events,ixPersonAssignedTo")
         case = resp.case
+        match_int = -1
         for event in case.events:
             import re
             if len(event.s.contents)==0: continue
@@ -213,9 +214,10 @@ class FogBugzConnect:
                     #print '"%s" is not "%s"' % (person.sfullname.contents[0]), username)
                     if person.sfullname.contents[0]==username:
                         #print "reassigning to ixperson %s" % person.ixperson.contents[0]
-                        return int(person.ixperson.contents[0])
-        #no match
-        return int(case.ixpersonassignedto.contents[0])
+                        match_int = int(person.ixperson.contents[0])
+        if match_int == -1: #no match
+            match_int = int(case.ixpersonassignedto.contents[0])
+        return match_int
 
 
     #
@@ -931,6 +933,10 @@ class TestSequence(unittest.TestCase):
         detail = self.f.fixForDetail(55)
         self.assertIsNot(detail,None)
         self.assertFalse(self.f.isFixForGlobal(self.f.fixForDetail(240)))
+
+    def test_findImplementer(self):
+        self.assertEqual(self.f.findImplementer(4327),2)
+        self.assertEqual(self.f.findImplementer(4172),2)
 
 
 
