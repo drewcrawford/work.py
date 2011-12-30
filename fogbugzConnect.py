@@ -201,6 +201,7 @@ class FogBugzConnect:
         query = str(CASE_NO)
         resp = self.fbConnection.search(q=query,cols="events,ixPersonAssignedTo")
         case = resp.case
+        match_int = -
         for event in case.events:
             import re
             if len(event.s.contents)==0: continue
@@ -213,9 +214,10 @@ class FogBugzConnect:
                     #print '"%s" is not "%s"' % (person.sfullname.contents[0]), username)
                     if person.sfullname.contents[0]==username:
                         #print "reassigning to ixperson %s" % person.ixperson.contents[0]
-                        return int(person.ixperson.contents[0])
-        #no match
-        return int(case.ixpersonassignedto.contents[0])
+                        match_int =  int(person.ixperson.contents[0])
+        if match_int == -1: #no match
+            match_int =  int(case.ixpersonassignedto.contents[0])
+        return match_int
 
 
     #
