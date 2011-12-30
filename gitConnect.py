@@ -80,7 +80,7 @@ class GitConnect:
             raise Exception("Command returned invalid status: %d; %s; %s" % (status,cmd,output))
 
     def resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND(self):
-        self.statusOutput("git clean -d -x -f")
+        self.statusOutput("git clean -d -x -ff")
         self.statusOutput("git reset --hard")
         self.statusOutput("git submodule update")
     
