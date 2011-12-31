@@ -4,11 +4,18 @@ import urllib2
 from json import dumps
 from urllib import quote_plus
 import os
+from contextlib import contextmanager
+import threading
 
-
-def post_to_endpoint(endpoint, message):
+def post_async(endpoint,message):
 	r = urllib2.Request(endpoint,data=message,headers={"content-type":"application/json"})
-	response = urllib2.urlopen(r)
+	data = urllib2.urlopen(r)
+	response = data.read()
+	if response != '{"response":"ok"}':
+		print "JUCHE FAIL",response
+def post_to_endpoint(endpoint, message):
+	t = threading.Thread(target=post_async,args=[endpoint,message])
+	t.start()
 	
 
 class JucheHandler (logging.Handler):
@@ -21,8 +28,6 @@ class JucheHandler (logging.Handler):
 		self.endpoint = "%s://%s/inputs/%s" % (protocol, "logs.loggly.com", key)
 
 	def emit(self, record):
-		if isinstance(record.msg, (list, dict)):
-			record.msg = dumps(record.msg, default=str)
 		post_to_endpoint(self.endpoint, dumps(record.__dict__))
 
 class JucheRecord(logging.LogRecord):
@@ -60,6 +65,10 @@ class JucheLogger(logging.getLoggerClass()):
 	def pop(self):
 		self.stack = self.stack[:-1]
 	def set(self,key,val):
+		try:
+			dumps(val)
+		except:
+			val = repr(val)
 		self.stack[-1][key]=val
 
 	def indent(self):
@@ -73,6 +82,17 @@ class JucheLogger(logging.getLoggerClass()):
 			record.__setattr__(key,val)
 		record.indent = self.currentState()["indent"]
 		return record
+	
+	@contextmanager
+	def revolution(self,**kwargs):
+		#juche = logging.getLogger("JUCHE")
+		self.push()
+		self.indent()
+		for (key,val) in kwargs.iteritems():
+			self.set(key,val)
+		yield
+		self.pop()
+
 
 class IndentFormatter(logging.Formatter):
     def __init__( self, fmt=None, datefmt=None ):
