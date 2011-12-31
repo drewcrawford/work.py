@@ -74,3 +74,4 @@ class IndentFormatter(logging.Formatter):
         return out
 
 logging.setLoggerClass(JucheLogger)
+juche = logging.getLogger("JUCHE")
