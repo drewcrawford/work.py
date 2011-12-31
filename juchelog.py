@@ -22,7 +22,7 @@ class JucheHandler (logging.Handler):
 
 	def emit(self, record):
 		if isinstance(record.msg, (list, dict)):
-			record.msg = dumps(record.msg, cls=self.json_class, default=str)
+			record.msg = dumps(record.msg, default=str)
 		post_to_endpoint(self.endpoint, dumps(record.__dict__))
 
 class JucheRecord(logging.LogRecord):
@@ -34,7 +34,11 @@ class JucheLogger(logging.getLoggerClass()):
 	def __init__(self,name):
 		super(JucheLogger,self).__init__(name)
 		self.stack = [{"indent":0,"who":os.uname()[1]}]
-		jucheHandler = JucheHandler(key="dbd1f4d5-5c41-4dc7-8803-47666d46e01d")
+		try:
+			JUCHE_KEY
+		except:
+			raise Exception("You need to configure your JUCHE_KEY.  You can do this by setting __builtins__.JUCHE_KEY=<YOUR_KEY> at the top of the script that is currently executing.")
+		jucheHandler = JucheHandler(key=JUCHE_KEY)
 		self.setLevel(logging.DEBUG)
 		jucheHandler.setLevel(logging.INFO)
 		self.addHandler(jucheHandler)
@@ -47,6 +51,12 @@ class JucheLogger(logging.getLoggerClass()):
 	
 	def push(self):
 		self.stack.append(dict(self.currentState()))
+
+	def superPush(self,key,val):
+		self.push()
+		self.indent()
+		self.set(key,val)
+
 	def pop(self):
 		self.stack = self.stack[:-1]
 	def set(self,key,val):
