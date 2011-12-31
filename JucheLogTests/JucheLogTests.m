@@ -28,10 +28,15 @@
 - (void)testLog
 {
     [Loggly enableWithInputKey:@"dbd1f4d5-5c41-4dc7-8803-47666d46e01d"];
+    JUCHE(JINFO, @"This is at indent level 0");
     [JucheLog indent];
-    JUCHE_SET1(JINFO,@"Test key", @"Test value", @"Log this with the test key.");
+    JUCHE(JINFO, @"This is at indent level 1");
+    [JucheLog indent];
+    JUCHE(JINFO, @"This is at indent level 2");
     [JucheLog dedent];
-    JUCHE(JWARNING,@"John had %f friends \' \" \\n", 3.5);
+    JUCHE(JWARNING,@"This is at indent level 1");
+    [JucheLog dedent];
+    JUCHE(JWARNING,@"This is at indent level 0");
 }
 
 @end
