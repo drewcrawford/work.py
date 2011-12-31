@@ -13,7 +13,47 @@
 		3AB6D15F14AEB5D9003B6E52 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15E14AEB5D9003B6E52 /* Foundation.framework */; };
 		3AB6D16214AEB5D9003B6E52 /* JucheLog.framework in Resources */ = {isa = PBXBuildFile; fileRef = 3AB6D14A14AEB5D9003B6E52 /* JucheLog.framework */; };
 		3AB6D16814AEB5D9003B6E52 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3AB6D16614AEB5D9003B6E52 /* InfoPlist.strings */; };
-		3AB6D16B14AEB5D9003B6E52 /* JucheLogTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D16A14AEB5D9003B6E52 /* JucheLogTests.m */; };
+		3AB6D17B14AEB5EC003B6E52 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D17A14AEB5EC003B6E52 /* Cocoa.framework */; };
+		3AB6D18514AEB5ED003B6E52 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3AB6D18314AEB5ED003B6E52 /* InfoPlist.strings */; };
+		3AB6D18914AEB5ED003B6E52 /* JucheLogMac.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D18814AEB5ED003B6E52 /* JucheLogMac.m */; };
+		3AB6D18F14AEB609003B6E52 /* JucheLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D18D14AEB609003B6E52 /* JucheLog.h */; };
+		3AB6D19014AEB609003B6E52 /* JucheLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D18D14AEB609003B6E52 /* JucheLog.h */; };
+		3AB6D19114AEB609003B6E52 /* JucheLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D18E14AEB609003B6E52 /* JucheLog.m */; };
+		3AB6D19214AEB609003B6E52 /* JucheLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D18E14AEB609003B6E52 /* JucheLog.m */; };
+		3AB6D19514AEB637003B6E52 /* Loggly.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D19314AEB637003B6E52 /* Loggly.h */; };
+		3AB6D19614AEB637003B6E52 /* Loggly.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D19314AEB637003B6E52 /* Loggly.h */; };
+		3AB6D19714AEB637003B6E52 /* Loggly.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D19414AEB637003B6E52 /* Loggly.m */; };
+		3AB6D19814AEB637003B6E52 /* Loggly.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D19414AEB637003B6E52 /* Loggly.m */; };
+		3AB6D19B14AEB980003B6E52 /* UnifiedQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D19914AEB980003B6E52 /* UnifiedQueue.h */; };
+		3AB6D19C14AEB980003B6E52 /* UnifiedQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D19914AEB980003B6E52 /* UnifiedQueue.h */; };
+		3AB6D19D14AEB980003B6E52 /* UnifiedQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D19A14AEB980003B6E52 /* UnifiedQueue.m */; };
+		3AB6D19E14AEB980003B6E52 /* UnifiedQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D19A14AEB980003B6E52 /* UnifiedQueue.m */; };
+		3AB6D1A014AEBACE003B6E52 /* JucheBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D19F14AEBACD003B6E52 /* JucheBackend.h */; };
+		3AB6D1A114AEBACE003B6E52 /* JucheBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D19F14AEBACD003B6E52 /* JucheBackend.h */; };
+		3AB6D1A414AEBDEB003B6E52 /* NSLogBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D1A214AEBDEA003B6E52 /* NSLogBackend.h */; };
+		3AB6D1A514AEBDEB003B6E52 /* NSLogBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB6D1A214AEBDEA003B6E52 /* NSLogBackend.h */; };
+		3AB6D1A614AEBDEB003B6E52 /* NSLogBackend.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D1A314AEBDEA003B6E52 /* NSLogBackend.m */; };
+		3AB6D1A714AEBDEB003B6E52 /* NSLogBackend.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D1A314AEBDEA003B6E52 /* NSLogBackend.m */; };
+		3AE325B114AEC43C00DF6E38 /* JucheLog.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D14A14AEB5D9003B6E52 /* JucheLog.framework */; };
+		3AE325B814AEC49800DF6E38 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15C14AEB5D9003B6E52 /* UIKit.framework */; };
+		3AE325B914AEC49800DF6E38 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15E14AEB5D9003B6E52 /* Foundation.framework */; };
+		3AE325BB14AEC49800DF6E38 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AE325BA14AEC49800DF6E38 /* CoreGraphics.framework */; };
+		3AE325C114AEC49900DF6E38 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3AE325BF14AEC49800DF6E38 /* InfoPlist.strings */; };
+		3AE325C314AEC49900DF6E38 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AE325C214AEC49900DF6E38 /* main.m */; };
+		3AE325C714AEC49900DF6E38 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AE325C614AEC49900DF6E38 /* AppDelegate.m */; };
+		3AE325CE14AEC49900DF6E38 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15A14AEB5D9003B6E52 /* SenTestingKit.framework */; };
+		3AE325CF14AEC49900DF6E38 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15C14AEB5D9003B6E52 /* UIKit.framework */; };
+		3AE325D014AEC49900DF6E38 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15E14AEB5D9003B6E52 /* Foundation.framework */; };
+		3AE325D814AEC49900DF6E38 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3AE325D614AEC49900DF6E38 /* InfoPlist.strings */; };
+		3AE325DB14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AE325DA14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.m */; };
+		3AE325E314AEC4CB00DF6E38 /* JucheLog.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D14A14AEB5D9003B6E52 /* JucheLog.framework */; };
+		3AE325EA14AEC64400DF6E38 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15A14AEB5D9003B6E52 /* SenTestingKit.framework */; };
+		3AE325EB14AEC64400DF6E38 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D17A14AEB5EC003B6E52 /* Cocoa.framework */; };
+		3AE325F114AEC64400DF6E38 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3AE325EF14AEC64400DF6E38 /* InfoPlist.strings */; };
+		3AE325F414AEC64400DF6E38 /* JucheLogTestMac.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AE325F314AEC64400DF6E38 /* JucheLogTestMac.m */; };
+		3AE325F914AEC64B00DF6E38 /* JucheLogTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D16A14AEB5D9003B6E52 /* JucheLogTests.m */; };
+		3AE325FA14AEC67000DF6E38 /* JucheLogMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D17914AEB5EC003B6E52 /* JucheLogMac.framework */; };
+		3AE325FC14AEC99700DF6E38 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AE325FB14AEC99700DF6E38 /* IOKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -24,21 +64,67 @@
 			remoteGlobalIDString = 3AB6D14914AEB5D9003B6E52;
 			remoteInfo = JucheLog;
 		};
+		3AE325D114AEC49900DF6E38 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3AB6D13E14AEB5D9003B6E52 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3AE325B514AEC49800DF6E38;
+			remoteInfo = Juche_arbitrary_test_host;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		3AB6D14A14AEB5D9003B6E52 /* JucheLog.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheLog.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		3AB6D14E14AEB5D9003B6E52 /* JucheLog-Info.plist */ = {isa = PBXFileReference; path = "JucheLog-Info.plist"; sourceTree = "<group>"; };
+		3AB6D14E14AEB5D9003B6E52 /* JucheLog-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "JucheLog-Info.plist"; sourceTree = "<group>"; };
 		3AB6D15014AEB5D9003B6E52 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		3AB6D15214AEB5D9003B6E52 /* JucheLog-Prefix.pch */ = {isa = PBXFileReference; path = "JucheLog-Prefix.pch"; sourceTree = "<group>"; };
+		3AB6D15214AEB5D9003B6E52 /* JucheLog-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "JucheLog-Prefix.pch"; sourceTree = "<group>"; };
 		3AB6D15814AEB5D9003B6E52 /* JucheLogTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheLogTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AB6D15A14AEB5D9003B6E52 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		3AB6D15C14AEB5D9003B6E52 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		3AB6D15E14AEB5D9003B6E52 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		3AB6D16514AEB5D9003B6E52 /* JucheLogTests-Info.plist */ = {isa = PBXFileReference; path = "JucheLogTests-Info.plist"; sourceTree = "<group>"; };
+		3AB6D16514AEB5D9003B6E52 /* JucheLogTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "JucheLogTests-Info.plist"; sourceTree = "<group>"; };
 		3AB6D16714AEB5D9003B6E52 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		3AB6D16914AEB5D9003B6E52 /* JucheLogTests.h */ = {isa = PBXFileReference; path = JucheLogTests.h; sourceTree = "<group>"; };
+		3AB6D16914AEB5D9003B6E52 /* JucheLogTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JucheLogTests.h; sourceTree = "<group>"; };
 		3AB6D16A14AEB5D9003B6E52 /* JucheLogTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JucheLogTests.m; sourceTree = "<group>"; };
+		3AB6D17914AEB5EC003B6E52 /* JucheLogMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = JucheLogMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AB6D17A14AEB5EC003B6E52 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		3AB6D17D14AEB5EC003B6E52 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		3AB6D17E14AEB5EC003B6E52 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		3AB6D17F14AEB5EC003B6E52 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		3AB6D18214AEB5ED003B6E52 /* JucheLogMac-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "JucheLogMac-Info.plist"; sourceTree = "<group>"; };
+		3AB6D18414AEB5ED003B6E52 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		3AB6D18614AEB5ED003B6E52 /* JucheLogMac-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "JucheLogMac-Prefix.pch"; sourceTree = "<group>"; };
+		3AB6D18714AEB5ED003B6E52 /* JucheLogMac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JucheLogMac.h; sourceTree = "<group>"; };
+		3AB6D18814AEB5ED003B6E52 /* JucheLogMac.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JucheLogMac.m; sourceTree = "<group>"; };
+		3AB6D18D14AEB609003B6E52 /* JucheLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JucheLog.h; sourceTree = "<group>"; };
+		3AB6D18E14AEB609003B6E52 /* JucheLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JucheLog.m; sourceTree = "<group>"; };
+		3AB6D19314AEB637003B6E52 /* Loggly.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Loggly.h; sourceTree = "<group>"; };
+		3AB6D19414AEB637003B6E52 /* Loggly.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Loggly.m; sourceTree = "<group>"; };
+		3AB6D19914AEB980003B6E52 /* UnifiedQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnifiedQueue.h; sourceTree = "<group>"; };
+		3AB6D19A14AEB980003B6E52 /* UnifiedQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UnifiedQueue.m; sourceTree = "<group>"; };
+		3AB6D19F14AEBACD003B6E52 /* JucheBackend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JucheBackend.h; sourceTree = "<group>"; };
+		3AB6D1A214AEBDEA003B6E52 /* NSLogBackend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSLogBackend.h; sourceTree = "<group>"; };
+		3AB6D1A314AEBDEA003B6E52 /* NSLogBackend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSLogBackend.m; sourceTree = "<group>"; };
+		3AE325B614AEC49800DF6E38 /* Juche_arbitrary_test_host.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Juche_arbitrary_test_host.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AE325BA14AEC49800DF6E38 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		3AE325BE14AEC49800DF6E38 /* Juche_arbitrary_test_host-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Juche_arbitrary_test_host-Info.plist"; sourceTree = "<group>"; };
+		3AE325C014AEC49800DF6E38 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		3AE325C214AEC49900DF6E38 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		3AE325C414AEC49900DF6E38 /* Juche_arbitrary_test_host-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Juche_arbitrary_test_host-Prefix.pch"; sourceTree = "<group>"; };
+		3AE325C514AEC49900DF6E38 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		3AE325C614AEC49900DF6E38 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		3AE325CD14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Juche_arbitrary_test_hostTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AE325D514AEC49900DF6E38 /* Juche_arbitrary_test_hostTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Juche_arbitrary_test_hostTests-Info.plist"; sourceTree = "<group>"; };
+		3AE325D714AEC49900DF6E38 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		3AE325D914AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Juche_arbitrary_test_hostTests.h; sourceTree = "<group>"; };
+		3AE325DA14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Juche_arbitrary_test_hostTests.m; sourceTree = "<group>"; };
+		3AE325E914AEC64400DF6E38 /* JucheLogTestMac.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheLogTestMac.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AE325EE14AEC64400DF6E38 /* JucheLogTestMac-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "JucheLogTestMac-Info.plist"; sourceTree = "<group>"; };
+		3AE325F014AEC64400DF6E38 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		3AE325F214AEC64400DF6E38 /* JucheLogTestMac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JucheLogTestMac.h; sourceTree = "<group>"; };
+		3AE325F314AEC64400DF6E38 /* JucheLogTestMac.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JucheLogTestMac.m; sourceTree = "<group>"; };
+		3AE325F514AEC64400DF6E38 /* JucheLogTestMac-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "JucheLogTestMac-Prefix.pch"; sourceTree = "<group>"; };
+		3AE325FB14AEC99700DF6E38 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = SDKs/MacOSX10.7.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +142,47 @@
 				3AB6D15B14AEB5D9003B6E52 /* SenTestingKit.framework in Frameworks */,
 				3AB6D15D14AEB5D9003B6E52 /* UIKit.framework in Frameworks */,
 				3AB6D15F14AEB5D9003B6E52 /* Foundation.framework in Frameworks */,
+				3AE325B114AEC43C00DF6E38 /* JucheLog.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AB6D17514AEB5EC003B6E52 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325FC14AEC99700DF6E38 /* IOKit.framework in Frameworks */,
+				3AB6D17B14AEB5EC003B6E52 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325B314AEC49800DF6E38 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325B814AEC49800DF6E38 /* UIKit.framework in Frameworks */,
+				3AE325B914AEC49800DF6E38 /* Foundation.framework in Frameworks */,
+				3AE325E314AEC4CB00DF6E38 /* JucheLog.framework in Frameworks */,
+				3AE325BB14AEC49800DF6E38 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325C914AEC49900DF6E38 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325CE14AEC49900DF6E38 /* SenTestingKit.framework in Frameworks */,
+				3AE325CF14AEC49900DF6E38 /* UIKit.framework in Frameworks */,
+				3AE325D014AEC49900DF6E38 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325E514AEC64400DF6E38 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325EA14AEC64400DF6E38 /* SenTestingKit.framework in Frameworks */,
+				3AE325EB14AEC64400DF6E38 /* Cocoa.framework in Frameworks */,
+				3AE325FA14AEC67000DF6E38 /* JucheLogMac.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,8 +192,13 @@
 		3AB6D13C14AEB5D9003B6E52 = {
 			isa = PBXGroup;
 			children = (
+				3AE325FB14AEC99700DF6E38 /* IOKit.framework */,
 				3AB6D14C14AEB5D9003B6E52 /* JucheLog */,
 				3AB6D16314AEB5D9003B6E52 /* JucheLogTests */,
+				3AB6D18014AEB5EC003B6E52 /* JucheLogMac */,
+				3AE325BC14AEC49800DF6E38 /* Juche_arbitrary_test_host */,
+				3AE325D314AEC49900DF6E38 /* Juche_arbitrary_test_hostTests */,
+				3AE325EC14AEC64400DF6E38 /* JucheLogTestMac */,
 				3AB6D15914AEB5D9003B6E52 /* Frameworks */,
 				3AB6D14B14AEB5D9003B6E52 /* Products */,
 			);
@@ -77,6 +209,10 @@
 			children = (
 				3AB6D14A14AEB5D9003B6E52 /* JucheLog.framework */,
 				3AB6D15814AEB5D9003B6E52 /* JucheLogTests.octest */,
+				3AB6D17914AEB5EC003B6E52 /* JucheLogMac.framework */,
+				3AE325B614AEC49800DF6E38 /* Juche_arbitrary_test_host.app */,
+				3AE325CD14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.octest */,
+				3AE325E914AEC64400DF6E38 /* JucheLogTestMac.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,6 +221,15 @@
 			isa = PBXGroup;
 			children = (
 				3AB6D14D14AEB5D9003B6E52 /* Supporting Files */,
+				3AB6D18D14AEB609003B6E52 /* JucheLog.h */,
+				3AB6D18E14AEB609003B6E52 /* JucheLog.m */,
+				3AB6D19314AEB637003B6E52 /* Loggly.h */,
+				3AB6D19414AEB637003B6E52 /* Loggly.m */,
+				3AB6D19914AEB980003B6E52 /* UnifiedQueue.h */,
+				3AB6D19A14AEB980003B6E52 /* UnifiedQueue.m */,
+				3AB6D19F14AEBACD003B6E52 /* JucheBackend.h */,
+				3AB6D1A214AEBDEA003B6E52 /* NSLogBackend.h */,
+				3AB6D1A314AEBDEA003B6E52 /* NSLogBackend.m */,
 			);
 			path = JucheLog;
 			sourceTree = "<group>";
@@ -105,6 +250,9 @@
 				3AB6D15A14AEB5D9003B6E52 /* SenTestingKit.framework */,
 				3AB6D15C14AEB5D9003B6E52 /* UIKit.framework */,
 				3AB6D15E14AEB5D9003B6E52 /* Foundation.framework */,
+				3AB6D17A14AEB5EC003B6E52 /* Cocoa.framework */,
+				3AE325BA14AEC49800DF6E38 /* CoreGraphics.framework */,
+				3AB6D17C14AEB5EC003B6E52 /* Other Frameworks */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -128,6 +276,96 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		3AB6D17C14AEB5EC003B6E52 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3AB6D17D14AEB5EC003B6E52 /* AppKit.framework */,
+				3AB6D17E14AEB5EC003B6E52 /* CoreData.framework */,
+				3AB6D17F14AEB5EC003B6E52 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		3AB6D18014AEB5EC003B6E52 /* JucheLogMac */ = {
+			isa = PBXGroup;
+			children = (
+				3AB6D18714AEB5ED003B6E52 /* JucheLogMac.h */,
+				3AB6D18814AEB5ED003B6E52 /* JucheLogMac.m */,
+				3AB6D18114AEB5ED003B6E52 /* Supporting Files */,
+			);
+			path = JucheLogMac;
+			sourceTree = "<group>";
+		};
+		3AB6D18114AEB5ED003B6E52 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				3AB6D18214AEB5ED003B6E52 /* JucheLogMac-Info.plist */,
+				3AB6D18314AEB5ED003B6E52 /* InfoPlist.strings */,
+				3AB6D18614AEB5ED003B6E52 /* JucheLogMac-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3AE325BC14AEC49800DF6E38 /* Juche_arbitrary_test_host */ = {
+			isa = PBXGroup;
+			children = (
+				3AE325C514AEC49900DF6E38 /* AppDelegate.h */,
+				3AE325C614AEC49900DF6E38 /* AppDelegate.m */,
+				3AE325BD14AEC49800DF6E38 /* Supporting Files */,
+			);
+			path = Juche_arbitrary_test_host;
+			sourceTree = "<group>";
+		};
+		3AE325BD14AEC49800DF6E38 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				3AE325BE14AEC49800DF6E38 /* Juche_arbitrary_test_host-Info.plist */,
+				3AE325BF14AEC49800DF6E38 /* InfoPlist.strings */,
+				3AE325C214AEC49900DF6E38 /* main.m */,
+				3AE325C414AEC49900DF6E38 /* Juche_arbitrary_test_host-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3AE325D314AEC49900DF6E38 /* Juche_arbitrary_test_hostTests */ = {
+			isa = PBXGroup;
+			children = (
+				3AE325D914AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.h */,
+				3AE325DA14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.m */,
+				3AE325D414AEC49900DF6E38 /* Supporting Files */,
+			);
+			path = Juche_arbitrary_test_hostTests;
+			sourceTree = "<group>";
+		};
+		3AE325D414AEC49900DF6E38 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				3AE325D514AEC49900DF6E38 /* Juche_arbitrary_test_hostTests-Info.plist */,
+				3AE325D614AEC49900DF6E38 /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3AE325EC14AEC64400DF6E38 /* JucheLogTestMac */ = {
+			isa = PBXGroup;
+			children = (
+				3AE325F214AEC64400DF6E38 /* JucheLogTestMac.h */,
+				3AE325F314AEC64400DF6E38 /* JucheLogTestMac.m */,
+				3AE325ED14AEC64400DF6E38 /* Supporting Files */,
+			);
+			path = JucheLogTestMac;
+			sourceTree = "<group>";
+		};
+		3AE325ED14AEC64400DF6E38 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				3AE325EE14AEC64400DF6E38 /* JucheLogTestMac-Info.plist */,
+				3AE325EF14AEC64400DF6E38 /* InfoPlist.strings */,
+				3AE325F514AEC64400DF6E38 /* JucheLogTestMac-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -135,6 +373,23 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3AB6D18F14AEB609003B6E52 /* JucheLog.h in Headers */,
+				3AB6D19514AEB637003B6E52 /* Loggly.h in Headers */,
+				3AB6D19B14AEB980003B6E52 /* UnifiedQueue.h in Headers */,
+				3AB6D1A014AEBACE003B6E52 /* JucheBackend.h in Headers */,
+				3AB6D1A414AEBDEB003B6E52 /* NSLogBackend.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AB6D17614AEB5EC003B6E52 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AB6D19014AEB609003B6E52 /* JucheLog.h in Headers */,
+				3AB6D19614AEB637003B6E52 /* Loggly.h in Headers */,
+				3AB6D19C14AEB980003B6E52 /* UnifiedQueue.h in Headers */,
+				3AB6D1A114AEBACE003B6E52 /* JucheBackend.h in Headers */,
+				3AB6D1A514AEBDEB003B6E52 /* NSLogBackend.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,6 +435,78 @@
 			productReference = 3AB6D15814AEB5D9003B6E52 /* JucheLogTests.octest */;
 			productType = "com.apple.product-type.bundle";
 		};
+		3AB6D17814AEB5EC003B6E52 /* JucheLogMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AB6D18A14AEB5ED003B6E52 /* Build configuration list for PBXNativeTarget "JucheLogMac" */;
+			buildPhases = (
+				3AB6D17414AEB5EC003B6E52 /* Sources */,
+				3AB6D17514AEB5EC003B6E52 /* Frameworks */,
+				3AB6D17614AEB5EC003B6E52 /* Headers */,
+				3AB6D17714AEB5EC003B6E52 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = JucheLogMac;
+			productName = JucheLogMac;
+			productReference = 3AB6D17914AEB5EC003B6E52 /* JucheLogMac.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		3AE325B514AEC49800DF6E38 /* Juche_arbitrary_test_host */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AE325DC14AEC49900DF6E38 /* Build configuration list for PBXNativeTarget "Juche_arbitrary_test_host" */;
+			buildPhases = (
+				3AE325B214AEC49800DF6E38 /* Sources */,
+				3AE325B314AEC49800DF6E38 /* Frameworks */,
+				3AE325B414AEC49800DF6E38 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Juche_arbitrary_test_host;
+			productName = Juche_arbitrary_test_host;
+			productReference = 3AE325B614AEC49800DF6E38 /* Juche_arbitrary_test_host.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3AE325CC14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AE325DF14AEC49900DF6E38 /* Build configuration list for PBXNativeTarget "Juche_arbitrary_test_hostTests" */;
+			buildPhases = (
+				3AE325C814AEC49900DF6E38 /* Sources */,
+				3AE325C914AEC49900DF6E38 /* Frameworks */,
+				3AE325CA14AEC49900DF6E38 /* Resources */,
+				3AE325CB14AEC49900DF6E38 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3AE325D214AEC49900DF6E38 /* PBXTargetDependency */,
+			);
+			name = Juche_arbitrary_test_hostTests;
+			productName = Juche_arbitrary_test_hostTests;
+			productReference = 3AE325CD14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
+		3AE325E814AEC64400DF6E38 /* JucheLogTestMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AE325F614AEC64400DF6E38 /* Build configuration list for PBXNativeTarget "JucheLogTestMac" */;
+			buildPhases = (
+				3AE325E414AEC64400DF6E38 /* Sources */,
+				3AE325E514AEC64400DF6E38 /* Frameworks */,
+				3AE325E614AEC64400DF6E38 /* Resources */,
+				3AE325E714AEC64400DF6E38 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = JucheLogTestMac;
+			productName = JucheLogTestMac;
+			productReference = 3AE325E914AEC64400DF6E38 /* JucheLogTestMac.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -202,6 +529,10 @@
 			targets = (
 				3AB6D14914AEB5D9003B6E52 /* JucheLog */,
 				3AB6D15714AEB5D9003B6E52 /* JucheLogTests */,
+				3AB6D17814AEB5EC003B6E52 /* JucheLogMac */,
+				3AE325B514AEC49800DF6E38 /* Juche_arbitrary_test_host */,
+				3AE325CC14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests */,
+				3AE325E814AEC64400DF6E38 /* JucheLogTestMac */,
 			);
 		};
 /* End PBXProject section */
@@ -221,6 +552,38 @@
 			files = (
 				3AB6D16214AEB5D9003B6E52 /* JucheLog.framework in Resources */,
 				3AB6D16814AEB5D9003B6E52 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AB6D17714AEB5EC003B6E52 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AB6D18514AEB5ED003B6E52 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325B414AEC49800DF6E38 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325C114AEC49900DF6E38 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325CA14AEC49900DF6E38 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325D814AEC49900DF6E38 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325E614AEC64400DF6E38 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325F114AEC64400DF6E38 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,6 +629,32 @@
 			shellPath = /bin/sh;
 			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
 		};
+		3AE325CB14AEC49900DF6E38 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+		3AE325E714AEC64400DF6E38 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -273,6 +662,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3AB6D19114AEB609003B6E52 /* JucheLog.m in Sources */,
+				3AB6D19714AEB637003B6E52 /* Loggly.m in Sources */,
+				3AB6D19D14AEB980003B6E52 /* UnifiedQueue.m in Sources */,
+				3AB6D1A614AEBDEB003B6E52 /* NSLogBackend.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,7 +673,44 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3AB6D16B14AEB5D9003B6E52 /* JucheLogTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AB6D17414AEB5EC003B6E52 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AB6D18914AEB5ED003B6E52 /* JucheLogMac.m in Sources */,
+				3AB6D19214AEB609003B6E52 /* JucheLog.m in Sources */,
+				3AB6D19814AEB637003B6E52 /* Loggly.m in Sources */,
+				3AB6D19E14AEB980003B6E52 /* UnifiedQueue.m in Sources */,
+				3AB6D1A714AEBDEB003B6E52 /* NSLogBackend.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325B214AEC49800DF6E38 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325C314AEC49900DF6E38 /* main.m in Sources */,
+				3AE325C714AEC49900DF6E38 /* AppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325C814AEC49900DF6E38 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325DB14AEC49900DF6E38 /* Juche_arbitrary_test_hostTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE325E414AEC64400DF6E38 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE325F414AEC64400DF6E38 /* JucheLogTestMac.m in Sources */,
+				3AE325F914AEC64B00DF6E38 /* JucheLogTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,6 +721,11 @@
 			isa = PBXTargetDependency;
 			target = 3AB6D14914AEB5D9003B6E52 /* JucheLog */;
 			targetProxy = 3AB6D16014AEB5D9003B6E52 /* PBXContainerItemProxy */;
+		};
+		3AE325D214AEC49900DF6E38 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3AE325B514AEC49800DF6E38 /* Juche_arbitrary_test_host */;
+			targetProxy = 3AE325D114AEC49900DF6E38 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -307,6 +742,38 @@
 			isa = PBXVariantGroup;
 			children = (
 				3AB6D16714AEB5D9003B6E52 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3AB6D18314AEB5ED003B6E52 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3AB6D18414AEB5ED003B6E52 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3AE325BF14AEC49800DF6E38 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3AE325C014AEC49800DF6E38 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3AE325D614AEC49900DF6E38 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3AE325D714AEC49900DF6E38 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		3AE325EF14AEC64400DF6E38 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3AE325F014AEC64400DF6E38 /* en */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -405,6 +872,7 @@
 		3AB6D17214AEB5D9003B6E52 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUNDLE_LOADER = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
@@ -419,6 +887,7 @@
 					.fake_fw_testing,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = octest;
 			};
 			name = Debug;
@@ -426,6 +895,7 @@
 		3AB6D17314AEB5D9003B6E52 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUNDLE_LOADER = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
@@ -440,6 +910,170 @@
 					.fake_fw_testing,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+		3AB6D18B14AEB5ED003B6E52 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(DEVELOPER_FRAMEWORKS_DIR)\"",
+				);
+				FRAMEWORK_VERSION = A;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "JucheLogMac/JucheLogMac-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				INFOPLIST_FILE = "JucheLogMac/JucheLogMac-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Debug;
+		};
+		3AB6D18C14AEB5ED003B6E52 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(DEVELOPER_FRAMEWORKS_DIR)\"",
+				);
+				FRAMEWORK_VERSION = A;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "JucheLogMac/JucheLogMac-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				INFOPLIST_FILE = "JucheLogMac/JucheLogMac-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Release;
+		};
+		3AE325DD14AEC49900DF6E38 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(DEVELOPER_FRAMEWORKS_DIR)\"",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Juche_arbitrary_test_host/Juche_arbitrary_test_host-Prefix.pch";
+				INFOPLIST_FILE = "Juche_arbitrary_test_host/Juche_arbitrary_test_host-Info.plist";
+				OTHER_LDFLAGS = (
+					"-framework",
+					JucheLog,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		3AE325DE14AEC49900DF6E38 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(DEVELOPER_FRAMEWORKS_DIR)\"",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Juche_arbitrary_test_host/Juche_arbitrary_test_host-Prefix.pch";
+				INFOPLIST_FILE = "Juche_arbitrary_test_host/Juche_arbitrary_test_host-Info.plist";
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				OTHER_LDFLAGS = (
+					"-framework",
+					JucheLog,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		3AE325E014AEC49900DF6E38 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Juche_arbitrary_test_host.app/Juche_arbitrary_test_host";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Juche_arbitrary_test_host/Juche_arbitrary_test_host-Prefix.pch";
+				INFOPLIST_FILE = "Juche_arbitrary_test_hostTests/Juche_arbitrary_test_hostTests-Info.plist";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		3AE325E114AEC49900DF6E38 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Juche_arbitrary_test_host.app/Juche_arbitrary_test_host";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Juche_arbitrary_test_host/Juche_arbitrary_test_host-Prefix.pch";
+				INFOPLIST_FILE = "Juche_arbitrary_test_hostTests/Juche_arbitrary_test_hostTests-Info.plist";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+		3AE325F714AEC64400DF6E38 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "JucheLogTestMac/JucheLogTestMac-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				INFOPLIST_FILE = "JucheLogTestMac/JucheLogTestMac-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		3AE325F814AEC64400DF6E38 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = "$(DEVELOPER_LIBRARY_DIR)/Frameworks";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "JucheLogTestMac/JucheLogTestMac-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				INFOPLIST_FILE = "JucheLogTestMac/JucheLogTestMac-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 				WRAPPER_EXTENSION = octest;
 			};
 			name = Release;
@@ -463,12 +1097,47 @@
 				3AB6D17014AEB5D9003B6E52 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		3AB6D17114AEB5D9003B6E52 /* Build configuration list for PBXNativeTarget "JucheLogTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3AB6D17214AEB5D9003B6E52 /* Debug */,
 				3AB6D17314AEB5D9003B6E52 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3AB6D18A14AEB5ED003B6E52 /* Build configuration list for PBXNativeTarget "JucheLogMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3AB6D18B14AEB5ED003B6E52 /* Debug */,
+				3AB6D18C14AEB5ED003B6E52 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3AE325DC14AEC49900DF6E38 /* Build configuration list for PBXNativeTarget "Juche_arbitrary_test_host" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3AE325DD14AEC49900DF6E38 /* Debug */,
+				3AE325DE14AEC49900DF6E38 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		3AE325DF14AEC49900DF6E38 /* Build configuration list for PBXNativeTarget "Juche_arbitrary_test_hostTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3AE325E014AEC49900DF6E38 /* Debug */,
+				3AE325E114AEC49900DF6E38 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		3AE325F614AEC64400DF6E38 /* Build configuration list for PBXNativeTarget "JucheLogTestMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3AE325F714AEC64400DF6E38 /* Debug */,
+				3AE325F814AEC64400DF6E38 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
