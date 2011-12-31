@@ -124,11 +124,11 @@ static NSMutableDictionary *loggers;
 }
 - (void) indent{
     int level = [[self.currentState objectForKey:@"indent"] intValue];
-    [self.currentState setObject:[NSString stringWithFormat:@"%d",level+1] forKey:@"level"];
+    [self.currentState setObject:[NSString stringWithFormat:@"%d",level+1] forKey:@"indent"];
 }
 - (void) dedent {
     int level = [[self.currentState objectForKey:@"indent"] intValue];
-    [self.currentState setObject:[NSString stringWithFormat:@"%d",level-1] forKey:@"level"];
+    [self.currentState setObject:[NSString stringWithFormat:@"%d",level-1] forKey:@"indent"];
 }
 + (void) indent {
     [[JucheLog arbitraryLogger] indent];
