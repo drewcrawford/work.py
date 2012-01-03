@@ -184,8 +184,8 @@ def testExcept():
 def testMoreExcept():
 	testExcept()
 
-testMoreExcept()
 if __name__=="__main__":
+	testMoreExcept()
 	for i in range(0,3):
 		with juche.revolution(i=i):
 			juche.info("My awesome loop")
