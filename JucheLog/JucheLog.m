@@ -11,6 +11,7 @@
 #import "JucheBackend.h"
 @interface JucheLog () {
     NSMutableArray *stack;
+    NSMutableArray *cleanStack;
 }
 @end
 
@@ -64,8 +65,11 @@ static NSMutableDictionary *loggers;
 - (id) init {
     if (self = [super init]) {
         stack = [[NSMutableArray alloc] init];
+        cleanStack = [[NSMutableArray alloc] init];
         NSMutableDictionary *state = [[NSMutableDictionary alloc] init];
         [stack addObject:state];
+        NSMutableDictionary *cleanState = [[NSMutableDictionary alloc] init];
+        [cleanStack addObject:cleanState];
         //configure state
         NSString *threadName = [NSThread currentThread].isMainThread?@"main":[NSThread currentThread].name;
         
@@ -87,16 +91,25 @@ static NSMutableDictionary *loggers;
 }
 
 - (void) push {
+    //NSLog(@"push");
     [stack addObject:[self.currentState mutableCopy]];
+    [cleanStack addObject:[[NSMutableDictionary alloc] init]];
 }
 - (void) set:(id)key to:(id) obj {
-    [self.currentState setObject:[obj description] forKey:[key description]];
+   //NSLog(@"set %@ to %@",key,obj);
+    NSString *desc = [obj description];
+    NSString *ikey = [key description];
+    [self.currentState setObject:desc forKey:ikey];
+    [[cleanStack lastObject] setObject:desc forKey:ikey];
 }
 - (void) pop {
+    //NSLog(@"pop");
+
     [stack removeLastObject];
+    [cleanStack removeLastObject];
 }
 - (void) emit {
-    [[UnifiedQueue sharedQueue] enqueue:self.currentState];
+    [[UnifiedQueue sharedQueue] enqueue:self.currentState withClean:[cleanStack lastObject]];
 }
 + (void) emit {
     [[JucheLog arbitraryLogger] emit];
@@ -117,18 +130,16 @@ static NSMutableDictionary *loggers;
     va_start(listOfArguments, format);
     NSString *formattedString = [[NSString alloc] initWithFormat:format arguments:listOfArguments];
     va_end(listOfArguments);
-    [logger push];
     [logger set:@"msg" to:formattedString];
     [logger emit];
-    [logger pop];
 }
 - (void) indent{
     int level = [[self.currentState objectForKey:@"indent"] intValue];
-    [self.currentState setObject:[NSString stringWithFormat:@"%d",level+1] forKey:@"indent"];
+    [self set:@"indent"to:[NSString stringWithFormat:@"%d",level+1 ]];
 }
 - (void) dedent {
     int level = [[self.currentState objectForKey:@"indent"] intValue];
-    [self.currentState setObject:[NSString stringWithFormat:@"%d",level-1] forKey:@"indent"];
+    [self set:@"indent"to:[NSString stringWithFormat:@"%d",level-1 ]];
 }
 + (void) indent {
     [[JucheLog arbitraryLogger] indent];
@@ -177,6 +188,7 @@ static NSMutableDictionary *loggers;
     }
     va_end(listOfArguments);
     [self push];
+    [self indent];
     [self setKeysToValuesArray:nonsense];
     void (^myblock)() = firstKey;
     myblock();

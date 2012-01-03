@@ -11,5 +11,5 @@
 @interface UnifiedQueue : NSObject
 + (UnifiedQueue*) sharedQueue;
 - (void) registerBackend:(id<JucheBackend>) backend;
-- (void) enqueue:(NSDictionary*) myDict;
+- (void) enqueue:(NSDictionary*) fullDict withClean:(NSDictionary*) cleanDict;
 @end

@@ -18,16 +18,12 @@
 
 //juche macros
 #define JUCHE_NSLOG(f,...) \
-[JucheLog push];\
 [JucheLog setKeysToValues:@"file",[[NSString stringWithUTF8String:__FILE__] lastPathComponent],@"line",[NSNumber numberWithInt:__LINE__],@"function",[NSString stringWithUTF8String:__PRETTY_FUNCTION__], nil];\
 [JucheLog log:f,##__VA_ARGS__];\
-[JucheLog pop]
 
 #define JUCHE(JUCHE_SEVERITY,f,...) \
-[JucheLog push];\
 [JucheLog setKeysToValues:@"level",JUCHE_SEVERITY,nil];\
 JUCHE_NSLOG(f,##__VA_ARGS__);\
-[JucheLog pop]
 
 #define JUCHE_SET1(JUCHE_SEVERITY,key,val,f,...) \
 [JucheLog push];\
@@ -38,8 +34,7 @@ JUCHE(JUCHE_SEVERITY,f,##__VA_ARGS__);\
 #define JUCHE_IF(SYMBOL,SEVERITY,f,...) \
 if (condition) JUCHE(SEVERITY,f,##__VA_ARGS__)
 
-#define REVOLT(first,...) \
-[JucheLog revolt:first,##__VA_ARGS__]
+
 
 
 

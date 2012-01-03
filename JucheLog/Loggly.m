@@ -10,8 +10,12 @@
 #import "UnifiedQueue.h"
 @implementation Loggly
 @synthesize inputKey;
-- (BOOL)wantsLocalOnly { return NO; }
-- (BOOL)wantsLogSync { return YES; }
+
+- (BOOL)wantsCleanDict { return NO; }
+
+- (BOOL)wantsLogSync { return NO; }
+
+
 + (void) enableWithInputKey:(NSString*) key {
     Loggly *backend = [[Loggly alloc] init];
     backend.inputKey = key;
@@ -57,4 +61,5 @@
     }
     
 }
+
 @end

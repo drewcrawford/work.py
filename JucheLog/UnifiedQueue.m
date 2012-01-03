@@ -37,35 +37,20 @@ static UnifiedQueue *sharedQueue;
 - (void) registerBackend:(id<JucheBackend>) backend {
     [backends addObject:backend];
 }
-+ (NSDictionary*) fixDictFor:(id<JucheBackend>) backend inDict:(NSDictionary*) d {
-    if ([backend wantsLocalOnly]) {
-        NSArray *reserved = [NSArray arrayWithObjects:@"app",@"version",@"who", nil];
-        NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
-        for (NSString *key in d.allKeys) {
-            if (![reserved containsObject:key]) {
-                [result setObject:[d objectForKey:key] forKey:key];
-            }
-        }
-        return result;
-    }
-    else return d;
-}
 
-- (void)enqueue:(NSDictionary *)myDict {
+- (void)enqueue:(NSDictionary *)myDict withClean:(NSDictionary *)cleanDict {
+#define LOG(BACKEND) BOOL result = NO;\
+while (!result) {\
+    result = [backend log:([backend wantsCleanDict])?cleanDict:myDict];\
+}
     for(id <JucheBackend> backend in backends) {
         if (![backend wantsLogSync]) continue;
-        BOOL result = NO;
-        while (!result) {
-            result = [backend log:[UnifiedQueue fixDictFor:backend inDict:myDict]];
+            LOG(backend);
         }
-    }
         dispatch_async(myQueue, ^{
             for (id <JucheBackend> backend in backends) {
                 if ([backend wantsLogSync]) continue;
-                BOOL result = NO;
-                while (!result) {
-                    result = [backend log:[UnifiedQueue fixDictFor:backend inDict:myDict]];
-                }
+                LOG(backend);
             }
         });
 }

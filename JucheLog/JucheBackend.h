@@ -14,6 +14,6 @@
 /**If yes, block the caller until the log has been processed.  If this is false, execution will return to the caller while the log is being processed.  You probably want this NO for NSLog, but YES for slow network-related things. */
 - (BOOL) wantsLogSync;
 
-/**Only pass local values to this logger (ignore, say, serial numbers and so on*/
-- (BOOL) wantsLocalOnly;
+/**Only pass recent values to this logger*/
+- (BOOL) wantsCleanDict;
 @end

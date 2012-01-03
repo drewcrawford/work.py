@@ -31,11 +31,25 @@
     
     
     for(int i = 0; i < 3; i++) {
-	    REVOLT(@"i",[NSString stringWithFormat:@"%d",i],^{
+	    [JucheLog revolt:@"i",[NSString stringWithFormat:@"%d",i],^{
             //each log statement in this block shows the contents of the i variable
-		    JUCHE(JINFO,@"Inner loop"); 
-	    });
+		    JUCHE(JINFO,@"My awesome loop"); 
+	    }];
     }
+    
+    for(int i = 0; i < 3; i++) {
+        [JucheLog revolt:@"i", [NSString stringWithFormat:@"%d",i],@"eternal_president",@"kim-il-sun", ^{
+            JUCHE(JINFO,@"Outer loop!");
+            for(int j = 0; j < 2; j++) {
+                [JucheLog revolt:@"i", [NSString stringWithFormat:@"%d",i], ^{
+                    JUCHE(JINFO,@"Inner loop!");
+                }];
+            }
+            
+        }];
+    }
+    
+    
 }
 
 @end

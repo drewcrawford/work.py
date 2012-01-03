@@ -10,12 +10,12 @@
 
 @implementation NSLogBackend
 - (BOOL)log:(NSDictionary *)state {
-    NSArray *reserved = [NSArray arrayWithObjects:@"file",@"line",@"msg",@"indent",@"thread",@"function", nil];
+    NSArray *reserved = [NSArray arrayWithObjects:@"file",@"line",@"msg",@"indent",@"thread",@"function",@"level", nil];
     
     NSMutableString *string = [[NSMutableString alloc] init];
     
     int indent = [[state objectForKey:@"indent"] intValue];
-    for(int i = 0; i <= indent; i++) {
+    for(int i = 0; i < indent; i++) {
         [string appendString:@"|  "]; 
     }
     [string appendFormat:@"[%@] %@ %@ ",[state objectForKey:@"level"],[[NSDate date] descriptionWithCalendarFormat:@"%H:%M:%S" timeZone:nil locale:nil],[state objectForKey:@"msg"]];
@@ -36,7 +36,7 @@
 - (BOOL)wantsLogSync {
     return YES;
 }
-- (BOOL) wantsLocalOnly {
+- (BOOL) wantsCleanDict {
     return YES;
 }
 @end
