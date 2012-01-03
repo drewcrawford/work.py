@@ -59,4 +59,8 @@ Work.py is not going to be a good solution for you if you:
 * Since everyone uses work.py here, just e-mail cases@drewcrawfordapps.com to get free code-level support from the guys who wrote it.  No kidding.
 * It's a compact, maintainable script, weighing in at just over 1k lines.  You can probably extend it to support that weird edge case you want.
 
-And if you've made it this far and are looking for contract iOS developers who care so much about code quality that we write our own workflow tools, consider us for your next project.
+
+####Projected Cost
+
+work.py is written and maintained by three developers at DrewCrawfordApps LLC, an iPhone and iPad consulting company.  work.py is the result of approximately 41 hours of work, valued at $5125 at current market rates, and is provided to you at no charge.  If this project is of use to you please consider us for your next Objective-C project.
+
