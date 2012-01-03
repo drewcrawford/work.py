@@ -10,15 +10,16 @@
 
 @implementation NSLogBackend
 - (BOOL)log:(NSDictionary *)state {
-    NSArray *reserved = [NSArray arrayWithObjects:@"file",@"line",@"msg",@"indent", nil];
-    NSArray *tail = [NSArray arrayWithObjects:@"file",@"line",@"msg", nil];
+    NSArray *reserved = [NSArray arrayWithObjects:@"file",@"line",@"msg",@"indent",@"thread",@"function", nil];
     
     NSMutableString *string = [[NSMutableString alloc] init];
     
     int indent = [[state objectForKey:@"indent"] intValue];
-    for(int i = 0; i < indent; i++) {
-        [string appendString:@"  "]; 
+    for(int i = 0; i <= indent; i++) {
+        [string appendString:@"|  "]; 
     }
+    [string appendFormat:@"[%@] %@ %@ ",[state objectForKey:@"level"],[[NSDate date] descriptionWithCalendarFormat:@"%H:%M:%S" timeZone:nil locale:nil],[state objectForKey:@"msg"]];
+    
     
     for(NSString *key in state.allKeys) {
         if ([reserved containsObject:key]) continue;
@@ -26,11 +27,9 @@
         [string appendFormat:@"%@=%@ ",key,value];
     }
     
-    for(NSString *key in tail) {
-        NSString *value = [state objectForKey:key];
-        [string appendFormat:@"%@=%@ ",key,value];
-    }
-    NSLog(@"%@",string);
+    [string appendFormat:@"%@:%@",[state objectForKey:@"file"],[state objectForKey:@"line"]];
+    
+    fprintf(stderr,"%s\n",[string UTF8String]);
     return YES;
 }
 

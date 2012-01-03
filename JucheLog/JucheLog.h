@@ -38,6 +38,10 @@ JUCHE(JUCHE_SEVERITY,f,##__VA_ARGS__);\
 #define JUCHE_IF(SYMBOL,SEVERITY,f,...) \
 if (condition) JUCHE(SEVERITY,f,##__VA_ARGS__)
 
+#define REVOLT(first,...) \
+[JucheLog revolt:first,##__VA_ARGS__]
+
+
 
 
 @interface JucheLog : NSObject
@@ -47,6 +51,7 @@ if (condition) JUCHE(SEVERITY,f,##__VA_ARGS__)
 + (void) indent;
 + (void) dedent;
 + (void) log:(NSString*) format, ... NS_FORMAT_FUNCTION(1,2);
++ (void) revolt:(id) firstKey, ...; //terminated by block
 + (void) setKeysToValues:(id) firstKey, ... NS_REQUIRES_NIL_TERMINATION;
 
 @end

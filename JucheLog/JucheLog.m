@@ -136,9 +136,18 @@ static NSMutableDictionary *loggers;
 + (void) dedent {
     [[JucheLog arbitraryLogger] dedent];
 }
-
-+ (void) setKeysToValues:(id) firstKey, ... {
++ (void) setKeysToValuesArray:(NSMutableArray*) nonsense {
     JucheLog *logger = [JucheLog arbitraryLogger];
+
+    while (nonsense.count > 0) {
+        id key = [nonsense objectAtIndex:0];
+        [nonsense removeObject:key];
+        id value = [nonsense objectAtIndex:0];
+        [nonsense removeObject:value];
+        [logger set:key to:value];
+    }
+}
++ (void) setKeysToValues:(id) firstKey, ... {
     
     //convert this nonsense to an NSMutableArray
     NSMutableArray *nonsense = [NSMutableArray array];
@@ -150,14 +159,28 @@ static NSMutableDictionary *loggers;
         firstKey = va_arg(listOfArguments, id);
     }
     va_end(listOfArguments);
-    while (nonsense.count > 0) {
-        id key = [nonsense objectAtIndex:0];
-        [nonsense removeObject:key];
-        id value = [nonsense objectAtIndex:0];
-        [nonsense removeObject:value];
-        [logger set:key to:value];
-    }
+    [self setKeysToValuesArray:nonsense];
     
+    
+}
+
++ (void)revolt:(id)firstKey, ... {
+    //convert this nonsense to an NSMutableArray
+    NSMutableArray *nonsense = [NSMutableArray array];
+    [nonsense addObject:firstKey];
+    va_list listOfArguments;
+    va_start(listOfArguments,firstKey);
+    while (YES) {
+        [nonsense addObject:firstKey];
+        firstKey = va_arg(listOfArguments, id);
+        if (![firstKey isKindOfClass:[NSString class]]) break;
+    }
+    va_end(listOfArguments);
+    [self push];
+    [self setKeysToValuesArray:nonsense];
+    void (^myblock)() = firstKey;
+    myblock();
+    [self pop];
     
 }
 

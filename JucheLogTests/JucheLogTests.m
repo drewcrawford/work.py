@@ -28,15 +28,14 @@
 - (void)testLog
 {
     [Loggly enableWithInputKey:@"dbd1f4d5-5c41-4dc7-8803-47666d46e01d"];
-    JUCHE(JINFO, @"This is at indent level 0");
-    [JucheLog indent];
-    JUCHE(JINFO, @"This is at indent level 1");
-    [JucheLog indent];
-    JUCHE(JINFO, @"This is at indent level 2");
-    [JucheLog dedent];
-    JUCHE(JWARNING,@"This is at indent level 1");
-    [JucheLog dedent];
-    JUCHE(JWARNING,@"This is at indent level 0");
+    
+    
+    for(int i = 0; i < 3; i++) {
+	    REVOLT(@"i",[NSString stringWithFormat:@"%d",i],^{
+            //each log statement in this block shows the contents of the i variable
+		    JUCHE(JINFO,@"Inner loop"); 
+	    });
+    }
 }
 
 @end
