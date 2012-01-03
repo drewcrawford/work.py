@@ -32,7 +32,6 @@
     
     for(int i = 0; i < 3; i++) {
 	    [JucheLog revolt:@"i",[NSString stringWithFormat:@"%d",i],^{
-            //each log statement in this block shows the contents of the i variable
 		    JUCHE(JINFO,@"My awesome loop"); 
 	    }];
     }
