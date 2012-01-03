@@ -113,7 +113,7 @@ Some things to note about this:
 ```
 
 
-Note that this includes not only the values for i, but also the values for j.
+Note that this includes not only the values for i, but also the values for j and eternal_president, not to mention other helpful context information not printed to stderr.
 
 ### Projected Cost
 
