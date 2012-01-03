@@ -21,42 +21,55 @@ JucheLog is a minimalist, cross-platform logging library inspired by Paul Querna
 
 It's simple!
 
-    import juchelog
-    juche.info("Hello world!")
-
+```python
+import juchelog
+juche.info("Hello world!")
+```
 
 or with Objective-C:
 
-    #include <JucheLog/JucheLog.h>
-    JUCHE(JINFO,@"Hello world!");
+```objc
+#include <JucheLog/JucheLog.h>
+JUCHE(JINFO,@"Hello world!");
+```
 
 
 You can add network logging with just one line:
 
-    __builtins__.JUCHE_KEY=<YOUR_KEY> #python
-    [Loggly enableWithInputKey:@"YOUR_KEY>"] //objc
+```python
+__builtins__.JUCHE_KEY="<YOUR_KEY>" #python
+```
+
+```objc
+[Loggly enableWithInputKey:@"YOUR_KEY>"] //objc
+```
 
 Now all your logs talk to Loggly.
 
 But that's just the start of the power of Juche!  One of the important principles is that you can bundle *context* into your log messages.  Check out this awesome example:
 
+```objc
 	for(int i = 0; i < 3; i++) {
 		    [JucheLog revolt:@"i",[NSString stringWithFormat:@"%d",i],^{
 			    JUCHE(JINFO,@"My awesome loop"); 
 		    }];
-	    }
+	   }
+```
+
 Or in python:
 
+```python
 	for i in range(0,3):
 		with juche.revolution(i=i):
 			juche.info("My awesome loop")
+```
 Both of these programs output
 
 	|  [INFO] 19:12:11 My awesome loop i=0  juchelog.py:142
 	|  [INFO] 19:12:11 My awesome loop i=1  juchelog.py:142
 	|  [INFO] 19:12:11 My awesome loop i=2  juchelog.py:142
 
-The context, i=%d, is propagated to the log statements inside the block.
+The context, i=%d, is propagated to the log statements inside the block, without you having to include them explicitly in each log statement.  Context is automatically nested for you, so by adding context to an outer block, you add the context to each encapsulated log message.
 
 Context logging turns out to be pretty useful.  In fact, only a tiny part of the complete context is output to the terminal.  Here is the full context information that is sent up to Loggly:
 
@@ -68,12 +81,14 @@ This includes such elements as lines of code, time, function calls, paths, threa
 
 But that's just the beginning of the power of JucheLog!  Try this example:
 
+```python
 	for i in range(0,3):
 		with juche.revolution(i=i,eternal_president="kim-il-sun"):
 			juche.info("Outer loop!")
 			for j in range(0,2):
 				with juche.revolution(j=j):
 					juche.info("Inner loop!")
+```
 
 This program will output:
 
@@ -89,6 +104,18 @@ This program will output:
 
 Some things to note about this:
 
-1.  Indented, nested, threaded, pretty log statements.
-2. You get the data from the most recent call to revolution in-line with your log statement as Terminal output.  This is just to make the output manageable.  But the *complete context* gets sent over the wire to Loggly, where you can query it.
+1.  Indented, nested, threaded, pretty log statements, with zero effort on your part
+2. You get the data from *only the most recent call to revolution* in-line with your log statement as Terminal output.  This is just to make the output manageable.  
+3. But the *complete context* gets sent over the wire to Loggly, where you can query it.  So in loggly, you will see something like this:
+
+```
+{"function": "__block_global_0", "who": "G88014V4XYK", "indent": "2", "thread": "main", "eternal_president": "kim-il-sun", "i": "2", "app": "com.dca.JucheLogTestMac", "j": "2", "version": "1", "file": "JucheLogTests.m", "msg": "Inner loop!", "line": "44", "level": "info"}
+```
+
+
+Note that this includes not only the values for i, but also the values for j.
+
+### Projected Cost
+
+Loggly is written and maintained by two developers at DrewCrawfordApps LLC, an iPhone and iPad consulting company.  Loggly is the result of approximately 15 hours of work, valued at $1875 at current market rates, and is provided to you at no charge.  If this project is of use to you please consider us for your next Objective-C project.
 
