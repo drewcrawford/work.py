@@ -1,5 +1,5 @@
 #JUCHELOG
-![JUCHE](img/juche1.jpg)
+![JUCHE](http://github.com/drewcrawford/JucheLog/raw/master/img/juche1.jpg)
 
 Democratic People's Juche Logger
 
@@ -88,6 +88,7 @@ This program will output:
 	|  |  [INFO] 19:12:11 Inner loop! j=1  juchelog.py:150
 
 Some things to note about this:
+
 1.  Indented, nested, threaded, pretty log statements.
 2. You get the data from the most recent call to revolution in-line with your log statement as Terminal output.  This is just to make the output manageable.  But the *complete context* gets sent over the wire to Loggly, where you can query it.
 
