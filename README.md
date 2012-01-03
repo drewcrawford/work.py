@@ -117,5 +117,5 @@ Note that this includes not only the values for i, but also the values for j.
 
 ### Projected Cost
 
-JucheLog is written and maintained by two developers at DrewCrawfordApps LLC, an iPhone and iPad consulting company.  Loggly is the result of approximately 15 hours of work, valued at $1875 at current market rates, and is provided to you at no charge.  If this project is of use to you please consider us for your next Objective-C project.
+JucheLog is written and maintained by two developers at DrewCrawfordApps LLC, an iPhone and iPad consulting company.  JucheLog is the result of approximately 15 hours of work, valued at $1875 at current market rates, and is provided to you at no charge.  If this project is of use to you please consider us for your next Objective-C project.
 
