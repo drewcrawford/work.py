@@ -48,7 +48,7 @@ class JucheRecord(logging.LogRecord):
 	def __init__(self,*args,**kwargs):
 		super(JucheRecord,self).__init__(*args,**kwargs)
 
-class JucheLogger(logging.getLoggerClass()):
+class JucheLogger(logging.Logger):
 	stack = [{}]
 	def __init__(self,name):
 		super(JucheLogger,self).__init__(name)
