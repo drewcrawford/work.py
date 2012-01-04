@@ -51,6 +51,7 @@ class JucheRecord(logging.LogRecord):
 class JucheLogger(logging.Logger):
 	stack = [{}]
 	def __init__(self,name):
+		print "juche init with name %s" % name
 		super(JucheLogger,self).__init__(name)
 		self.stack = [{"indent":0,"who":os.uname()[1]}]
 		self.clean_stack = list(self.stack)
@@ -170,7 +171,7 @@ if __name__=="__main__":
 	__builtins__.LOGGLY_KEY="dbd1f4d5-5c41-4dc7-8803-47666d46e01d"
 	#__builtins__.JUCHE_WRAP=60
 
-logging.setLoggerClass(logging.Logger)
+logging.setLoggerClass(JucheLogger)
 juche = logging.getLogger("JUCHE")
 def testExcept():
 	try:
