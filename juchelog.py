@@ -170,7 +170,7 @@ if __name__=="__main__":
 	__builtins__.LOGGLY_KEY="dbd1f4d5-5c41-4dc7-8803-47666d46e01d"
 	#__builtins__.JUCHE_WRAP=60
 
-logging.setLoggerClass(JucheLogger)
+logging.setLoggerClass(logging.Logger)
 juche = logging.getLogger("JUCHE")
 def testExcept():
 	try:
