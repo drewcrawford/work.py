@@ -88,7 +88,7 @@ class GitConnect:
     def checkForRepository(self):
         (status, output) = self.statusOutput("git status")
         if(status):
-            print "ERROR: Not in git repository! Check your current directory!"
+            juche.error("Not in git repository! Check your current directory!")
             raise Exception("stacktraceplease")
         else: 
             return output
@@ -153,16 +153,15 @@ class GitConnect:
         self.checkForRepository()
         (status,output) = self.statusOutput("git fetch")
         if status:
-            print "ERROR:  Cannot fetch! %s" % output
+            juche.error("ERROR:  Cannot fetch! %s" % output)
             raise Exception("stacktraceplease")
 
     def __mergeInPretend(self,BRANCH_NAME): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
         self.checkForUnsavedChanges()
         (status,output) = self.statusOutput("git merge --no-commit --no-ff %s" % BRANCH_NAME)
         if status:
-            print "gitConnect __mergeInPretend: merge %s will not apply cleanly.  " % BRANCH_NAME
-            print output
-            print "Rolling back this merge..." #this happens anyway of the condition, we just print it in the error case for log file clarity.
+            with juche.revolution(output=output):
+                juche.warning("gitConnect __mergeInPretend: merge %s will not apply cleanly.  " % BRANCH_NAME)
         self.resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND()
         #if you see an exception on the line below, we failed to roll back the merge
         self.checkForUnsavedChanges()
@@ -174,22 +173,22 @@ class GitConnect:
     def mergeIn(self,BRANCH_NAME,pretend=False):
         if pretend:
             return self.__mergeInPretend(BRANCH_NAME)
-        print "Merging in %s..." % BRANCH_NAME
-        (status,output) = self.statusOutput("git merge --no-ff %s" % BRANCH_NAME)
-        print output
-        if status:
-            print "ERROR: merge was unsuccessful."
-            # play sounds!
-            self.statusOutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
-            raise Exception("stacktraceplease")
-        else:
-            # play sounds!
-            from work import get_setting_dict
-            if get_setting_dict().has_key("disablesounds") and get_setting_dict()["disablesounds"]=="YES":
-                pass
+        with juche.revolution(merging_in=BRANCH_NAME):
+            (status,output) = self.statusOutput("git merge --no-ff %s" % BRANCH_NAME)
+            juche.info(output)
+            if status:
+                juche.error("merge was unsuccessful.")
+                # play sounds!
+                self.statusOutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
+                raise Exception("stacktraceplease")
             else:
-                self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
-        print "Use 'git push' to ship."
+                # play sounds!
+                from work import get_setting_dict
+                if get_setting_dict().has_key("disablesounds") and get_setting_dict()["disablesounds"]=="YES":
+                    pass
+                else:
+                    self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
+            juche.info("Use 'git push' to ship.")
     
     def needsPull(self):
         (status,output) = self.statusOutput("git status")
@@ -221,26 +220,25 @@ class GitConnect:
         str = file.read()
         file.close()
 
-        print "Pulling...",
-        if self.getBranch() not in str:
-            juche.warn( "%s is not a tracking branch." % self.getBranch())
-            print "Attempting to fix...",
-            try:
-                self.setUpstream(self.getBranch(),"remotes/origin/{0}".format(self.getBranch()))
-                print "Success!"
-            except:
-                print "ERROR: DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG."
+        with juche.revolution(pull=1):
+            if self.getBranch() not in str:
+                juche.warn( "%s is not a tracking branch. Attempting to fix..." % self.getBranch())
+                try:
+                    self.setUpstream(self.getBranch(),"remotes/origin/{0}".format(self.getBranch()))
+                    juche.info("Success!")
+                except:
+                    juche.error("DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG.")
 
-            (status,output) = self.statusOutput("git pull origin %s" % self.getBranch())
-            if status:
-                print "ERROR:  Cannot pull! %s" % output
-        else:
-            (status,output) = self.statusOutput("git pull")
-            if status:
-                print "ERROR:  Cannot pull! %s" % output
-                raise Exception("stacktraceplease")
-        self.submoduleUpdate()
-        print "Success!"
+                (status,output) = self.statusOutput("git pull origin %s" % self.getBranch())
+                if status:
+                    juche.error("Cannot pull! %s" % output)
+            else:
+                (status,output) = self.statusOutput("git pull")
+                if status:
+                    juche.error("ERROR:  Cannot pull! %s" % output)
+                    raise Exception("stacktraceplease")
+            self.submoduleUpdate()
+            juche.info("Success!")
     
     #
     # GitConnect Constructor
@@ -272,7 +270,7 @@ class GitConnect:
 
         output = self.__checkoutExistingBranch(CASE_NO)
         if not output:
-            print "ERROR: could not checkout existing branch: %s" % output
+            juche.error("could not checkout existing branch: %s" % output)
             raise Exception("stacktraceplease")
 
         #print bcolors.WARNING + output + bcolors.ENDC
@@ -289,24 +287,25 @@ class GitConnect:
         return self.__checkoutExistingBranchRaw("work-%d" % CASE_NO)
         
     def __checkoutExistingBranchRaw(self,arg):
-        (checkoutNewBranchStatus, output) = self.statusOutput("git checkout {0}".format(arg))
-        if(checkoutNewBranchStatus):
-            print output
-            return False
-        (status,output) = self.statusOutput("git submodule init")
-        if status:
-            print "could not init submodule"
-        (status,output) = self.statusOutput("git submodule update")
-        if status:
-            print "Error updating a submodule"
-        return True
+        with juche.revolution(double_checkout_existing_branch_raw=arg):
+            (checkoutNewBranchStatus, output) = self.statusOutput("git checkout {0}".format(arg))
+            if(checkoutNewBranchStatus):
+                juche.info(output)
+                return False
+            (status,output) = self.statusOutput("git submodule init")
+            if status:
+                juche.error("could not init submodule: %s",output)
+            (status,output) = self.statusOutput("git submodule update")
+            if status:
+                juche.error("Error updating a submodule %s",output)
+            return True
     #
     # Checks out branch given branch name
     #
     def checkoutExistingBranchRaw(self,BRANCH_NAME):
         result = self.__checkoutExistingBranchRaw(BRANCH_NAME)
         if not result:
-            print "ERROR: could not checkout existing branch: %s" % BRANCH_NAME
+            juche.error("ERROR: could not checkout existing branch: %s" % BRANCH_NAME)
             raise Exception("stacktraceplease")
         return result
 
@@ -317,7 +316,7 @@ class GitConnect:
         #check fromspec
         if(fromSpec):
             if fromSpec=="Undecided":
-                print "Undecided isn't a valid fromspec.  (Maybe set the milestone on the ticket?)"
+                juche.error("Undecided isn't a valid fromspec.  (Maybe set the milestone on the ticket?)")
                 raise Exception("stacktraceplease")
             self.checkoutExistingBranchRaw(fromSpec)
         #regardless, we need our integration branch to be up to date
@@ -382,7 +381,7 @@ class GitConnect:
         # try to push changes
         (checkoutStatus, output) = self.statusOutput("git push origin {0}".format(branch))
         if(checkoutStatus):
-            print "ERROR: Could not push to origin!"
+            juche.error("ERROR: Could not push to origin!")
             raise Exception("stacktraceplease")
 
    #
@@ -391,8 +390,8 @@ class GitConnect:
     def setUpstream(self, branch, upstreamPath):
         (status,output) = self.statusOutput("git branch --set-upstream {0} {1}".format(branch, upstreamPath))
         if status:
-            print "ERROR: Can't make this a tracking branch..."
-            print output
+            juche.error("ERROR: Can't make this a tracking branch...")
+            juche.error(output)
             raise Exception("Can't set upstream")
     
 import unittest

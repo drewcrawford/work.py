@@ -880,7 +880,7 @@ class TestSequence(unittest.TestCase):
 
     def test_annoyables(self):
         if not self.f.amIAdministrator():
-            juche.warning("WARNING: NOT RUNNING test_annoyables BECAUSE YOU ARE NOT AN ADMINISTRATOR")
+            juche.warning("NOT RUNNING test_annoyables BECAUSE YOU ARE NOT AN ADMINISTRATOR")
             return
         juche.info(self.f.annoyableIxPeople())
 
