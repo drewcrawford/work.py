@@ -9,7 +9,9 @@
 # checking in and out of git repositories of
 # specific projects based on the bug number.
 #############################################
-
+if __name__=="__main__":
+    __builtins__.LOGGLY_KEY="51d07ecb-91d2-4908-8da6-c20b47111d9c"
+from JucheLog.juchelog import juche
 import sys
 from commands import getstatusoutput
 from gitConnect import GitConnect
@@ -110,7 +112,7 @@ def projectStart(CASE_NO, fromSpec):
     if not "viewOnStart" in settings or settings["viewOnStart"] == 1:
         fbConnection.view(CASE_NO)
 
-    print "Use work ship to commit your changes"
+    juche.info("Use work ship to commit your changes")
 
 #
 #
@@ -152,8 +154,8 @@ def projectShip():
     if lint_loaded:
         try:
             result = lint.Lint.analyze()
-        except:
-            print sys.exc_info()
+        except Exception as e:
+            juche.exception(e)
             print "Lint sunk the ship, but we still have a liferaft!"
         else:
             if not result:
@@ -237,7 +239,7 @@ def projectTestMake(PARENT_CASE):
 #   Automatically creates a test case for a case, if it does not already exist.
 #   You may want to check the bug type before calling this method.
 def autoTestMake(CASE_NO,fbConnection=None):
-    print "autotestmake", CASE_NO
+    juche.info("autotestmake %d" % CASE_NO)
     if not fbConnection: fbConnection = FogBugzConnect()
     (implement,test)  = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True,exceptOnFailure=False)
     if not test:
@@ -374,7 +376,7 @@ def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
         (parent, test) = fbConnection.getCaseTuple(CASE_NO,oldTestCasesOK=True)
     except:
             if interactive:
-                print "WARNING: no test case! Press enter to continue"
+                juche.warn("no test case! Press enter to continue")
                 raw_input()
 
     if not interactive:
@@ -395,7 +397,7 @@ def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
 #
 def projectIntegrateMake(CASE_NO,fromSpec):
     if not fromSpec:
-        print "Sorry, you have to manually specify a fromspec.  Ask somebody."
+        juche.critical("Sorry, you have to manually specify a fromspec.  Ask somebody.")
         raise Exception("stacktraceplease")
     gitConnection = GitConnect()
     gitConnection.createNewRawBranch(CASE_NO,fromSpec)
@@ -408,15 +410,15 @@ def complain(ixComplainAboutPerson):
     for case in response.cases:
         #print case
         if case.hrscurrest.contents[0]=="0":
-            print "%s's case %s has no estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
+            juche.info("%s's case %s has no estimate" % (case.spersonassignedto.contents[0], case["ixbug"]))
             fbConnection.commentOn(case["ixbug"],"This next test could take a very, VERY long time.")
         if case.sfixfor.contents[0]=="Undecided":
-            print "%s needs a milestone" % case["ixbug"]
+            juche.info("%s needs a milestone" % case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"If you choose not to decide, you still have made a choice.  (Don't think about it, don't think about it...)  It's a paradox!  There IS no answer.")
         est = float(case.hrscurrest.contents[0])
         act = float(case.hrselapsed.contents[0])
         if est - act < 0:
-            print "%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"])
+            juche.info("%s's case %s requires updated estimate" % (case.spersonassignedto.contents[0], case["ixbug"]))
             fbConnection.commentOn(case["ixbug"],"I'll give you credit:  I guess you ARE listening to me.  But for the record:  You don't have to go THAT slowly.")
 
 
@@ -437,7 +439,7 @@ def workConfig(settingString):
         fbConnection = FogBugzConnect()
         settings = fbConnection.getCredentials()
         if(not setting in ALLOWED_SETTINGS):
-            print "WARNING: setting not known. Will be added anyway."
+            juche.warn("setting not known. Will be added anyway.")
         fbConnection.setSetting(setting, value)
     else:
         printUsageString()
@@ -478,15 +480,15 @@ def recharge(fr,to):
     for record in results:
         #print record
         if record.fdeleted.contents[0]!="false":
-            print "Skipping deleted record %s" % record
+            juche.warn("Skipping deleted record %s" % record)
             continue
         if len(record.dtend)==0:
-            print "Skipping open time record %s" % record
+            juche.warn("Skipping open time record %s" % record)
             continue
         my_records.append(record)
     r = 0
     for record in my_records:
-        print "%d: %s-%s" % (r,record.dtstart.contents[0],record.dtend.contents[0])
+        juche.info("%d: %s-%s" % (r,record.dtstart.contents[0],record.dtend.contents[0]))
         r += 1
 
     def parse_range(astr): # http://stackoverflow.com/questions/4726168/parsing-command-line-input-for-numbers
@@ -504,15 +506,14 @@ def recharge(fr,to):
         from_time = dateutil.parser.parse(record.dtstart.contents[0])
         to_time = dateutil.parser.parse(record.dtend.contents[0])
         time_interval += (to_time-from_time).total_seconds()
-        print from_time,to_time,time_interval
-
+        juche.info("from_time %s to_time %s time_interval %s" % (from_time,to_time,time_interval))
         fbConnection.commentOn(fr,"recharge: A record was removed from this ticket: %s, see case %d" % (record_desc,to))
         fbConnection.commentOn(to,"recharge: A record was added to this ticket: %s, see case %d" % (record_desc, fr))
         fbConnection.createTimeRecord(to,str(record.dtstart.contents[0]),str(record.dtend.contents[0]))
     oldEst = fbConnection.getEstimate(fr) * 60.0 * 60.0
     newEst = (oldEst - time_interval) / 60.0 / 60.0
     if newEst <= 0: newEst = 1/60.0
-    print "Setting estimate to",newEst
+    juche.info("Setting estimate to",newEst)
     fbConnection.setEstimate(fr,timespan="%f hours" % newEst)
 #fbConnection.deleteTimeRecord(record.ixinterval.contents[0])
     if mustOpen: fbConnection.closeCase(to)
@@ -547,69 +548,69 @@ def chargeback(case):
     (pcase,test) = fbConnection.getCaseTuple(case,oldTestCasesOK=True,exceptOnFailure=False)
     if test:
         total_time += fbConnection.getElapsed(test) * 60.0 * 60.0
-    print total_time / 60.0 / 60.0, "hours"
+    juche.info(" %d hours" % (total_time / 60.0 / 60.0) )
     return total_time / 60.0 / 60.0
 
 
 #sets a reasonable completion date per the EBS estimate for the milestone
 def _fixFors_to_EBS_dates(abbreviatedTest=False):
-    print "--------SETTING DATES PER EBS-----------"
-    fbConnection = FogBugzConnect()
-    fixfors = fbConnection.dependencyOrder(fbConnection.listFixFors())
-    if abbreviatedTest:
-        fixfors = fixfors[:5]
-    for item in fixfors:
-        name = fbConnection.nameForFixFor(fbConnection.fixForDetail(item))
-        if name.startswith("Never"): continue
-        print "processing",name,item
-        date = fbConnection.getShipDate(item)
-        from dateutil.parser import parse
-        if not abbreviatedTest:
-            fbConnection.editFixForShipDate(item,parse(date))
-        #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
-        else:
-            print "Not editing the ship date in %s to %s because this is an abbreviated test." % (item,date)
+    with juche.revolution(fixing_dates_per_ebs=1):
+        fbConnection = FogBugzConnect()
+        fixfors = fbConnection.dependencyOrder(fbConnection.listFixFors())
+        if abbreviatedTest:
+            fixfors = fixfors[:5]
+        for item in fixfors:
+            name = fbConnection.nameForFixFor(fbConnection.fixForDetail(item))
+            if name.startswith("Never"): continue
+            juche.info("processing %s %s" % (name,item))
+            date = fbConnection.getShipDate(item)
+            from dateutil.parser import parse
+            if not abbreviatedTest:
+                fbConnection.editFixForShipDate(item,parse(date))
+            #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
+            else:
+                juche.warning("Not editing the ship date in %s to %s because this is an abbreviated test." % (item,date))
     
 #sets each test milestone to be one day following the appropriate release milestone.
 def _fixFors_test_quickly_dates(abbreviatedTest=False):
-    print "--------FIXING TEST MILESTONES-----------"
-    fbConnection = FogBugzConnect()
-    fixfors_raw = fbConnection.listFixFors()
-    fixfors = fbConnection.dependencyOrder(fixfors_raw)
-    from dateutil.parser import parse
-    import datetime
-    if abbreviatedTest:
-        fixfors = fixfors[:5]
-    for testMilestone in fixfors:
+    with juche.revolution(fixing_test_milestones=1):
+        fbConnection = FogBugzConnect()
+        fixfors_raw = fbConnection.listFixFors()
+        fixfors = fbConnection.dependencyOrder(fixfors_raw)
+        from dateutil.parser import parse
+        import datetime
+        if abbreviatedTest:
+            fixfors = fixfors[:5]
+        for testMilestone in fixfors:
 
-        testMilestone_raw = fbConnection.fixForDetail(testMilestone)
-        testName = fbConnection.nameForFixFor(testMilestone_raw)
-        if testName.startswith("Never"): continue
-        print "processing",testMilestone,testName
-        if not testName.endswith("-test"): continue
-        if testName=="Undecided-test": continue
-        matched = False
-        if testMilestone_raw.ixproject.contents==[]: continue
-        for item in fbConnection.listFixFors(ixProject=int(testMilestone_raw.ixproject.contents[0])):
-            #print testName[:-5],fbConnection.nameForFixFor(item)
-            if item.sfixfor.contents[0]==testName[:-5]:
-                #print "matching",testName,fbConnection.nameForFixFor(item)
-                matched = True
-                break
-        if not matched:
-            print testMilestone_raw
-            raise Exception("Cannot match "+testName)
-        if item.dt.contents==[]:
-            print "Can't set",testName," because the non-test milestone has no completion date."
-            continue
-        date = item.dt.contents[0]
-        newDate = parse(date)+datetime.timedelta(hours=6) #turns out that using 1 day produces weird results.  If the next implementation milestone is completed within 24 hours, lots of weird things can happen
-        print "setting",testName,"to",newDate
-        if not abbreviatedTest:
-            fbConnection.editFixForShipDate(testMilestone,newDate)
-        #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
-        else:
-            print "Not editing the ship date in %s to %s because this is an abbreviated test." % (testMilestone,newDate)
+            testMilestone_raw = fbConnection.fixForDetail(testMilestone)
+            testName = fbConnection.nameForFixFor(testMilestone_raw)
+            if testName.startswith("Never"): continue
+            with juche.revolution(testMilestone=testMilestone,testName=testName):
+                if not testName.endswith("-test"): continue
+                if testName=="Undecided-test": continue
+                matched = False
+                if testMilestone_raw.ixproject.contents==[]: continue
+                for item in fbConnection.listFixFors(ixProject=int(testMilestone_raw.ixproject.contents[0])):
+                    #print testName[:-5],fbConnection.nameForFixFor(item)
+                    if item.sfixfor.contents[0]==testName[:-5]:
+                        #print "matching",testName,fbConnection.nameForFixFor(item)
+                        matched = True
+                        break
+                if not matched:
+                    juche.info(testMilestone_raw)
+                    raise Exception("Cannot match "+testName)
+                if item.dt.contents==[]:
+                    juche.info("Can't set %s because the non-test milestone has no completion date." % testName)
+                    continue
+                date = item.dt.contents[0]
+                newDate = parse(date)+datetime.timedelta(hours=6) #turns out that using 1 day produces weird results.  If the next implementation milestone is completed within 24 hours, lots of weird things can happen
+                juche.info("setting %s to %s"% (testName,newDate))
+                if not abbreviatedTest:
+                    fbConnection.editFixForShipDate(testMilestone,newDate)
+                #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
+                else:
+                    juche.warn("Not editing the ship date in %s to %s because this is an abbreviated test." % (testMilestone,newDate))
 
 def fixUp(abbreviatedTest=False):
     _fixFors_to_EBS_dates(abbreviatedTest=abbreviatedTest)
@@ -641,7 +642,7 @@ if __name__=="__main__":
         our_version_no = "UNKNOWN"
     if latest_version_no != our_version_no:
         from gitConnect import bcolors
-        print bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE... (repo is %s, local is %s)' % (latest_version_no[:6],our_version_no[:6]),bcolors.ENDC
+        juche.error('WORK.PY IS OUT OF DATE... (repo is %s, local is %s)' % (latest_version_no[:6],our_version_no[:6]))
 
 
 
