@@ -1,5 +1,5 @@
 import os
-
+from JucheLog.juchelog import juche
 try:
     import simplejson as json
 except:
@@ -9,7 +9,7 @@ except:
 try:
     import keyring
 except:
-    print "Could not import keyring API"
+    juche.warning("Could not import keyring API")
     #raise Exception("stacktraceplease")
 
 
@@ -18,7 +18,8 @@ try:
     from fogbugz import FogBugz
     from fogbugz import FogBugzAPIError
 except Exception as e:
-    print "Could not import FogBugz API because: ", e
+    juche.error("Could not import FogBugz API because: ", e)
+    juche.exception(e)
 
     #raise Exception("stacktraceplease")
 from xml.dom.minidom import parseString
@@ -236,9 +237,9 @@ class FogBugzConnect:
         try:
             response = self.fbConnection.reactivate(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
         except FogBugzAPIError as e:
-            print "Unexpected condition [%s] Is case closed? Attempting to recover..." % e
+            juche.error("Unexpected condition [%s] Is case closed? Attempting to recover..." % e)
             response = self.fbConnection.reopen(ixBug=CASE_NO,sEvent=msg,ixPersonAssignedTo=assignTo)
-            print "Recovery was successful."
+            juche.info("Recovery was successful.")
 
     #
     # isOpen : determines if the case is open
@@ -302,10 +303,10 @@ class FogBugzConnect:
                     override = True
                     shipDate = depdate + datetime.timedelta(hours=1)
             if override:
-                print "Ship date overridden to ",shipDate
+                juche.info("Ship date overridden to %s" % shipDate)
         detail = self.fixForDetail(ixFixFor)
         name = self.nameForFixFor(detail)
-        print "editing ship date of",name
+        juche.info("editing ship date of %s" % name)
         self.fbConnection.editFixFor(ixFixFor=ixFixFor,sFixFor=name,dtRelease=shipDate,dtStart=self.getFixForStartDate(detail),fAssignable=self.getFixForDeleted(detail) and "0" or "1")
 
     #
@@ -490,7 +491,7 @@ class FogBugzConnect:
         #print resp.case
         response = self.fbConnection.new(ixBugParent=PARENT_CASE,sTitle="Review",ixPersonAssignedTo=ixTester,hrsCurrEst=estimate,ixPriority=resp.case.ixpriority.contents[0],sEvent="Cake and grief counseling will be available at the conclusion of the test.",ixCategory=6,
                                          ixProject=resp.case.ixproject.contents[0],ixArea=resp.case.ixarea.contents[0],ixFixFor=ixTestMilestone,sTags=TEST_TAG)
-        print "Created case %s" % response.case['ixbug']
+        juche.info("Created case %s" % response.case['ixbug'])
     def __isTestCase(self,actual_beautiful_soup_caselist,oldTestCasesOK=False):
         """Requires a caselist with sTitle,ixCategory,fOpen as attributes"""
         for case in actual_beautiful_soup_caselist:
@@ -523,7 +524,7 @@ class FogBugzConnect:
     #
     def ensureReadyForTest(self,CASE_NO):
             if not self.isReadyForTest(CASE_NO):
-                print "Case %d is not ready for test!  (resolved or implemented)" % CASE_NO
+                juche.error("Case %d is not ready for test!  (resolved or implemented)" % CASE_NO)
                 raise Exception("stacktraceplease")
             
     def isReadyForTest(self,CASE_NO):
@@ -608,7 +609,6 @@ class FogBugzConnect:
         else:
             return 0.0
 
-        print hours_worked
         return schedule
 
     #
@@ -653,12 +653,12 @@ class FogBugzConnect:
             cols += ",ixCategory,sTitle"
         resp=self.fbConnection.search(q=query, cols=cols)
         if enforceNoTestCases and self.__isTestCase(resp):
-            print "Can't 'work start' a test case (maybe you meant 'work test'?)"
+            juche.error("Can't 'work start' a test case (maybe you meant 'work test'?)")
             return
         if (resp and resp.case):
             #print resp
             if resp.case.fopen.contents[0] != "true":
-                print "FATAL ERROR: FogBugz case is closed"
+                juche.error("FogBugz case is closed")
                 raise Exception("stacktraceplease")
             if resp.case.hrscurrest.contents[0] != "0":
                 self.fbConnection.startWork(ixBug=CASE_NO,enforceNoTestCases=enforceNoTestCases)
@@ -667,7 +667,7 @@ class FogBugzConnect:
                 self.setEstimate(CASE_NO)
                 self.startCase(CASE_NO)
         else:
-            print "ERROR: FogBugz case does not exist or isn't assigned to you!!"
+            juche.error("FogBugz case does not exist or isn't assigned to you!!")
             raise Exception("stacktraceplease")
         return
 
@@ -693,7 +693,7 @@ class FogBugzConnect:
         if (resp):
             self.fbConnection.stopWork()
         else:
-            print "ERROR: FogBugz case does not exist or isn't assigned to you!"
+            juche.error("FogBugz case does not exist or isn't assigned to you!")
         return
 
     #
@@ -782,7 +782,7 @@ class FogBugzConnect:
             else:
                 lastActive = self.userLastActive(ix)
                 if not lastActive:
-                    print "User",ix,"does not appear to be active recently"
+                    juche.info("User %s does not appear to be active recently" % ix)
                     continue
 
                 delta = (nowtime - lastActive).total_seconds()
@@ -804,7 +804,7 @@ class FogBugzConnect:
 
 
         else:
-            print "ERROR: FogBugz case does not exists or isn't assigned to you!"
+            juche.error("FogBugz case does not exists or isn't assigned to you!")
         return
 
     #
@@ -844,7 +844,7 @@ class FogBugzConnect:
     #
     def setEstimate(self, CASE_NO,timespan=None):
         if not timespan:
-            print "Please provide an estimate for this case: ",
+            juche.info("Please provide an estimate for this case: ")
             timespan = raw_input()
 
         self.fbConnection.edit(ixBug=CASE_NO, hrsCurrEst=timespan)
@@ -880,17 +880,17 @@ class TestSequence(unittest.TestCase):
 
     def test_annoyables(self):
         if not self.f.amIAdministrator():
-            print "WARNING: NOT RUNNING test_annoyables BECAUSE YOU ARE NOT AN ADMINISTRATOR"
+            juche.warning("NOT RUNNING test_annoyables BECAUSE YOU ARE NOT AN ADMINISTRATOR")
             return
-        print self.f.annoyableIxPeople()
+        juche.info(self.f.annoyableIxPeople())
 
     def test_listfixfors(self):
         semaps_fixfors = self.f.listFixFors(sProject="semaps")
-        print semaps_fixfors
+        juche.info(semaps_fixfors)
         self.assertTrue(len(semaps_fixfors) > 0)
 
     def test_optimaltester(self):
-        print self.f.optimalIxTester(3028)
+        juche.info(self.f.optimalIxTester(3028))
 
     def test_events(self):
         self.assertTrue(self.f.allEvents(2525) >= 3)
@@ -900,16 +900,16 @@ class TestSequence(unittest.TestCase):
         pass
 
     def test_lastactive(self):
-        print self.f.userLastActive(self.f.ixPerson)
+        juche.info(self.f.userLastActive(self.f.ixPerson))
 
     def test_deptree(self):
-        print self.f.dependencyOrder(self.f.listFixFors())
+        juche.info(self.f.dependencyOrder(self.f.listFixFors()))
 
     def test_getship(self):
-        print self.f.getShipDate(ixFixFor=43)
+        juche.info(self.f.getShipDate(ixFixFor=43))
 
     def test_admin(self):
-        print "I am an administrator:",self.f.amIAdministrator()
+        juche.info("I am an administrator: %s" % self.f.amIAdministrator())
 
     def test_burndown(self):
         self.assertLess( self.f.getBurndown(ixFixFor=228,cumulativeHours=False), self.f.getBurndown(ixFixFor=228,cumulativeHours=True)) #never-test
@@ -921,7 +921,7 @@ class TestSequence(unittest.TestCase):
 
     def test_workingschedule(self):
         import datetime
-        print "Drew works %f hours" % self.f.expectedWorkHours(ixPerson=2,date=datetime.datetime.now())
+        juche.info("Drew works %f hours" % self.f.expectedWorkHours(ixPerson=2,date=datetime.datetime.now()))
 
     def test_getIntegrationBranch(self):
         #self.assertTrue(self.f.getIxFixFor("",""))

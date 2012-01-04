@@ -1,0 +1,3 @@
+[submodule "JucheLog"]
+	path = JucheLog
+	url = git@github.com:drewcrawford/JucheLog.git
