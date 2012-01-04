@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-
+from JucheLog.juchelog import juche
 from fogbugzConnect import FogBugzConnect
 from gitConnect import GitConnect
 try:
     import keyring
 except:
-    print "Could not import keyring API"
+    juche.warning("Could not import keyring API")
     #raise Exception("stacktraceplease")
 
 import urllib2
@@ -83,7 +83,7 @@ class GitHubConnect:
         #this is kind of a hack
         url = self.pullRequestAlreadyExists(name)
         if not url:
-            print "There does not appear to be any such pull request"
+            juche.warning("There does not appear to be any such pull request %s" % name)
             return
         import re
         id = re.search("\d+$",url).group()
@@ -105,8 +105,8 @@ class GitHubConnect:
             response = urllib2.urlopen(req)
             return json.loads(response.read())["html_url"]
         except urllib2.HTTPError as e:
-            print e
-            print e.read()
+            juche.exception(e)
+            juche.error(e.read())
             raise e
         
 
