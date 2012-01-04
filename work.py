@@ -642,7 +642,7 @@ if __name__=="__main__":
         our_version_no = "UNKNOWN"
     if latest_version_no != our_version_no:
         from gitConnect import bcolors
-        juche.error(bcolors.WARNING,'WARNING: WORK.PY IS OUT OF DATE... (repo is %s, local is %s)' % (latest_version_no[:6],our_version_no[:6]),bcolors.ENDC)
+        juche.error('WORK.PY IS OUT OF DATE... (repo is %s, local is %s)' % (latest_version_no[:6],our_version_no[:6]))
 
 
 
