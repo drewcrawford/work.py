@@ -30,7 +30,7 @@ class LogglyHandler (logging.Handler):
 		self.endpoint = "%s://%s/inputs/%s" % (protocol, "logs.loggly.com", key)
 
 	def emit(self, record):
-		if record.message=="JUCHE_REVOLUTION": return
+		if "JUCHE_REVOLUTION" in record.__dict__: return
 		record = dict(record.__dict__)
 		del record["JUCHE_IS_AWESOME"]
 		def json_format(obj):
@@ -103,6 +103,9 @@ class JucheLogger(logging.Logger):
 	
 	def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None):
 		record =  JucheRecord(name, level, fn, lno, msg, args, exc_info, func)
+		if extra:
+			for (key,val) in extra.iteritems():
+				record.__setattr__(key,val)
 		for (key,val) in self.get_clean_stack_context(1).iteritems():
 			record.__setattr__(key,val)
 		record.indent = self.currentState()["indent"]
@@ -110,11 +113,23 @@ class JucheLogger(logging.Logger):
 	
 	@contextmanager
 	def revolution(self,**kwargs):
-		self.info("JUCHE_REVOLUTION")
+
+		#We emit a JUCHE message, but we need to fake the file name and line no
+		#because that message is emitted in this function, not in the caller.
+		#what we really want to do is emit the caller's context.
+		import traceback
+		stack = traceback.extract_stack()
+		stack_item = stack[-3]
+		file_name = stack_item[0].split("/")[-1]
+		line_no = stack_item[1]
+
+
 		self.push()
 		self.indent()
 		for (key,val) in kwargs.iteritems():
 			self.set([(key,val)])
+		juche.info("JUCHE_REVOLUTION",extra={"lineno":line_no,"filename":file_name})
+
 		yield
 		self.pop()
 
@@ -135,6 +150,8 @@ class IndentFormatter(logging.Formatter):
 		#we need to process exc_info first so that something else doesn't throw (i.e. JUCHE_WRAP not existing)
 		tb = None
 		ext = None
+
+		
 		if rec.__dict__["exc_info"] and len(rec.__dict__["exc_info"])==3: #exception
 			import traceback
 			tb = "\ntb: " + traceback.format_exc()
@@ -142,6 +159,11 @@ class IndentFormatter(logging.Formatter):
 		dontcare = ["relativeCreated","process","levelno","who","exc_text","indent","name","thread","created","threadName","msecs","pathname",
 		"exc_info","args","levelname","funcName","filename","module","msg","processName","lineno","message","asctime"]
 		rec.indent = '|  '*(rec.indent)
+		if "override_lineno" in rec.__dict__:
+			rec.lineno = rec.override_lineno
+		if "override_filename" in rec.__dict__:
+			rec.filename = rec.override_filename
+
 		out = ""
 
 		for (key,val) in rec.__dict__.iteritems():
@@ -155,6 +177,7 @@ class IndentFormatter(logging.Formatter):
 			wrapwidth = JUCHE_WRAP
 		except:
 			wrapwidth = 9999999
+
 		out = "%s " % super(IndentFormatter,self).format(rec)
 		out = ("\n"+rec.indent+" ").join(textwrap.wrap(out,width=wrapwidth))
 		del rec.indent
