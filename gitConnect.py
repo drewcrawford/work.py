@@ -1,6 +1,9 @@
 from JucheLog.juchelog import juche
 import os
 import sys
+import re
+from fogbugzConnect import FogBugzConnect
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -8,11 +11,11 @@ class bcolors:
     WARNING = '\033[43m\033[1;34m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-    
+
 
 class GitConnect:
-        
-    
+
+
     @staticmethod
     def clone(url,into):
         import subprocess
@@ -25,8 +28,8 @@ class GitConnect:
         g = GitConnect(into)
         g.submoduleUpdate()
         return g
-        
-        
+
+
     #
     # repo-config
     #
@@ -46,16 +49,16 @@ class GitConnect:
         (output,err) = pipe.communicate()
         if pipe.returncode:
             raise Exception("Error initing a submodule" + output + err)
-    
+
     #
     # Add files to the index
     #
     def add(self,path_desc):
         self.statusOutputExcept("git add %s" % path_desc)
-    
+
     def commit(self,msg):
         self.statusOutputExcept("git commit -m '%s'" % msg)
-        
+
     #
     # status_output_wrapper
     #
@@ -71,7 +74,7 @@ class GitConnect:
         #print "sts is",sts
         if sts is None: sts = 0
         return sts,output
-    
+
     def statusOutputExcept(self,cmd):
         (status,output) = self.statusOutput(cmd)
         if status:
@@ -81,7 +84,7 @@ class GitConnect:
         self.statusOutput("git clean -d -x -ff")
         self.statusOutput("git reset --hard")
         self.statusOutput("git submodule update")
-    
+
     #
     # Checks to see if we're in a Git Repo
     #
@@ -90,10 +93,10 @@ class GitConnect:
         if(status):
             juche.error("Not in git repository! Check your current directory!")
             raise Exception("stacktraceplease")
-        else: 
+        else:
             return output
-        
-        
+
+
     #
     # Return (user,repo) for current working copy
     #
@@ -103,11 +106,11 @@ class GitConnect:
         userRepo = re.search("(?<=Fetch URL:)[^:]+:(.*)",output).group(1).split("/")
         userRepo[1] = userRepo[1].replace(".git","")
         return userRepo
-        
+
 
     #
     # Launch gitHub compare view
-    #   
+    #
     def githubCompareView(self,origin,dest):
         (user,repo) = self.getUserRepo()
         cmd =  "http://github.com/%s/%s/compare/%s...%s" % (user,repo,origin,dest)
@@ -121,7 +124,7 @@ class GitConnect:
         cmd = "http://github.com/%s/%s/network" % (user,repo)
         from os import system
         system("open %s" % cmd)
-    
+
     #
     # Returns the branch, else quits
     #
@@ -136,7 +139,7 @@ class GitConnect:
     def getSHA(self):
         (status,output) = self.statusOutput("git rev-parse HEAD")
         return output.strip()
-    
+
     #
     #
     #
@@ -159,6 +162,7 @@ class GitConnect:
     def __mergeInPretend(self,BRANCH_NAME): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
         self.checkForUnsavedChanges()
         (status,output) = self.statusOutput("git merge --no-commit --no-ff %s" % BRANCH_NAME)
+        self.annotateMergeCommit()
         if status:
             with juche.revolution(output=output):
                 juche.warning("gitConnect __mergeInPretend: merge %s will not apply cleanly.  " % BRANCH_NAME)
@@ -167,6 +171,14 @@ class GitConnect:
         self.checkForUnsavedChanges()
         return status==0
 
+    def annotateMergeCommit(self):
+        (status, msg) = self.statusOutput('git log -n 1 --format="%s"')
+        matches = re.finditer(r'work-(\d+)', msg)
+        fb = FogBugzConnect()
+        for match in matches:
+            fbcase = fb.fbConnection.search(q=match.group(1), cols="sTitle")
+            msg = msg.replace(match.group(1), "%s (%s)" % (match.group(1), fbcase.stitle.contents[0].encode('utf-8')))
+        os.system('git commit --amend -m "%s"' % msg)
     #
     #
     #
@@ -175,6 +187,7 @@ class GitConnect:
             return self.__mergeInPretend(BRANCH_NAME)
         with juche.revolution(merging_in=BRANCH_NAME):
             (status,output) = self.statusOutput("git merge --no-ff %s" % BRANCH_NAME)
+            self.annotateMergeCommit()
             juche.info(output)
             if status:
                 juche.error("merge was unsuccessful.")
@@ -189,7 +202,7 @@ class GitConnect:
                 else:
                     self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
             juche.info("Use 'git push' to ship.")
-    
+
     def needsPull(self):
         (status,output) = self.statusOutput("git status")
         if status: return True
@@ -197,7 +210,7 @@ class GitConnect:
             return True
         return False
 
-        
+
     #
     # Performs a git pull
     #
@@ -215,7 +228,7 @@ class GitConnect:
             path = "../" + path
             if i==30:
                 raise Exception("Not a git repository?")
-        
+
         file = open(path)
         str = file.read()
         file.close()
@@ -239,7 +252,7 @@ class GitConnect:
                     raise Exception("stacktraceplease")
             self.submoduleUpdate()
             juche.info("Success!")
-    
+
     #
     # GitConnect Constructor
     #
@@ -248,7 +261,7 @@ class GitConnect:
             if not os.path.exists(wd):
                 raise IOError("Directory not found.")
         self.wd=wd
-    
+
     #
     # check if there are any unsaved changes since last commit. if there are,
     # fail and tell the user to use git stash or git commit
@@ -262,7 +275,7 @@ class GitConnect:
             raise Exception("stacktraceplease")
         else:
             return
-        
+
     #
     # Checks out existing branch for CASE_NO
     #
@@ -279,13 +292,13 @@ class GitConnect:
         return True
 
 
-    
+
     #
     # Private method: Checks out and existing branch for CASE_NO
     #
     def __checkoutExistingBranch(self, CASE_NO):
         return self.__checkoutExistingBranchRaw("work-%d" % CASE_NO)
-        
+
     def __checkoutExistingBranchRaw(self,arg):
         with juche.revolution(double_checkout_existing_branch_raw=arg):
             (checkoutNewBranchStatus, output) = self.statusOutput("git checkout {0}".format(arg))
@@ -321,35 +334,35 @@ class GitConnect:
             self.checkoutExistingBranchRaw(fromSpec)
         #regardless, we need our integration branch to be up to date
         self.pull()
-        
+
         # create branch for and check it out
         self.checkoutExistingBranchRaw("-b {0}".format(branchName))
-                                       
+
         # push changes
         self.pushChangesToOriginBranch(branch=branchName)
 
-        self.setUpstream(branchName, "remotes/origin/{0}".format(branchName))                               
+        self.setUpstream(branchName, "remotes/origin/{0}".format(branchName))
         return branchName
-    
+
     #
     # Checkout fromSpec and set up tracking
     #
     def createNewWorkBranch(self, CASE_NO, fromSpec):
         return self.createNewRawBranch("work-{0}".format(CASE_NO),fromSpec)
-    
+
     #
     # gets list of branches. if CASE_NO branch exists, check it out. Otherwise
     # create a new branch, check into it, push something up to master, make it track, and return.
     #
     def checkoutBranch(self, CASE_NO, fromSpec,fbConnection):
 
-        
+
         # get output from git branch command
         (branchStatus, branchOutput) = self.statusOutput("git branch")
-        
+
         #fetch git repo information
         self.fetch()
-        
+
         # check if a branch for CASE_NO exists
         # if it does, check it out
         if self.__checkoutExistingBranch(CASE_NO):
@@ -358,7 +371,7 @@ class GitConnect:
                 juche.warn("THIS DESTRUCTIVE COMMAND DELETES ANY WORK ON work-%d, USE WITH CAUTION!" % CASE_NO)
             self.pull()
             return
-        
+
         # if a branch does not exist, create one and check it out
         else:
             if not fromSpec:
@@ -366,14 +379,14 @@ class GitConnect:
                 fromSpec = fbConnection.getIntegrationBranch(CASE_NO)
             self.createNewWorkBranch(CASE_NO, fromSpec)
             return
-                
+
     #
     # checkout master
     #
     def checkoutMaster(self):
         # try to checkout master
         self.checkoutExistingBranchRaw("master")
-    
+
     #
     # push changes from branch to origin
     #
@@ -393,7 +406,7 @@ class GitConnect:
             juche.error("ERROR: Can't make this a tracking branch...")
             juche.error(output)
             raise Exception("Can't set upstream")
-    
+
 import unittest
 
 
@@ -411,12 +424,19 @@ class TestSequence(unittest.TestCase):
         self.assertTrue(g.mergeIn("remotes/origin/merge_b",pretend=True))
         g.mergeIn("remotes/origin/merge_a") #no pretend
         self.assertFalse(g.mergeIn("remotes/origin/merge_b",pretend=True))
-        
+
+        system("rm -rf /tmp/g")
+
+    def test_merge_real(self):
+        from os import system
+        system("rm -rf /tmp/g")
+        GitConnect.clone("git://github.com/drewcrawford/work.py.git","/tmp/g")
+        g = GitConnect("/tmp/g")
+        g.mergeIn("remotes/origin/work-2999")
+        g.mergeIn("remotes/origin/work-3100")
+
         system("rm -rf /tmp/g")
 
 
 if __name__ == '__main__':
     unittest.main(failfast=True)
-    
-    
-    
