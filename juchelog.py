@@ -51,7 +51,7 @@ class JucheRecord(logging.LogRecord):
 class JucheLogger(logging.Logger):
 	stack = [{}]
 	def __init__(self,name):
-		print "juche init with name %s" % name
+		#print "juche init with name %s" % name
 		super(JucheLogger,self).__init__(name)
 		self.stack = [{"indent":0,"who":os.uname()[1]}]
 		self.clean_stack = list(self.stack)
