@@ -30,6 +30,7 @@ class LogglyHandler (logging.Handler):
 		self.endpoint = "%s://%s/inputs/%s" % (protocol, "logs.loggly.com", key)
 
 	def emit(self, record):
+		if record.message=="JUCHE_REVOLUTION": return
 		record = dict(record.__dict__)
 		del record["JUCHE_IS_AWESOME"]
 		def json_format(obj):
@@ -108,7 +109,7 @@ class JucheLogger(logging.getLoggerClass()):
 	
 	@contextmanager
 	def revolution(self,**kwargs):
-		#juche = logging.getLogger("JUCHE")
+		self.info("JUCHE_REVOLUTION")
 		self.push()
 		self.indent()
 		for (key,val) in kwargs.iteritems():
