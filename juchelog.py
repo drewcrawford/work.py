@@ -41,7 +41,10 @@ class LogglyHandler (logging.Handler):
 				return repr(obj)
 			if isinstance(obj,Exception):
 				return repr(obj)
-			raise TypeError("Strange type %s" % obj)
+			import datetime
+			if isinstance(obj,datetime.datetime):
+				return repr(obj)
+			return repr(obj)
 		post_to_endpoint(self.endpoint, dumps(record,default=json_format))
 
 class JucheRecord(logging.LogRecord):
