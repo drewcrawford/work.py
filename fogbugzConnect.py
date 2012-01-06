@@ -335,18 +335,19 @@ class FogBugzConnect:
     #
     #
     #
-    def listFixFors(self,ixProject=None,sProject=None,includeDeleted=False):
+    def listFixFors(self,ixProject=None,sProject=None,includeDeleted=False,onlyProjectMilestones=False):
         deleted_int_flag = includeDeleted and 1 or 0
         if sProject:
             ixProject = self.ixProjectFromsProject(sProject)
         if ixProject:
-            r = self.fbConnection.listFixFors(ixProject=ixProject,fIncludeDeleted=deleted_int_flag).fixfors
+            r = self.fbConnection.listFixFors(ixProject=ixProject,fIncludeDeleted=deleted_int_flag)
         elif sProject:
-            r = self.fbConnection.listFixFors(sProject=sProject,fIncludeDeleted=deleted_int_flag).fixfors
+            r = self.fbConnection.listFixFors(sProject=sProject,fIncludeDeleted=deleted_int_flag)
         else:
-            r = self.fbConnection.listFixFors(fIncludeDeleted=deleted_int_flag).fixfors
-        #print r
-        return r
+            r = self.fbConnection.listFixFors(fIncludeDeleted=deleted_int_flag)
+        if onlyProjectMilestones:
+            return filter(lambda x: len(x.ixproject.contents) != 0, r.fixfors)
+        return r.fixfors
 
     def _deptree(self,fixFors):
         deptree = {} #key = ixFixFor, val = [ixDep1,ixDep2]
