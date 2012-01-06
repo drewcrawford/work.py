@@ -18,7 +18,7 @@ def post_async(endpoint,message):
 def post_to_endpoint(endpoint, message):
 	t = threading.Thread(target=post_async,args=[endpoint,message])
 	t.start()
-	
+
 
 class LogglyHandler (logging.Handler):
 
@@ -65,16 +65,16 @@ class JucheLogger(logging.Logger):
 		handler.setFormatter(basicFormatter)
 		handler.setLevel(logging.DEBUG)
 		self.addHandler(handler)
-		#try:
-		jucheHandler = LogglyHandler(key=LOGGLY_KEY)
-		jucheHandler.setLevel(logging.INFO)
-		self.addHandler(jucheHandler)
-		#except:
-		#	self.warning("__builtins__.LOGGLY_KEY is not set up, network logging is disabled.")
-		
+		if globals().has_key("LOGGLY_KEY"):
+			jucheHandler = LogglyHandler(key=LOGGLY_KEY)
+			jucheHandler.setLevel(logging.INFO)
+			self.addHandler(jucheHandler)
+		else:
+			self.warning("__builtins__.LOGGLY_KEY is not set up, network logging is disabled.")
+
 	def currentState(self):
 		return self.stack[-1]
-	
+
 	def push(self):
 		#print "push"
 		self.stack.append(dict(self.currentState()))
@@ -103,7 +103,7 @@ class JucheLogger(logging.Logger):
 		for i in range(1,howMany+1):
 			if i < len(self.clean_stack): retdict.update(self.clean_stack[-1*i])
 		return retdict
-	
+
 	def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None):
 		record =  JucheRecord(name, level, fn, lno, msg, args, exc_info, func)
 		if extra:
@@ -114,7 +114,7 @@ class JucheLogger(logging.Logger):
 		record.clean_stack_use = dict(self.get_clean_stack_context(1))
 		record.indent = self.currentState()["indent"]
 		return record
-	
+
 	@contextmanager
 	def revolution(self,**kwargs):
 
@@ -148,14 +148,14 @@ def non_logging_exc():
 class IndentFormatter(logging.Formatter):
 	def __init__( self, fmt=None, datefmt=None ):
 		logging.Formatter.__init__(self, fmt, datefmt)
-	
+
 
 	def format( self, rec ):
 		#we need to process exc_info first so that something else doesn't throw (i.e. JUCHE_WRAP not existing)
 		tb = None
 		ext = None
 
-		
+
 		if rec.__dict__["exc_info"] and len(rec.__dict__["exc_info"])==3: #exception
 			import traceback
 			tb = "\ntb: " + traceback.format_exc()
@@ -218,7 +218,7 @@ if __name__=="__main__":
 	for i in range(0,3):
 		with juche.revolution(i=i):
 			juche.info("My awesome loop")
-	
+
 
 	for i in range(0,3):
 		with juche.revolution(i=i,eternal_president="kim-il-sun"):
