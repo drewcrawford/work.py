@@ -109,8 +109,9 @@ class JucheLogger(logging.Logger):
 		if extra:
 			for (key,val) in extra.iteritems():
 				record.__setattr__(key,val)
-		for (key,val) in self.get_clean_stack_context(1).iteritems():
+		for (key,val) in self.currentState().iteritems():
 			record.__setattr__(key,val)
+		record.clean_stack_use = dict(self.get_clean_stack_context(1))
 		record.indent = self.currentState()["indent"]
 		return record
 	
@@ -169,12 +170,12 @@ class IndentFormatter(logging.Formatter):
 
 		out = ""
 
-		for (key,val) in rec.__dict__.iteritems():
+		for (key,val) in rec.clean_stack_use.iteritems():
 			if key not in dontcare:
 				#key = self.format_sub(key)
 				#val = self.format_sub(val)
 				out += "%s=%s " % (key,val)
-
+		del rec.clean_stack_use
 		rec.JUCHE_IS_AWESOME=out
 		try:
 			wrapwidth = JUCHE_WRAP
