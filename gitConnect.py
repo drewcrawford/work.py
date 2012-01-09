@@ -59,12 +59,13 @@ class GitConnect:
     #
     # status_output_wrapper
     #
-    def statusOutput(self,cmd):
+    def statusOutput(self,cmd,wd=None):
+        if not wd: wd = self.wd
         import subprocess
         import shlex
         args = shlex.split(cmd)
         #with help from http://stackoverflow.com/questions/1193583/what-is-the-multiplatform-alternative-to-subprocess-getstatusoutput-older-comman
-        pipe = subprocess.Popen(args,cwd=self.wd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
+        pipe = subprocess.Popen(args,cwd=wd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=False,universal_newlines=True)
         (output,stderr) = pipe.communicate()
         output += stderr
         sts = pipe.returncode
@@ -78,9 +79,12 @@ class GitConnect:
             raise Exception("Command returned invalid status: %d; %s; %s" % (status,cmd,output))
 
     def resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND(self):
-        self.statusOutput("git clean -d -x -ff")
-        self.statusOutput("git reset --hard")
-        self.statusOutput("git submodule update")
+        import os
+        for root,dirs,files in os.walk(self.wd):
+
+            self.statusOutput("git clean -d -x -ff",wd=root)
+            self.statusOutput("git reset --hard",wd=root)
+            self.statusOutput("git submodule update",wd=root)
     
     #
     # Checks to see if we're in a Git Repo
