@@ -47,7 +47,7 @@ class GitHubConnect:
             import getpass
             self.password = getpass.getpass("GitHub password:")
             keyring.set_password("github",self.username,self.password)
-    
+                
     def Request(self,url,data):
         b64_userpass = basic_auth(self.username, self.password)
         req =  urllib2.Request(url,data)
