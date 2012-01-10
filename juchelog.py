@@ -213,16 +213,25 @@ def testExcept():
 def testMoreExcept():
 	testExcept()
 
-if __name__=="__main__":
-	testMoreExcept()
-	for i in range(0,3):
-		with juche.revolution(i=i):
-			juche.info("My awesome loop")
+
+import unittest
+
+class TestSequence(unittest.TestCase):
+	def setUp(self):
+		pass
+	def test_short(self):
+		print "\n" #dot
+		for i in range(0,3):
+			with juche.revolution(i=i):
+				juche.info("My awesome loop")
+	
+	def test_long(self):
+		print "\n"
+		for i in range(0,3):
+			with juche.revolution(i=i,eternal_president="kim-il-sun"):
+				juche.info("Outer loop!")
+				for j in range(0,2):
+					with juche.revolution(j=j):
+						juche.info("Inner loop!")
 
 
-	for i in range(0,3):
-		with juche.revolution(i=i,eternal_president="kim-il-sun"):
-			juche.info("Outer loop!")
-			for j in range(0,2):
-				with juche.revolution(j=j):
-					juche.info("Inner loop!")
