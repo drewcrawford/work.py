@@ -369,7 +369,7 @@ def projectIntegrate(CASE_NO,defaultgitConnection=GitConnect()):
     integrate_to = fbConnection.getIntegrationBranch(CASE_NO)
     gitConnection.checkoutExistingBranchRaw(integrate_to)
     gitConnection.resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND() #this is safe because we check for unsafe changes on line 357.
-    gitHubConnection = GitHubConnect()
+    gitHubConnection = GitHubConnect(gitConnect=gitConnection)
     gitHubConnection.closePullRequestbyName("work-%d" % CASE_NO)
     #check for test case
     try:
