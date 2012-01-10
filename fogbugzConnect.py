@@ -916,7 +916,7 @@ class TestSequence(unittest.TestCase):
         self.assertLess( self.f.getBurndown(ixFixFor=228,cumulativeHours=False), self.f.getBurndown(ixFixFor=228,cumulativeHours=True)) #never-test
 
     def test_listtimerecords(self):
-        records = self.f.listTimeRecords(1111)
+        records = self.f.listTimeRecords(1111,ixPerson=2)
         self.assertEqual(len(records),1)
         self.assertEqual(self.f.sumTimeRecords(records),26)
 
