@@ -22,7 +22,7 @@ static NSDateFormatter *dateFormatter;
     }
     if (!dateFormatter) {
         dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"%H:%M:%S"];
+        [dateFormatter setDateFormat:@"HH:mm:ss"];
 
     }
 
