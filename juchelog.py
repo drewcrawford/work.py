@@ -113,7 +113,7 @@ class JucheLogger(logging.Logger):
 	def __init__(self,name):
 		#print "juche init with name %s" % name
 		super(JucheLogger,self).__init__(name)
-		self.stack = [{"indent":0,"who":os.uname()[1],"auto_stack":""}]
+		self.stack = [{"indent":0,"who":os.uname()[1]}]
 		self.clean_stack = list(self.stack)
 		self.setLevel(logging.DEBUG)
 
@@ -176,8 +176,9 @@ class JucheLogger(logging.Logger):
 		while True:
 			state = self.currentState()
 			if not state.has_key("auto_stack"): 
-				#print "skip"
-				continue
+				self.push(ignore_undefined_behavior_check=True)
+				self.set([("auto_stack",stack)])
+				break
 			state_stack = state["auto_stack"]
 			common = greatest_common_traceback(stack,state_stack)
 			if len(state_stack) > len(stack): #The current managed stack needs to be popped
