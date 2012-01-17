@@ -262,8 +262,13 @@ class JucheLogger(logging.Logger):
 			self.set([(key,val)])
 		juche.info("JUCHE_REVOLUTION",extra={"lineno":line_no,"filename":file_name})
 
-		yield
-		self.pop()
+		try:
+			yield
+		except Exception as e:
+			raise e
+		finally:
+			self.dedent()
+			self.pop()
 
 
 class IndentFormatter(logging.Formatter):
