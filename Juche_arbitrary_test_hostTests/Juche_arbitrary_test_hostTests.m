@@ -26,7 +26,7 @@
 
 - (void)testExample
 {
-    STFail(@"Unit tests are not implemented yet in Juche_arbitrary_test_hostTests");
+    //STFail(@"Unit tests are not implemented yet in Juche_arbitrary_test_hostTests");
 }
 
 @end

@@ -26,8 +26,18 @@
 static NSMutableDictionary *loggers;
 @implementation JucheLog
 
-+(NSString *)  getMacAddress {
-    
++(NSString *)  uniqueID {
+#if (defined(TARGET_OS_MAC) && ! defined(TARGET_IPHONE_SIMULATOR))
+    NSString *serialNumberString = nil;
+    io_struct_inband_t iokit_entry;
+    uint32_t bufferSize = 4096; // this signals the longest entry we will take
+    io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
+    IORegistryEntryGetProperty(ioRegistryRoot, kIOPlatformSerialNumberKey, iokit_entry, &bufferSize);
+    serialNumberString = [NSString stringWithCString: iokit_entry encoding: NSASCIIStringEncoding];
+    IOObjectRelease((unsigned int) iokit_entry);
+    IOObjectRelease(ioRegistryRoot);
+    return serialNumberString;
+#else //ios
     struct ifaddrs * addrs;
     struct ifaddrs * cursor;
     const struct sockaddr_dl * dlAddr;
@@ -55,16 +65,10 @@ static NSMutableDictionary *loggers;
         freeifaddrs(addrs);
     }    
     return retVal;
-}
-
-+ (NSString *)uniqueID
-{
-#ifdef TARGET_OS_MAC
-    return [JucheLog getMacAddress];
-#else
-    return @"Not implemented";
 #endif
 }
+
+
 + (NSDictionary*) getTrueBundleDict {
     NSBundle *mainBundle = [NSBundle mainBundle];
     if ([[mainBundle objectForInfoDictionaryKey:@"CFBundleExecutablePath"] hasSuffix:@"otest"]) { //we are in some unit test
