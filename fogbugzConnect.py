@@ -807,6 +807,33 @@ class FogBugzConnect:
         else:
             juche.error("FogBugz case does not exists or isn't assigned to you!")
         return
+    
+    #
+    # assign case to user
+    #
+    def assignCase(self, CASE_NO, ixPerson):
+        resp = self.fbConnection.assign(ixBug=CASE_NO, ixPersonAssignedTo=ixPerson)
+        if not resp:
+            juche.error("Fogbugz case does not exist are can't be assigned to ixperson %s" % ixPerson)
+
+    #
+    # Create a case
+    #    
+    def createCase(self, title, ixProject, ixCategory, priority=3, ixPersonAssignedTo=None):
+        resp = self.fbConnection.new(sTitle=title, ixProject=ixProject, ixFixFor=ixCategory, sPriority=priority, ixPersonAssignedTo=ixPersonAssignedTo)
+        if not resp:
+            juche.error("Failed to create case %s in %s (%s), priority %s for user %s" % (title, ixProject, ixCategory, priority, ixPersonAssignedTo))
+            return -1
+        else:
+            return resp.case.ixBug
+    
+    #
+    # Set a case estimate
+    #
+    def estimateCase(self, CASE_NO, estimate):
+        resp = self.fbConnection.edit(ixBug=CASE_NO, hrsCurrEst=estimate)
+        if not resp:
+            juche.error("Failed to update case %s estimate to %s" % (CASE_NO, estimate))
 
     #
     #
