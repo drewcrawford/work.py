@@ -56,11 +56,11 @@ class MockRepo:
 
     #is this name really necessary?
     def wipeRepo__INCREDIBLY__DESTRUCTIVE_COMMAND(self):
-        self.git.statusOutput("git push -f --all --delete")
+        self.git.statusOutputExcept("git push -f --all --delete")
         self.git.statusOutput("rm -Rf .git")
-        self.git.statusOutput("git init")
+        self.git.statusOutputExcept("git init")
         self.git = GetConnect(self.dir)
-        self.git.statusOutput("git remote add origin git@github.com:drewcrawford/SampleProject.git")
+        self.git.statusOutputExcept("git remote add origin git@github.com:drewcrawford/SampleProject.git")
         self.createFile("README.txt", "test")
         self.gitAdd("README.txt")
         self.gitCommit("First Commit")
@@ -83,7 +83,7 @@ class MockRepo:
         return self.fb.createCase(title, 1, 1, 7)
     
     def ticketSetEstimate(self, ticket, estimate):
-        self.fb.estimate(ticket, estimate)
+        self.fb.setEstimate(ticket, estimate)
 
 #Unit Tests
 import unittest
