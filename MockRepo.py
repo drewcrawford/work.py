@@ -30,7 +30,7 @@ class MockRepo:
     def readFile(self, name):
         with open(self.dir+name, "r") as file:
             return file.read()
-    
+
     def gitInit(self):
         self.git.statusOutput("git init", self.dir)
 
@@ -46,7 +46,7 @@ class MockRepo:
     def gitPull(self):
         self.git.fetch()
         self.git.pull()
-        self.git.submoduleUpdate()
+        self.git.submoduleUpdate() #Drew would like to document that this is redundant. Bion would like to document that this redundancy is not clear.
 
     def gitMerge(self, branch):
         self.git.mergeIn(branch)
@@ -81,7 +81,7 @@ class MockRepo:
 
     def ticketCreate(self, title):
         return self.fb.createCase(title, 1, 1, 7)
-    
+
     def ticketSetEstimate(self, ticket, estimate):
         self.fb.setEstimate(ticket, estimate)
 
@@ -95,18 +95,18 @@ class TestSequence(unittest.TestCase):
         repo = MockRepo()
         cls.dir = repo.dir
         repo.gitInit()
-    
+
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.dir)
 
     def setUp(self):
         self.repo = MockRepo(TestSequence.dir)
-    
+
     def test_createFile(self):
         self.repo.createFile("test.txt", "This was a triumph!")
         self.assertTrue(os.path.exists(self.repo.dir) and self.repo.readFile("test.txt") == "This was a triumph!")
-    
+
     def test_editFile(self):
         self.repo.editFile("test.txt", "I'm making a note here: HUGE SUCCESS")
         self.assertTrue(os.path.exists(self.repo.dir) and self.repo.readFile("test.txt") == "I'm making a note here: HUGE SUCCESS")
