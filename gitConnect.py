@@ -59,6 +59,9 @@ class GitConnect:
     def commit(self,msg):
         self.statusOutputExcept("git commit -m '%s'" % msg)
 
+    def commitAll(self, msg):
+        self.statusOutputExcept("git commit -a -m '%s'" % msg)
+
     #
     # status_output_wrapper
     #
@@ -87,7 +90,7 @@ class GitConnect:
             self.statusOutput("git clean -d -x -ff",wd=root)
             self.statusOutput("git reset --hard",wd=root)
             self.statusOutput("git submodule update",wd=root)
-    
+
     #
     # Checks to see if we're in a Git Repo
     #
