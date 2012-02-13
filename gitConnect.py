@@ -11,8 +11,6 @@ class bcolors:
 
 
 class GitConnect:
-
-
     @staticmethod
     def clone(url,into):
         import subprocess
@@ -84,7 +82,6 @@ class GitConnect:
     def resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND(self):
         import os
         for root,dirs,files in os.walk(self.wd):
-
             self.statusOutput("git clean -d -x -ff",wd=root)
             self.statusOutput("git reset --hard",wd=root)
             self.statusOutput("git submodule update",wd=root)
@@ -100,7 +97,6 @@ class GitConnect:
         else:
             return output
 
-
     #
     # Return (user,repo) for current working copy
     #
@@ -110,7 +106,6 @@ class GitConnect:
         userRepo = re.search("(?<=Fetch URL:)[^:]+:(.*)",output).group(1).split("/")
         userRepo[1] = userRepo[1].replace(".git","")
         return userRepo
-
 
     #
     # Launch gitHub compare view
@@ -163,16 +158,33 @@ class GitConnect:
             juche.error("ERROR:  Cannot fetch! %s" % output)
             raise Exception("stacktraceplease")
 
-    def __mergeInPretend(self,BRANCH_NAME): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
+    def __mergeInPretend(self,BRANCH_NAME, reset=True): #http://stackoverflow.com/questions/501407/is-there-a-git-merge-dry-run-option/6283843#6283843
         self.checkForUnsavedChanges()
         (status,output) = self.statusOutput("git merge --no-commit --no-ff %s" % BRANCH_NAME)
         if status:
             with juche.revolution(output=output):
                 juche.warning("gitConnect __mergeInPretend: merge %s will not apply cleanly.  " % BRANCH_NAME)
-        self.resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND()
+        if reset:
+            self.resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND()
         #if you see an exception on the line below, we failed to roll back the merge
         self.checkForUnsavedChanges()
         return status==0
+    
+    def mergeInOrReset(self, BRANCH_NAME, mergeStrategy=None):
+        if self.__mergeInPretend(BRANCH_NAME, False):
+            return False
+        if mergeStrategy and hasattr(mergeStrategy, '__call__'):
+            mergeStrategy()
+        if self.mergeConflicts():
+            self.resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND()
+            return False
+        else:
+            self.commit("Merge branch '%s'" % BRANCH_NAME)
+        return True
+    
+    def mergeConflicts(self):
+        (status, output) = self.statusOutput("git status")
+        return output.find("Unmerged paths") >= 0
 
     #
     #
@@ -203,7 +215,6 @@ class GitConnect:
         if output.find("Your branch is behind") != -1:
             return True
         return False
-
 
     #
     # Performs a git pull
@@ -274,7 +285,6 @@ class GitConnect:
     # Checks out existing branch for CASE_NO
     #
     def checkoutExistingBranch(self,CASE_NO):
-
         output = self.__checkoutExistingBranch(CASE_NO)
         if not output:
             juche.error("could not checkout existing branch: %s" % output)
@@ -284,8 +294,6 @@ class GitConnect:
 
         self.pull()
         return True
-
-
 
     #
     # Private method: Checks out and existing branch for CASE_NO
@@ -349,8 +357,6 @@ class GitConnect:
     # create a new branch, check into it, push something up to master, make it track, and return.
     #
     def checkoutBranch(self, CASE_NO, fromSpec,fbConnection):
-
-
         # get output from git branch command
         (branchStatus, branchOutput) = self.statusOutput("git branch")
 
