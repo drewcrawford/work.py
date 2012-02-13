@@ -778,7 +778,7 @@ class FogBugzConnect:
                 delta =  (nowtime - referencetime).total_seconds()
             else:
                 delta =  (referencetime-nowtime).total_seconds()
-            if delta / 60.0 / 60.0 < 1.0: #within an hour of the prescribed time
+            if delta / 60.0 / 60.0 < 4.0: #within four hours of the prescribed time
                 annoyable.append(ix)
             else:
                 lastActive = self.userLastActive(ix)
