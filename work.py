@@ -259,8 +259,8 @@ def projectStartTest(CASE_NO):
     if not fbConnection.isReadyForTest(parent):
         print "This doesn't look ready to be tested (resolved/implemented)... are you sure about this? (press Enter to continue)"
         raw_input()
-    
-    
+
+
 
     gitConnection.fetch()
     gitConnection.checkoutBranch(parent,None,fbConnection)
@@ -554,63 +554,63 @@ def chargeback(case):
 
 #sets a reasonable completion date per the EBS estimate for the milestone
 def _fixFors_to_EBS_dates(abbreviatedTest=False):
-    with juche.revolution(fixing_dates_per_ebs=1):
-        fbConnection = FogBugzConnect()
-        fixfors = fbConnection.dependencyOrder(fbConnection.listFixFors())
-        if abbreviatedTest:
-            fixfors = fixfors[:5]
-        for item in fixfors:
-            name = fbConnection.nameForFixFor(fbConnection.fixForDetail(item))
-            if name.startswith("Never"): continue
-            juche.info("processing %s %s" % (name,item))
-            date = fbConnection.getShipDate(item)
-            from dateutil.parser import parse
-            if not abbreviatedTest:
-                fbConnection.editFixForShipDate(item,parse(date))
-            #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
-            else:
-                juche.warning("Not editing the ship date in %s to %s because this is an abbreviated test." % (item,date))
-    
+    juche.dictate(fixing_dates_per_ebs=1)
+    fbConnection = FogBugzConnect()
+    fixfors = fbConnection.dependencyOrder(fbConnection.listFixFors())
+    if abbreviatedTest:
+        fixfors = fixfors[:5]
+    for item in fixfors:
+        name = fbConnection.nameForFixFor(fbConnection.fixForDetail(item))
+        if name.startswith("Never"): continue
+        juche.info("processing %s %s" % (name,item))
+        date = fbConnection.getShipDate(item)
+        from dateutil.parser import parse
+        if not abbreviatedTest:
+            fbConnection.editFixForShipDate(item,parse(date))
+        #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
+        else:
+            juche.warning("Not editing the ship date in %s to %s because this is an abbreviated test." % (item,date))
+
 #sets each test milestone to be one day following the appropriate release milestone.
 def _fixFors_test_quickly_dates(abbreviatedTest=False):
-    with juche.revolution(fixing_test_milestones=1):
-        fbConnection = FogBugzConnect()
-        fixfors_raw = fbConnection.listFixFors()
-        fixfors = fbConnection.dependencyOrder(fixfors_raw)
-        from dateutil.parser import parse
-        import datetime
-        if abbreviatedTest:
-            fixfors = fixfors[:5]
-        for testMilestone in fixfors:
+    juche.dictate(fixing_test_milestones=1)
+    fbConnection = FogBugzConnect()
+    fixfors_raw = fbConnection.listFixFors()
+    fixfors = fbConnection.dependencyOrder(fixfors_raw)
+    from dateutil.parser import parse
+    import datetime
+    if abbreviatedTest:
+        fixfors = fixfors[:5]
+    for testMilestone in fixfors:
 
-            testMilestone_raw = fbConnection.fixForDetail(testMilestone)
-            testName = fbConnection.nameForFixFor(testMilestone_raw)
-            if testName.startswith("Never"): continue
-            with juche.revolution(testMilestone=testMilestone,testName=testName):
-                if not testName.endswith("-test"): continue
-                if testName=="Undecided-test": continue
-                matched = False
-                if testMilestone_raw.ixproject.contents==[]: continue
-                for item in fbConnection.listFixFors(ixProject=int(testMilestone_raw.ixproject.contents[0])):
-                    #print testName[:-5],fbConnection.nameForFixFor(item)
-                    if item.sfixfor.contents[0]==testName[:-5]:
-                        #print "matching",testName,fbConnection.nameForFixFor(item)
-                        matched = True
-                        break
-                if not matched:
-                    juche.info(testMilestone_raw)
-                    raise Exception("Cannot match "+testName)
-                if item.dt.contents==[]:
-                    juche.info("Can't set %s because the non-test milestone has no completion date." % testName)
-                    continue
-                date = item.dt.contents[0]
-                newDate = parse(date)+datetime.timedelta(hours=6) #turns out that using 1 day produces weird results.  If the next implementation milestone is completed within 24 hours, lots of weird things can happen
-                juche.info("setting %s to %s"% (testName,newDate))
-                if not abbreviatedTest:
-                    fbConnection.editFixForShipDate(testMilestone,newDate)
-                #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
-                else:
-                    juche.warn("Not editing the ship date in %s to %s because this is an abbreviated test." % (testMilestone,newDate))
+        testMilestone_raw = fbConnection.fixForDetail(testMilestone)
+        testName = fbConnection.nameForFixFor(testMilestone_raw)
+        if testName.startswith("Never"): continue
+        juche.dictate(testMilestone=testMilestone,testName=testName)
+        if not testName.endswith("-test"): continue
+        if testName=="Undecided-test": continue
+        matched = False
+        if testMilestone_raw.ixproject.contents==[]: continue
+        for item in fbConnection.listFixFors(ixProject=int(testMilestone_raw.ixproject.contents[0])):
+            #print testName[:-5],fbConnection.nameForFixFor(item)
+            if item.sfixfor.contents[0]==testName[:-5]:
+                #print "matching",testName,fbConnection.nameForFixFor(item)
+                matched = True
+                break
+        if not matched:
+            juche.info(testMilestone_raw)
+            raise Exception("Cannot match "+testName)
+        if item.dt.contents==[]:
+            juche.info("Can't set %s because the non-test milestone has no completion date." % testName)
+            continue
+        date = item.dt.contents[0]
+        newDate = parse(date)+datetime.timedelta(hours=6) #turns out that using 1 day produces weird results.  If the next implementation milestone is completed within 24 hours, lots of weird things can happen
+        juche.info("setting %s to %s"% (testName,newDate))
+        if not abbreviatedTest:
+            fbConnection.editFixForShipDate(testMilestone,newDate)
+        #It's bad to leave EBS in a partially-edited state.  Therefore we simply log the output and don't actually write any changes when in abbreviated test mode.
+        else:
+            juche.warn("Not editing the ship date in %s to %s because this is an abbreviated test." % (testMilestone,newDate))
 
 def fixUp(abbreviatedTest=False):
     _fixFors_to_EBS_dates(abbreviatedTest=abbreviatedTest)
@@ -723,7 +723,7 @@ class TestSequence(unittest.TestCase):
 
     def test_fixup_fixfors(self):
         fixUp(abbreviatedTest=True)
-    
+
     def test_chargeback(self):
         f = FogBugzConnect()
         self.assertAlmostEqual(chargeback(1111),-5.123611111111112) #I'm not 100% sure that this test makes any sense

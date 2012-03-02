@@ -167,8 +167,8 @@ class GitConnect:
         self.checkForUnsavedChanges()
         (status,output) = self.statusOutput("git merge --no-commit --no-ff %s" % BRANCH_NAME)
         if status:
-            with juche.revolution(output=output):
-                juche.warning("gitConnect __mergeInPretend: merge %s will not apply cleanly.  " % BRANCH_NAME)
+            juche.dictate(output=output)
+            juche.warning("gitConnect __mergeInPretend: merge %s will not apply cleanly.  " % BRANCH_NAME)
         self.resetHard_INCREDIBLY_DESTRUCTIVE_COMMAND()
         #if you see an exception on the line below, we failed to roll back the merge
         self.checkForUnsavedChanges()
@@ -180,22 +180,22 @@ class GitConnect:
     def mergeIn(self,BRANCH_NAME,pretend=False):
         if pretend:
             return self.__mergeInPretend(BRANCH_NAME)
-        with juche.revolution(merging_in=BRANCH_NAME):
-            (status,output) = self.statusOutput("git merge --no-ff %s" % BRANCH_NAME)
-            juche.info(output)
-            if status:
-                juche.error("merge was unsuccessful.")
-                # play sounds!
-                self.statusOutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
-                raise Exception("stacktraceplease")
+        juche.dictate(merging_in=BRANCH_NAME)
+        (status,output) = self.statusOutput("git merge --no-ff %s" % BRANCH_NAME)
+        juche.info(output)
+        if status:
+            juche.error("merge was unsuccessful.")
+            # play sounds!
+            self.statusOutput ("afplay -v 7 %s/media/ohno.aiff" % sys.prefix)
+            raise Exception("stacktraceplease")
+        else:
+            # play sounds!
+            from work import get_setting_dict
+            if get_setting_dict().has_key("disablesounds") and get_setting_dict()["disablesounds"]=="YES":
+                pass
             else:
-                # play sounds!
-                from work import get_setting_dict
-                if get_setting_dict().has_key("disablesounds") and get_setting_dict()["disablesounds"]=="YES":
-                    pass
-                else:
-                    self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
-            juche.info("Use 'git push' to ship.")
+                self.statusOutput ("afplay -v 7 %s/media/hooray.aiff" % sys.prefix)
+        juche.info("Use 'git push' to ship.")
 
     def needsPull(self):
         (status,output) = self.statusOutput("git status")
@@ -227,25 +227,25 @@ class GitConnect:
         str = file.read()
         file.close()
 
-        with juche.revolution(pull=1):
-            if self.getBranch() not in str:
-                juche.warn( "%s is not a tracking branch. Attempting to fix..." % self.getBranch())
-                try:
-                    self.setUpstream(self.getBranch(),"remotes/origin/{0}".format(self.getBranch()))
-                    juche.info("Success!")
-                except:
-                    juche.error("DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG.")
+        juche.dictate(pull=1)
+        if self.getBranch() not in str:
+            juche.warn( "%s is not a tracking branch. Attempting to fix..." % self.getBranch())
+            try:
+                self.setUpstream(self.getBranch(),"remotes/origin/{0}".format(self.getBranch()))
+                juche.info("Success!")
+            except:
+                juche.error("DID NOT AUTOMATICALLY FIX BRANCH UPSTREAM / TRACKING.  PLEASE FILE A BUG.")
 
-                (status,output) = self.statusOutput("git pull origin %s" % self.getBranch())
-                if status:
-                    juche.error("Cannot pull! %s" % output)
-            else:
-                (status,output) = self.statusOutput("git pull")
-                if status:
-                    juche.error("ERROR:  Cannot pull! %s" % output)
-                    raise Exception("stacktraceplease")
-            self.submoduleUpdate()
-            juche.info("Success!")
+            (status,output) = self.statusOutput("git pull origin %s" % self.getBranch())
+            if status:
+                juche.error("Cannot pull! %s" % output)
+        else:
+            (status,output) = self.statusOutput("git pull")
+            if status:
+                juche.error("ERROR:  Cannot pull! %s" % output)
+                raise Exception("stacktraceplease")
+        self.submoduleUpdate()
+        juche.info("Success!")
 
     #
     # GitConnect Constructor
@@ -294,18 +294,18 @@ class GitConnect:
         return self.__checkoutExistingBranchRaw("work-%d" % CASE_NO)
 
     def __checkoutExistingBranchRaw(self,arg):
-        with juche.revolution(double_checkout_existing_branch_raw=arg):
-            (checkoutNewBranchStatus, output) = self.statusOutput("git checkout {0}".format(arg))
-            if(checkoutNewBranchStatus):
-                juche.info(output)
-                return False
-            (status,output) = self.statusOutput("git submodule init")
-            if status:
-                juche.error("could not init submodule: %s",output)
-            (status,output) = self.statusOutput("git submodule update")
-            if status:
-                juche.error("Error updating a submodule %s",output)
-            return True
+        juche.dictate(double_checkout_existing_branch_raw=arg)
+        (checkoutNewBranchStatus, output) = self.statusOutput("git checkout {0}".format(arg))
+        if(checkoutNewBranchStatus):
+            juche.info(output)
+            return False
+        (status,output) = self.statusOutput("git submodule init")
+        if status:
+            juche.error("could not init submodule: %s",output)
+        (status,output) = self.statusOutput("git submodule update")
+        if status:
+            juche.error("Error updating a submodule %s",output)
+        return True
     #
     # Checks out branch given branch name
     #
