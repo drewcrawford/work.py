@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A2AA13414C54E11008C0579 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A2AA13314C54E11008C0579 /* IOKit.framework */; };
+		3A2AA13914C54F93008C0579 /* JucheLogTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D16A14AEB5D9003B6E52 /* JucheLogTests.m */; };
 		3AB6D15114AEB5D9003B6E52 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3AB6D14F14AEB5D9003B6E52 /* InfoPlist.strings */; };
 		3AB6D15B14AEB5D9003B6E52 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15A14AEB5D9003B6E52 /* SenTestingKit.framework */; };
 		3AB6D15D14AEB5D9003B6E52 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D15C14AEB5D9003B6E52 /* UIKit.framework */; };
@@ -53,7 +55,6 @@
 		3AE325F414AEC64400DF6E38 /* JucheLogTestMac.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AE325F314AEC64400DF6E38 /* JucheLogTestMac.m */; };
 		3AE325F914AEC64B00DF6E38 /* JucheLogTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB6D16A14AEB5D9003B6E52 /* JucheLogTests.m */; };
 		3AE325FA14AEC67000DF6E38 /* JucheLogMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AB6D17914AEB5EC003B6E52 /* JucheLogMac.framework */; };
-		3AE325FC14AEC99700DF6E38 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AE325FB14AEC99700DF6E38 /* IOKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +75,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3A2AA13314C54E11008C0579 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = SDKs/MacOSX10.7.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = DEVELOPER_DIR; };
+		3A2AA13614C54E50008C0579 /* libIOKit.A.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libIOKit.A.dylib; path = usr/lib/libIOKit.A.dylib; sourceTree = SDKROOT; };
 		3AB6D14A14AEB5D9003B6E52 /* JucheLog.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheLog.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AB6D14E14AEB5D9003B6E52 /* JucheLog-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "JucheLog-Info.plist"; sourceTree = "<group>"; };
 		3AB6D15014AEB5D9003B6E52 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -124,7 +127,6 @@
 		3AE325F214AEC64400DF6E38 /* JucheLogTestMac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JucheLogTestMac.h; sourceTree = "<group>"; };
 		3AE325F314AEC64400DF6E38 /* JucheLogTestMac.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JucheLogTestMac.m; sourceTree = "<group>"; };
 		3AE325F514AEC64400DF6E38 /* JucheLogTestMac-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "JucheLogTestMac-Prefix.pch"; sourceTree = "<group>"; };
-		3AE325FB14AEC99700DF6E38 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = SDKs/MacOSX10.7.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,7 +152,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3AE325FC14AEC99700DF6E38 /* IOKit.framework in Frameworks */,
+				3A2AA13414C54E11008C0579 /* IOKit.framework in Frameworks */,
 				3AB6D17B14AEB5EC003B6E52 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -192,7 +194,8 @@
 		3AB6D13C14AEB5D9003B6E52 = {
 			isa = PBXGroup;
 			children = (
-				3AE325FB14AEC99700DF6E38 /* IOKit.framework */,
+				3A2AA13614C54E50008C0579 /* libIOKit.A.dylib */,
+				3A2AA13314C54E11008C0579 /* IOKit.framework */,
 				3AB6D14C14AEB5D9003B6E52 /* JucheLog */,
 				3AB6D16314AEB5D9003B6E52 /* JucheLogTests */,
 				3AB6D18014AEB5EC003B6E52 /* JucheLogMac */,
@@ -673,6 +676,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A2AA13914C54F93008C0579 /* JucheLogTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1124,6 +1128,7 @@
 				3AE325DE14AEC49900DF6E38 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		3AE325DF14AEC49900DF6E38 /* Build configuration list for PBXNativeTarget "Juche_arbitrary_test_hostTests" */ = {
 			isa = XCConfigurationList;
@@ -1132,6 +1137,7 @@
 				3AE325E114AEC49900DF6E38 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		3AE325F614AEC64400DF6E38 /* Build configuration list for PBXNativeTarget "JucheLogTestMac" */ = {
 			isa = XCConfigurationList;
@@ -1140,6 +1146,7 @@
 				3AE325F814AEC64400DF6E38 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
