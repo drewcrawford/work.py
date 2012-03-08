@@ -65,11 +65,11 @@ class JucheLogger(logging.Logger):
 		handler.setFormatter(basicFormatter)
 		handler.setLevel(logging.DEBUG)
 		self.addHandler(handler)
-		if globals().has_key("LOGGLY_KEY"):
-			jucheHandler = LogglyHandler(key=LOGGLY_KEY)
+		try:
+			jucheHandler = LogglyHandler(key=globals()["__builtins__"].LOGGLY_KEY)
 			jucheHandler.setLevel(logging.INFO)
 			self.addHandler(jucheHandler)
-		else:
+		except:
 			self.warning("__builtins__.LOGGLY_KEY is not set up, network logging is disabled.")
 
 	def currentState(self):
@@ -224,7 +224,7 @@ class TestSequence(unittest.TestCase):
 		for i in range(0,3):
 			with juche.revolution(i=i):
 				juche.info("My awesome loop")
-	
+
 	def test_long(self):
 		print "\n"
 		for i in range(0,3):
@@ -233,5 +233,3 @@ class TestSequence(unittest.TestCase):
 				for j in range(0,2):
 					with juche.revolution(j=j):
 						juche.info("Inner loop!")
-
-
