@@ -8,6 +8,8 @@
 
 #import "NSLogBackend.h"
 
+static NSDateFormatter *dateFormatter;
+
 @implementation NSLogBackend
 - (BOOL)log:(NSDictionary *)state {
     NSArray *reserved = [NSArray arrayWithObjects:@"file",@"line",@"msg",@"indent",@"thread",@"function",@"level", nil];
@@ -18,7 +20,14 @@
     for(int i = 0; i < indent; i++) {
         [string appendString:@"|  "]; 
     }
-    [string appendFormat:@"[%@] %@ %@ ",[state objectForKey:@"level"],[[NSDate date] descriptionWithCalendarFormat:@"%H:%M:%S" timeZone:nil locale:nil],[state objectForKey:@"msg"]];
+    if (!dateFormatter) {
+        dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"HH:mm:ss"];
+
+    }
+
+    //[[NSDate date] descriptionWithCalendarFormat:@"%H:%M:%S" timeZone:nil locale:nil]
+    [string appendFormat:@"[%@] %@ %@ ",[state objectForKey:@"level"],[dateFormatter stringFromDate:[NSDate date]],[state objectForKey:@"msg"]];
     
     
     for(NSString *key in state.allKeys) {
