@@ -666,7 +666,7 @@ class FogBugzConnect:
                 self.commentOn(CASE_NO,"work.py: %s is implementing." % self.username)
             else:
                 self.setEstimate(CASE_NO)
-                self.startCase(CASE_NO)
+                self.startCase(CASE_NO, enforceNoTestCases=enforceNoTestCases)
         else:
             juche.error("FogBugz case does not exist or isn't assigned to you!!")
             raise Exception("stacktraceplease")
