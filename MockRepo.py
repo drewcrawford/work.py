@@ -40,8 +40,11 @@ class MockRepo:
     def gitCommit(self, message):
         self.git.commitAll(message)
 
-    def gitPush(self):
-        self.git.statusOutput("git push -u")
+    def gitPush(self, forceful=False):
+        if forceful:
+            self.git.statusOutput("git push -u -f")
+        else:
+            self.git.statusOutput("git push -u")
 
     def gitPull(self):
         self.git.fetch()
