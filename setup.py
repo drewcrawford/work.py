@@ -5,7 +5,7 @@ except:
 	if (raw_input()=="y"):
 		import os
 		os.system("curl -L https://github.com/bionoren/CodeLint/tarball/master > lint.tar.gz")
-		os.system("tar xfvj lint.tar.gz")
+		os.system("tar xfv lint.tar.gz")
 		os.system("rm -rf lint.tar.gz")
 		os.system("cd bionoren-CodeLint-* && python setup.py install")
 		os.system("rm -rf bionoren-CodeLint-*")
@@ -16,8 +16,8 @@ except:
 	print "It appears you don't have beautiful soup installed.  Want to give that a try? y/n"
 	if (raw_input()=="y"):
 		import os
-		os.system("curl -O http://www.crummy.com/software/BeautifulSoup/download/3.x/BeautifulSoup-3.2.0.tar.gz")
-		os.system("tar xfvj BeautifulSoup*")
+		os.system("curl -O http://www.crummy.com/software/BeautifulSoup/bs3/download//3.x/BeautifulSoup-3.2.0.tar.gz")
+		os.system("tar xfv BeautifulSoup*")
 		os.system("cd BeautifulSoup-3.2.0/ && python setup.py install")
 		os.system("rm -rf BeautifulSoup*")
 try:
@@ -27,7 +27,7 @@ except:
 	if (raw_input()=="y"):
 		import os
 		os.system("curl -O http://pypi.python.org/packages/source/k/keyring/keyring-0.5.1.tar.gz")
-		os.system("tar -xzvf keyring-0.5.1.tar.gz")
+		os.system("tar -xvf keyring-0.5.1.tar.gz")
 		os.system("cd keyring-0.5.1 && python setup.py install")
 		os.system("rm -rf keyring-0.5*")
 
