@@ -39,10 +39,14 @@ def undefined_behavior():
 
 def post_async(endpoint,message):
 	r = urllib2.Request(endpoint,data=message,headers={"content-type":"application/json"})
-	data = urllib2.urlopen(r)
-	response = data.read()
-	if response != '{"response":"ok"}':
-		print "JUCHE FAIL",response
+	try:
+		data = urllib2.urlopen(r)
+		response = data.read()
+		if response != '{"response": "ok"}':
+			print "JUCHE FAIL",response
+	except e as Exception:
+		print "juche fail",e
+	
 def post_to_endpoint(endpoint, message):
 	t = threading.Thread(target=post_async,args=[endpoint,message])
 	t.start()
