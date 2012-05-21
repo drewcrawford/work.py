@@ -9,18 +9,25 @@
 #import "JucheLog.h"
 #import "UnifiedQueue.h"
 #import "JucheBackend.h"
+
 @interface JucheLog () {
     NSMutableArray *stack;
     NSMutableArray *cleanStack;
 }
 @end
 
+#include <sys/types.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <net/if_dl.h>
+#include <ifaddrs.h>
+
 static NSMutableDictionary *loggers;
 @implementation JucheLog
 
-+ (NSString *)uniqueID
-{
-#ifdef TARGET_OS_MAC
++(NSString *)  uniqueID {
+#if (defined(TARGET_OS_MAC) && ! defined(TARGET_IPHONE_SIMULATOR))
     NSString *serialNumberString = nil;
     io_struct_inband_t iokit_entry;
     uint32_t bufferSize = 4096; // this signals the longest entry we will take
@@ -30,10 +37,38 @@ static NSMutableDictionary *loggers;
     IOObjectRelease((unsigned int) iokit_entry);
     IOObjectRelease(ioRegistryRoot);
     return serialNumberString;
-#else
-    return @"Not implemented";
+#else //ios
+    struct ifaddrs * addrs;
+    struct ifaddrs * cursor;
+    const struct sockaddr_dl * dlAddr;
+    const unsigned char* base;
+    int i;
+    
+    NSMutableString *retVal=[NSMutableString stringWithCapacity:18];
+    
+    if (getifaddrs(&addrs) == 0) {
+        cursor = addrs;
+        while (cursor != 0 && ([retVal length] <17)) {
+            if ( (cursor->ifa_addr->sa_family == AF_LINK)
+                && (((const struct sockaddr_dl *) cursor->ifa_addr)->sdl_type == 0x6) && strcmp("lo0",  cursor->ifa_name)!=0 ) {
+                dlAddr = (const struct sockaddr_dl *) cursor->ifa_addr;
+                base = (const unsigned char*) &dlAddr->sdl_data[dlAddr->sdl_nlen];
+                for (i = 0; i < dlAddr->sdl_alen; i++) {
+                    [retVal appendFormat:@"%02X:", base[i]];
+                }
+                //delete the last :
+                [retVal deleteCharactersInRange:NSMakeRange(([retVal length]-1), 1)];
+            }
+            cursor = cursor->ifa_next;
+        }
+        
+        freeifaddrs(addrs);
+    }    
+    return retVal;
 #endif
 }
+
+
 + (NSDictionary*) getTrueBundleDict {
     NSBundle *mainBundle = [NSBundle mainBundle];
     if ([[mainBundle objectForInfoDictionaryKey:@"CFBundleExecutablePath"] hasSuffix:@"otest"]) { //we are in some unit test
