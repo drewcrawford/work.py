@@ -60,6 +60,7 @@ def non_logging_raw():
 		else: break
 	return arr
 def non_logging_exc():
+	import traceback
 	return "".join(traceback.format_list(non_logging_raw()))
 
 def greatest_common_traceback(tb1,tb2):
