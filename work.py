@@ -406,13 +406,13 @@ def projectIntegrateMake(CASE_NO,fromSpec):
 
 def complain(ixComplainAboutPerson):
     fbConnection = FogBugzConnect()
-    response = fbConnection.fbConnection.search(q="status:active assignedto:=%d" % ixComplainAboutPerson,cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo,sFixFor")
+    response = fbConnection.fbConnection.search(q="status:active assignedto:=%d" % ixComplainAboutPerson,cols="hrsCurrEst,hrsElapsed,sPersonAssignedTo,sFixFor,sCategory")
     for case in response.cases:
         #print case
         if case.hrscurrest.contents[0]=="0":
             juche.info("%s's case %s has no estimate" % (case.spersonassignedto.contents[0], case["ixbug"]))
             fbConnection.commentOn(case["ixbug"],"This next test could take a very, VERY long time.")
-        if case.sfixfor.contents[0]=="Undecided":
+        if case.sfixfor.contents[0]=="Undecided" and (case.scategory.contents[0] == "bug" or case.scategory.contents[0] == "feature"):
             juche.info("%s needs a milestone" % case["ixbug"])
             fbConnection.commentOn(case["ixbug"],"If you choose not to decide, you still have made a choice.  (Don't think about it, don't think about it...)  It's a paradox!  There IS no answer.")
         est = float(case.hrscurrest.contents[0])
